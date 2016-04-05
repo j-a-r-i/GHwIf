@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
+#include <string>
 #include "btooth.h"
 #include "sensors.h"
 
@@ -21,13 +23,24 @@ public:
 };
 
 //------------------------------------------------------------------------------
+class MeasData {
+public:
+    std::string toJson() {
+	return std::string("\"") + name + std::string("\":") + std::to_string(value);
+    }
+public:
+    std::string name;
+    float value;
+};
+
+//------------------------------------------------------------------------------
 class Measures {
 public:
   int counter;
   int t1;
   int t2;
   int t3;
-
+  std::vector<MeasData> data;
   char buffer[100];
 
   Measures() :
@@ -37,6 +50,10 @@ public:
     t3(2)
   {}
 
+  void add(const char* name, float value) {
+    
+  }
+  
   void update() {
     counter++;
     if (counter > 0xFFFF)
