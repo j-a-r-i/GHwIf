@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "btooth.h"
+#include "sensors.h"
 
 #define PORT 8001
 #define BLOCK_SIZE 100
@@ -190,6 +191,11 @@ int main(int argc, char *argv[])
     GMainLoop *loop;
     GError * err = NULL;
 
+    // Sensors
+    Sensors s;
+
+    s.scan();
+    
 
     // Bluetooth scan
     //
