@@ -1,6 +1,10 @@
 #ifndef __SERIAL_H
 #define __SERIAL_H
 
+#include <algorithm>
+#include <vector>
+
+//------------------------------------------------------------------------------
 class FileBase
 {
 public:
@@ -10,14 +14,45 @@ public:
      */
     void ioc(int command, void *data);
     void write(char buffer[], int size);
-    void read(char buffer[], int size);
+    int  read(char buffer[], int size);
 
     void close();
+
+    int GetHandle() {
+      return _handle;
+    }
     
-protected:
+    virtual void HandleSelect() {
+    }
+    
+//protected:
+public:
     int _handle;
 };
 
+//------------------------------------------------------------------------------
+class FileList
+{
+public:
+    FileList();
+
+    void add(FileBase* item) {
+	_items.push_back(item);
+    }
+
+    void del(FileBase* item) {
+	_items.erase(std::remove_if(_items.begin(),
+				    _items.end(),
+				    [&item](FileBase *b){
+					return (b->GetHandle() == item->GetHandle());
+				    }
+			 ),
+		     _items.end());
+    }
+    
+public:
+    std::vector<FileBase*> _items;
+};
 
 //------------------------------------------------------------------------------
 class RS232 : public FileBase
@@ -25,6 +60,7 @@ class RS232 : public FileBase
 public:
     RS232(const char* filename);
 
+    void HandleSelect();
 };
 
 //------------------------------------------------------------------------------

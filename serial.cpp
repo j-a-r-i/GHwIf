@@ -9,12 +9,13 @@
 #include <linux/i2c-dev.h>
 #include <termios.h>
 #include <unistd.h>
+#include <iostream>
 
 void FileBase::open(const char* fname)
 {
     _handle = ::open(fname, O_RDWR| O_NOCTTY | O_NDELAY);
     if (_handle < 0) {
-        printf("error opening SPI bus!\n");
+	std::cout << "ERROR opening " << fname << " (ret=" << _handle << ")" << std::endl;
     }
 }
 
@@ -38,21 +39,25 @@ void FileBase::write(char buffer[], int size)
 	
         stat = ::write(_handle, buffer, size);
         if (stat != size) {
-            printf("Error writing\n");
+            printf("Error writing (ret=%d)\n", stat);
         }
     }
 }
 
-void FileBase::read(char buffer[], int size)
+int FileBase::read(char buffer[], int size)
 {
+    int stat = 0;
+    
     if (_handle > 0) {
-        int stat;
-	
         stat = ::read(_handle, buffer, size);
-        if (stat != size) {
-            printf("Error reading\n");
+        if (stat < 0) {
+            printf("Error reading (ret=%d)\n", stat);
         }
+	else {
+	    buffer[stat] = 0;
+	}
     }
+    return stat;
 }
 
 void FileBase::close()
@@ -64,11 +69,18 @@ void FileBase::close()
 }
 
 //------------------------------------------------------------------------------
+FileList::FileList()
+{
+}
+
+//------------------------------------------------------------------------------
 RS232::RS232(const char* filename)
 {
     struct termios  cfg;
 
-    if (tcgetattr(handle, &cfg) < 0) {
+    open(filename);
+    
+    if (tcgetattr(_handle, &cfg) < 0) {
         printf("Error tcgetattr\n");
     }
 
@@ -84,8 +96,25 @@ RS232::RS232(const char* filename)
     cfg.c_oflag = 0;
     cfg.c_lflag = ICANON;
 
-    if (tcsetattr(handle, TCSAFLUSH, &cfg) < 0) {
+    if (tcsetattr(_handle, TCSAFLUSH, &cfg) < 0) {
         printf("Error tcsetattr\n");
+    }
+}
+
+void RS232::HandleSelect()
+{
+    const int SIZE = 80;
+    char buffer[SIZE];
+    int count;
+    //std::cout << "HandleSelect3" << std::endl;
+
+    count = read(buffer, SIZE);
+    if (count == 0) {
+	//std::cout << "connection closed " << _handle << std::endl;
+    }
+    else {
+	if (count > 2)
+	    std::cout << "T(" << count << "):" << buffer; // << std::endl;
     }
 }
 
@@ -93,7 +122,7 @@ RS232::RS232(const char* filename)
 SPI::SPI(const char* filename, int mode, int lsb, int bits, int speed)
 {
     __u8 modeRead, bitsRead;
-    __u8 lsbRead;
+    //__u8 lsbRead;
     __u32 speedRead;
 
     open(filename);
