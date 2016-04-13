@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <vector>
+#include "measures.h"
 
 //------------------------------------------------------------------------------
 class FileBase
@@ -58,9 +59,12 @@ public:
 class RS232 : public FileBase
 {
 public:
-    RS232(const char* filename);
+    RS232(const char* filename, Measure *m);
 
     void HandleSelect();
+
+private:
+    Measure *measure;
 };
 
 //------------------------------------------------------------------------------

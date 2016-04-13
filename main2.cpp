@@ -2,14 +2,39 @@
 #include "sensors.h"
 #include "btooth.h"
 #include "Socket.h"
+#include "measures.h"
 
 #define PORT 8080
 
+/*int main(int argc, char *argv[])
+{
+    std::string line = "m 3B 167 16C 0";
+    std::istringstream sstr(line);
+
+    char command;
+    int  counter;
+    int  temp1;
+    int  temp2;
+    int  temp3;
+
+    sstr >> command >> std::hex >> counter >> temp1 >> temp2 >> temp3;
+
+    float t1 = temp1 / 16.0;
+    float t2 = temp2 / 16.0;
+    //float t3 = temp3 / 16.0;
+    
+    std::cout << counter << std::endl;
+    std::cout << t1 << std::endl;
+    std::cout << t2 << std::endl;
+
+    return 0;
+}*/
 
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
     int loop = 1;
+    Measure meas;
 #if 0
     Sensors s;
     s.scan();
@@ -25,7 +50,7 @@ int main(int argc, char *argv[])
 
     handles.add(&server);
 
-    RS232  serial("/dev/ttyACM0");
+    RS232  serial("/dev/ttyACM0", &meas);
 
     handles.add(&serial);
 

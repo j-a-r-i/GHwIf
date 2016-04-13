@@ -10,6 +10,8 @@
 #include <termios.h>
 #include <unistd.h>
 #include <iostream>
+#include <string>
+#include <sstream>
 
 void FileBase::open(const char* fname)
 {
@@ -74,7 +76,8 @@ FileList::FileList()
 }
 
 //------------------------------------------------------------------------------
-RS232::RS232(const char* filename)
+RS232::RS232(const char* filename, Measure *m) :
+  measure(m)
 {
     struct termios  cfg;
 
@@ -113,8 +116,27 @@ void RS232::HandleSelect()
 	//std::cout << "connection closed " << _handle << std::endl;
     }
     else {
-	if (count > 2)
-	    std::cout << "T(" << count << "):" << buffer; // << std::endl;
+	if (count > 2) {
+	    std::string line = buffer;
+	    std::istringstream sstr(line);
+
+	    char command;
+	    int  counter;
+	    int  temp1, temp2, temp3;
+
+	    sstr >> command >> std::hex >> counter >> temp1 >> temp2 >> temp3;
+
+	    float t1 = temp1 / 16.0;
+	    float t2 = temp2 / 16.0;
+	    float t3 = temp3 / 16.0;
+
+	    measure->set(Measure::TEMP1, t1);
+	    measure->set(Measure::TEMP2, t2);
+	    measure->set(Measure::TEMP3, t3);
+	    
+	    //std::cout << counter << "," << t1 << "," << t2 << std::endl;
+	    std::cout << measure->getJson() << std::endl;
+	}
     }
 }
 
