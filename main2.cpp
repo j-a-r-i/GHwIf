@@ -35,6 +35,16 @@ int main(int argc, char *argv[])
 {
     int loop = 1;
     Measure meas;
+
+#ifndef USE_LINUX
+	WSADATA wsaData = { 0 };
+	int res = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (res != 0) {
+		std::cout << "WSAStartup failed: " << res << std::endl;
+		return 1;
+    }
+#endif
+
 #if 0
     Sensors s;
     s.scan();
@@ -50,31 +60,32 @@ int main(int argc, char *argv[])
 
     handles.add(&server);
 
+#ifdef USE_LINUX
     RS232  serial("/dev/ttyACM0", &meas);
 
     handles.add(&serial);
-
+#endif
     
     while (loop) {
-	fd_set reads;
-	int maxFd = 0;
+		fd_set reads;
+		int maxFd = 0;
       
-	//std::cout << "looping..." << std::endl;
+		//std::cout << "looping..." << std::endl;
 
-	for (auto& i : handles._items) {
-	    //std::cout << "\tH:" << i->_handle << std::endl;
-	    FD_SET(i->_handle, &reads);
-	    if (i->_handle > maxFd)
-		maxFd = i->_handle;
-	}
+		for (auto& i : handles._items) {
+			//std::cout << "\tH:" << i->_handle << std::endl;
+			FD_SET(i->_handle, &reads);
+			if (i->_handle > maxFd)
+			maxFd = i->_handle;
+		}
 	
-	select(maxFd+1, &reads, NULL, NULL, NULL);
+		select(maxFd+1, &reads, NULL, NULL, NULL);
 
-	for (auto& i : handles._items) {
-	    if (FD_ISSET(i->_handle, &reads)) {
-		i->HandleSelect();
-	    }
-	}
+		for (auto& i : handles._items) {
+			if (FD_ISSET(i->_handle, &reads)) {
+				i->HandleSelect();
+			}
+		}
     }
     
     return 0;

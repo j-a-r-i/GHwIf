@@ -1,48 +1,58 @@
 #include "serial.h"
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
 #include <fcntl.h>
-#include <linux/spi/spidev.h>
-#include <linux/i2c.h>
-#include <linux/i2c-dev.h>
-#include <termios.h>
-#include <unistd.h>
+#ifdef USE_LINUX
+  #include <unistd.h>
+  #include <sys/ioctl.h>
+  #include <linux/spi/spidev.h>
+  #include <linux/i2c.h>
+  #include <linux/i2c-dev.h>
+  #include <termios.h>
+#else
+  #define O_NOCTTY 0
+  #define O_NDELAY 0
+#endif
 #include <iostream>
 #include <string>
 #include <sstream>
 
 void FileBase::open(const char* fname)
 {
-    _handle = ::open(fname, O_RDWR| O_NOCTTY | O_NDELAY);
+#ifdef USE_LINUX
+	_handle = ::open(fname, O_RDWR| O_NOCTTY | O_NDELAY);
     if (_handle < 0) {
-	std::cout << "ERROR opening " << fname << " (ret=" << _handle << ")" << std::endl;
+		std::cout << "ERROR opening " << fname << " (ret=" << _handle << ")" << std::endl;
     }
+#endif
 }
 
-void FileBase::ioc(int command, void *data)
+int FileBase::ioc(int command, void *data)
 {
+	int stat=0;
+#ifdef USE_LINUX
     if (_handle < 0)
         return;
-
-    int stat;
 
     stat = ioctl(_handle, command, data);
     if (stat < 0) {
         printf("error in ioctl %d\n", command);
     }
+#endif
+	return stat;
 }
 
 void FileBase::write(char buffer[], int size)
 {
     if (_handle > 0) {
-        int stat;
+#ifdef USE_LINUX
+		int stat;
 	
         stat = ::write(_handle, buffer, size);
         if (stat != size) {
             printf("Error writing (ret=%d)\n", stat);
         }
+#endif
     }
 }
 
@@ -51,23 +61,27 @@ int FileBase::read(char buffer[], int size)
     int stat = 0;
     
     if (_handle > 0) {
-        stat = ::read(_handle, buffer, size);
+#ifdef USE_LINUX
+		stat = ::read(_handle, buffer, size);
         if (stat < 0) {
             printf("Error reading (ret=%d)\n", stat);
         }
-	else {
-	    buffer[stat] = 0;
+		else {
+			buffer[stat] = 0;
+		}
+#endif
 	}
-    }
     return stat;
 }
 
 void FileBase::close()
 {
-    if (_handle > 0) {
+#ifdef USE_LINUX
+	if (_handle > 0) {
         ::close(_handle);
         _handle = -1;
     }
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -79,7 +93,8 @@ FileList::FileList()
 RS232::RS232(const char* filename, Measure *m) :
   measure(m)
 {
-    struct termios  cfg;
+#ifdef USE_LINUX
+	struct termios  cfg;
 
     open(filename);
     
@@ -102,6 +117,7 @@ RS232::RS232(const char* filename, Measure *m) :
     if (tcsetattr(_handle, TCSAFLUSH, &cfg) < 0) {
         printf("Error tcsetattr\n");
     }
+#endif
 }
 
 void RS232::HandleSelect()
@@ -143,7 +159,8 @@ void RS232::HandleSelect()
 //------------------------------------------------------------------------------
 SPI::SPI(const char* filename, int mode, int lsb, int bits, int speed)
 {
-    __u8 modeRead, bitsRead;
+#ifdef USE_LINUX
+	__u8 modeRead, bitsRead;
     //__u8 lsbRead;
     __u32 speedRead;
 
@@ -163,13 +180,15 @@ SPI::SPI(const char* filename, int mode, int lsb, int bits, int speed)
 
     ioc(SPI_IOC_WR_MAX_SPEED_HZ, &speed);
 
-    ioc(SPI_IOC_RD_MAX_SPEED_HZ, &speedRead);  
+    ioc(SPI_IOC_RD_MAX_SPEED_HZ, &speedRead);
+#endif
 }
 
 
 void SPI::readWrite(unsigned char *buffer, int size)
 {
-    spi_ioc_transfer xfer;
+#ifdef USE_LINUX
+	spi_ioc_transfer xfer;
 
     memset(&xfer, 0, sizeof(spi_ioc_transfer));
     
@@ -180,6 +199,7 @@ void SPI::readWrite(unsigned char *buffer, int size)
     xfer.delay_usecs = 0;
     
     ioc(SPI_IOC_MESSAGE(1), &xfer);
+#endif
 }
 
 
@@ -189,10 +209,12 @@ I2C::I2C(const char* filename, int addr)
     open(filename);
 
     if (_handle > 0) {
+#ifdef USE_LINUX
         int stat = ioctl(_handle, I2C_SLAVE, addr);
         if (stat < 0) {
             printf("error in ioctl I2C_SLAVE");
         }
+#endif
     }
 }
 

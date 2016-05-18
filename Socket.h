@@ -1,7 +1,12 @@
 #ifndef __SOCKET_H
 #define __SOCKET_H
 
-#include <netinet/in.h>
+#ifdef USE_LINUX
+  #include <netinet/in.h>
+#else
+  #pragma comment(lib,"Ws2_32.lib")
+  #include <WinSock2.h>
+#endif
 #include "serial.h"
 
 //------------------------------------------------------------------------------

@@ -1,5 +1,10 @@
 #include <iostream>
-#include <sys/socket.h>
+#ifdef USE_LINUX
+  #include <sys/socket.h>
+#else
+  #include <winsock2.h>
+  #include <WS2tcpip.h>
+#endif
 #include "Socket.h"
 
 #define TRUE 1

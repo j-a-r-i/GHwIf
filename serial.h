@@ -13,7 +13,7 @@ public:
 
     /** Do ioctl command for the device.
      */
-    void ioc(int command, void *data);
+    int ioc(int command, void *data);
     void write(char buffer[], int size);
     int  read(char buffer[], int size);
 
