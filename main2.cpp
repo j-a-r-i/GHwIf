@@ -3,6 +3,7 @@
 #include "btooth.h"
 #include "Socket.h"
 #include "measures.h"
+#include "db.h"
 
 #define PORT 8080
 
@@ -32,6 +33,14 @@
 
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
+{
+	Database db(":memory:");
+
+	Query q1(&db, "CREATE TABLE");
+}
+
+//------------------------------------------------------------------------------
+/*int main(int argc, char *argv[])
 {
     int loop = 1;
     Measure meas;
@@ -90,3 +99,4 @@ int main(int argc, char *argv[])
     
     return 0;
 }
+*/

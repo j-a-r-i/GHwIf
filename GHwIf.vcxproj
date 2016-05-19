@@ -97,6 +97,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="db.cpp" />
+    <ClCompile Include="external\sqlite3.c" />
     <ClCompile Include="main2.cpp" />
     <ClCompile Include="measures.cpp" />
     <ClCompile Include="serial.cpp" />
@@ -104,6 +106,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
+    <ClInclude Include="db.h" />
+    <ClInclude Include="external\sqlite3.h" />
     <ClInclude Include="measures.h" />
     <ClInclude Include="serial.h" />
     <ClInclude Include="Socket.h" />
