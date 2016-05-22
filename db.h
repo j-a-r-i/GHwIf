@@ -1,7 +1,7 @@
 #ifndef __DB_H
 #define __DB_H
 
-#include "external/sqlite3.h"
+#include "external\sqlite3.h"
 
 //-----------------------------------------------------------------------------
 class Database
@@ -21,6 +21,11 @@ class Query
 public:
 	Query(Database *db, const char* sql);
 	virtual ~Query();
+
+	void Handle();
+
+protected:
+	virtual void HandleRow();
 
 private:
 	sqlite3_stmt *_statement;
