@@ -18,16 +18,43 @@
 
 uv_loop_t *loop;
 uv_timer_t timer1;
+uv_tcp_t *client;
+
+//------------------------------------------------------------------------------
+void onRead(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
+{
+	std::cout << "READ:" << buf->base << std::endl;
+}
+
+void alloc_buffer(uv_handle_t* handle, size_t ssize, uv_buf_t* buf)
+{
+	*buf = uv_buf_init((char*)malloc(ssize), ssize);
+}
+
 
 //------------------------------------------------------------------------------
 void onConnection(uv_stream_t* server, int status)
 {
-	std::cout << "Connection" << std::endl;
-}
+	int res;
 
-//------------------------------------------------------------------------------
-void onRead()
-{
+	std::cout << "Connection" << std::endl;
+	if (status < 0) {
+		std::cout << "error in connection " << status << std::endl;
+		uv_close((uv_handle_t*)client, NULL);
+		return;
+	}
+
+	client = (uv_tcp_t*)malloc(sizeof(uv_tcp_t));
+
+	uv_tcp_init(loop, client);
+	
+	res = uv_accept(server, (uv_stream_t*)client);
+	if (res == 0) {
+		uv_read_start((uv_stream_t*)client, alloc_buffer, onRead);
+	}
+	else {
+		uv_close((uv_handle_t*)client, NULL);
+	}
 }
 
 //------------------------------------------------------------------------------
