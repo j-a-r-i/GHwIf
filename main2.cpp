@@ -9,35 +9,58 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
+#include <uv.h>
+
+//#pragma comment (lib, "libuv.lib")
 
 #define PORT 8080
+#define NUM_CONNECTIONS 10
 
-/*int main(int argc, char *argv[])
+uv_loop_t *loop;
+uv_timer_t timer1;
+
+//------------------------------------------------------------------------------
+void onConnection(uv_stream_t* server, int status)
 {
-    std::string line = "m 3B 167 16C 0";
-    std::istringstream sstr(line);
+	std::cout << "Connection" << std::endl;
+}
 
-    char command;
-    int  counter;
-    int  temp1;
-    int  temp2;
-    int  temp3;
+//------------------------------------------------------------------------------
+void onRead()
+{
+}
 
-    sstr >> command >> std::hex >> counter >> temp1 >> temp2 >> temp3;
-
-    float t1 = temp1 / 16.0;
-    float t2 = temp2 / 16.0;
-    //float t3 = temp3 / 16.0;
-    
-    std::cout << counter << std::endl;
-    std::cout << t1 << std::endl;
-    std::cout << t2 << std::endl;
-
-    return 0;
-}*/
+//------------------------------------------------------------------------------
+void onTimer(uv_timer_t* handle)
+{
+	std::cout << "timer1" << std::endl;
+}
 
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
+{
+	uv_tcp_t server;
+	sockaddr_in addr;
+	int backlog = 0;
+
+    loop = uv_default_loop();
+
+	uv_timer_init(loop, &timer1);
+	uv_timer_start(&timer1, onTimer, 5000, 5000);
+
+	uv_tcp_init(loop, &server);
+
+	uv_ip4_addr("0.0.0.0", PORT, &addr);
+
+	uv_tcp_bind(&server, (const struct sockaddr*)&addr, 0);
+
+	uv_listen((uv_stream_t*)&server, NUM_CONNECTIONS, onConnection);
+
+	uv_run(loop, UV_RUN_DEFAULT);
+}
+
+//------------------------------------------------------------------------------
+int test1(int argc, char *argv[])
 {
 	rapidjson::Document doc;
 	doc.SetObject();
@@ -67,6 +90,7 @@ int main(int argc, char *argv[])
 	Query q4(&db, "SELECT * FROM test;");
 	q4.Handle();
 
+	return 0;
 }
 
 //------------------------------------------------------------------------------
