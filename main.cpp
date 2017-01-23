@@ -1,8 +1,8 @@
 #include <glib.h>
 #include <gio/gio.h>
 #include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+//#include <stdio.h>
+//#include <stdlib.h>
 #include <vector>
 #include <string>
 #include "btooth.h"

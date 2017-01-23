@@ -1,4 +1,5 @@
 #include <iostream>
+#include "config.h"
 #ifdef USE_LINUX
   #include <sys/socket.h>
 #else

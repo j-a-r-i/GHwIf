@@ -63,8 +63,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\home\cpp\libuv\include;C:\home\controllers\GHwIf\external;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\home\controllers\GHwIf\Debug\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)..\..\cpp\libuv\include;$(SolutionDir)external;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Debug\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>

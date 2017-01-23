@@ -1,13 +1,18 @@
+#SDKTARGETSYSROOT=/mnt/buildroot/output/host
+#CXX=arm-buildroot-linux-gnueabihf-c++
+
+CXX=g++
+
 CC     = $(CXX)
 #CFLAGS = -g -std=c++14 -Wall $(shell pkg-config --cflags glib-2.0 gio-2.0 bluez)
 #LIBS   = $(shell pkg-config --libs glib-2.0 gio-2.0 bluez) -lsensors
-CFLAGS = -g -std=c++14 -Wall
-LIBS   = 
+CFLAGS = -g -std=c++11 -Wall
+LIBS   = -luv -lbluetooth
 
 TARGET=ghwif
 TARGET2=hwif
 
-OBJECTS2=main2.o serial.o Socket.o measures.o
+OBJECTS2=main2.o serial.o Socket.o measures.o btooth.o
 
 all: $(TARGET2)
 
