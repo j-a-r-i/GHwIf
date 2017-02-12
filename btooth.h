@@ -8,6 +8,7 @@ public:
 
 
     void scanStart();
+    void scanLoop();
     void scanStop();
     
     void scan();

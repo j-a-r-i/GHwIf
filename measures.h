@@ -23,6 +23,10 @@ public:
 	temp[i] = t;
     }
 
+    void set(int i, float t) {
+	temp[i] = t;
+    }
+
     std::string& getJson();
     
 private:

@@ -241,16 +241,21 @@ void test3()
 
 void test4()
 {
-	Bluetooth b;
-	b.scan();
+    Bluetooth b;
+
+    b.scanStart();
+    b.scanLoop();
+    b.scanStop();
+
+    b.close();
 }
 
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-	test4();
+    test4();
 
-	return 0;
+    return 0;
 }
 
 //------------------------------------------------------------------------------

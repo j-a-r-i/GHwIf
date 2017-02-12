@@ -129,30 +129,32 @@ void RS232::HandleSelect()
 
     count = read(buffer, SIZE);
     if (count == 0) {
-	//std::cout << "connection closed " << _handle << std::endl;
+		//std::cout << "connection closed " << _handle << std::endl;
     }
     else {
-	if (count > 2) {
-	    std::string line = buffer;
-	    std::istringstream sstr(line);
+		if (count > 2) {
+			std::string line = buffer;
+			std::istringstream sstr(line);
 
-	    char command;
-	    int  counter;
-	    int  temp1, temp2, temp3;
+            #define MAX_TEMP 3
+            
+			char command;
+			int  counter;
 
-	    sstr >> command >> std::hex >> counter >> temp1 >> temp2 >> temp3;
+			sstr >> command >> std::hex >> counter;
 
-	    float t1 = temp1 / 16.0;
-	    float t2 = temp2 / 16.0;
-	    float t3 = temp3 / 16.0;
+            for (int i=0; i<MAX_TEMP; i++) {
+                int   temp;
 
-	    measure->set(Measure::TEMP1, t1);
-	    measure->set(Measure::TEMP2, t2);
-	    measure->set(Measure::TEMP3, t3);
+                sstr >> temp;
+                
+                float t = temp / 16.0f;
+
+                measure->set(i, t);
+            }
 	    
-	    //std::cout << counter << "," << t1 << "," << t2 << std::endl;
-	    std::cout << measure->getJson() << std::endl;
-	}
+			std::cout << measure->getJson() << std::endl;
+		}
     }
 }
 
