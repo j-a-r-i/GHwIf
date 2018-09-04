@@ -3,12 +3,10 @@
  ******************************************************************************/
 #pragma once
 
-#define USE_LINUX
-//#define USE_JSON
-//#define USE_WS
-//#define USE_BLUETOOTH
-#define USE_SENSORS
+class InfoItem
+{
+public:
+    //virtual ~InfoItem() = 0;
 
-//#define SERIAL_PORT "/dev/ttyACM0"
-#define SERIAL_PORT "/dev/ttyS0"
-
+    virtual void read() = 0;
+};

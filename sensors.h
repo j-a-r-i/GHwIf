@@ -1,15 +1,17 @@
-#ifndef __SENSORS_H
-#define __SENSORS_H
+/******************************************************************************
+ * Copyright (C) 2016-8 Jari Ojanen
+ ******************************************************************************/
+#pragma once
 
-class Sensors
+#include "infoitem.h"
+
+class Sensors : public InfoItem
 {
 public:
     Sensors();
 
     virtual ~Sensors();
 
-    void scan();
+    void read();
 private:
 };
-    
-#endif // __SENSORS_H

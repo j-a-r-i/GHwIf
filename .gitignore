@@ -1,3 +1,4 @@
 *.o
 *~
 /ghwif
+/hwif

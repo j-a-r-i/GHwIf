@@ -1,3 +1,6 @@
+/******************************************************************************
+ * Copyright (C) 2016-8 Jari Ojanen
+ ******************************************************************************/
 #include <sensors/sensors.h>
 #include <iostream>
 #include "sensors.h"
@@ -14,7 +17,7 @@ Sensors::~Sensors()
 }
 
 
-void Sensors::scan()
+void Sensors::read()
 {
     sensors_chip_name const * cn;
     int c = 0;

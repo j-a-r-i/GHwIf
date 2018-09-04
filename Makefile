@@ -1,3 +1,7 @@
+################################################################################
+# Copyright (C) 2016-8 Jari Ojanen
+################################################################################
+
 #SDKTARGETSYSROOT=/mnt/buildroot/output/host
 #CXX=arm-buildroot-linux-gnueabihf-c++
 
@@ -5,14 +9,25 @@ CXX=g++
 
 CC     = $(CXX)
 #CFLAGS = -g -std=c++14 -Wall $(shell pkg-config --cflags glib-2.0 gio-2.0 bluez)
-#LIBS   = $(shell pkg-config --libs glib-2.0 gio-2.0 bluez) -lsensors
-CFLAGS = -g -std=c++11 -Wall
-LIBS   = -luv -lbluetooth
+#LIBS   = $(shell pkg-config --libs glib-2.0 gio-2.0 bluez)
+CFLAGS = -g -std=c++11 -Wall -I.
+LIBS   = -luv
+LIBS  += -lsensors
+#LIBS  += -lbluetooth
+LIBS  += -lcurl
 
 TARGET=ghwif
 TARGET2=hwif
 
-OBJECTS2=main2.o serial.o Socket.o measures.o btooth.o
+# btooth.o
+
+OBJECTS2  = main2.o serial.o Socket.o measures.o
+OBJECTS2 += sensors.o
+#OBJECTS2 += btooth.o
+OBJECTS2 += web.o
+OBJECTS2 += disk.o
+OBJECTS2 += rpi/gpio.o
+
 
 all: $(TARGET2)
 
@@ -34,7 +49,13 @@ btooth.o:  btooth.cpp btooth.h
 serial.o:  serial.cpp serial.h
 	$(CC) $(CFLAGS) -c $<
 
-sensors.o:  sensors.cpp sensors.h
+sensors.o:  sensors.cpp sensors.h infoitem.h
+	$(CC) $(CFLAGS) -c $<
+
+web.o: web.cpp web.h infoitem.h
+	$(CC) $(CFLAGS) -c $<
+
+disk.o: disk.cpp disk.h infoitem.h
 	$(CC) $(CFLAGS) -c $<
 
 Socket.o:  Socket.cpp Socket.h

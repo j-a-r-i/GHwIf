@@ -1,16 +1,26 @@
+/******************************************************************************
+ * Copyright (C) 2016-8 Jari Ojanen
+ ******************************************************************************/
 #include <iostream>
 #include <fstream>
+#include <list>
 #include "config.h"
-#include "sensors.h"
-#include "btooth.h"
 #include "Socket.h"
 #include "measures.h"
 //#include "db.h"
+#include "web.h"
+#include "disk.h"
 
 #ifdef USE_JSON
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
+  #include "rapidjson/document.h"
+  #include "rapidjson/writer.h"
+  #include "rapidjson/stringbuffer.h"
+#endif
+#ifdef USE_BLUETOOTH
+  #include "btooth.h"
+#endif
+#ifdef USE_SENSORS
+  #include "sensors.h"
 #endif
 
 #include <uv.h>
@@ -241,6 +251,7 @@ void test3()
 
 void test4()
 {
+#ifdef USE_BLUETOOTH
     Bluetooth b;
 
     b.scanStart();
@@ -248,13 +259,32 @@ void test4()
     b.scanStop();
 
     b.close();
+#endif
 }
 
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
+    std::list<InfoItem*> infos;
+    
+#ifdef USE_SENSORS
+    Sensors s;
+    infos.push_back(&s);
+#endif
+
     test4();
 
+    Web w;
+//    infos.push_back(&w);
+
+    Disk d;
+    infos.push_back(&d);
+
+    // read items
+    //
+    for (auto info : infos) {
+	info->read();
+    }
     return 0;
 }
 
