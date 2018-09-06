@@ -55,3 +55,7 @@ void Sensors::read()
         }
     }
 }
+
+void Sensors::print()
+{
+}

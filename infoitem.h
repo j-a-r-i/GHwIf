@@ -9,4 +9,5 @@ public:
     //virtual ~InfoItem() = 0;
 
     virtual void read() = 0;
+    virtual void print() = 0;
 };

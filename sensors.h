@@ -13,5 +13,6 @@ public:
     virtual ~Sensors();
 
     void read();
+    void print();
 private:
 };

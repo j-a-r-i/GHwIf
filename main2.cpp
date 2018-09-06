@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
 
     test4();
 
-    Web w;
+//    Web w;
 //    infos.push_back(&w);
 
     Disk d;
@@ -284,6 +284,7 @@ int main(int argc, char *argv[])
     //
     for (auto info : infos) {
 	info->read();
+	info->print();
     }
     return 0;
 }
