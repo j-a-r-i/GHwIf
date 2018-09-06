@@ -1,7 +1,6 @@
 #include "serial.h"
 #include <stdio.h>
 #include <string.h>
-#include <fcntl.h>
 #ifdef USE_LINUX
   #include <unistd.h>
   #include <sys/ioctl.h>
