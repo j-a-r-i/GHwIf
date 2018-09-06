@@ -16,7 +16,6 @@ LIBS  += -lsensors
 #LIBS  += -lbluetooth
 LIBS  += -lcurl
 
-TARGET=ghwif
 TARGET2=hwif
 
 # btooth.o
@@ -28,11 +27,14 @@ OBJECTS2 += web.o
 OBJECTS2 += disk.o
 OBJECTS2 += rpi/gpio.o
 
+OBJ_UTEST = test/tdisk.o
+OBJ_UTEST += disk.o
+
 
 all: $(TARGET2)
 
-$(TARGET):  main.o btooth.o serial.o sensors.o
-	$(CC) $(CFLAGS) -L$(SDKTARGETSYSROOT)/usr/bin -o $(TARGET) main.o btooth.o serial.o sensors.o $(LIBS)
+utest: $(OBJ_UTEST)
+	$(CC) $(CFLAGS) -I. -L$(SDKTARGETSYSROOT)/usr/bin -o utest $(OBJ_UTEST) $(LIBS) -lgtest -lpthread
 
 $(TARGET2): $(OBJECTS2)  
 	$(CC) $(CFLAGS) -L$(SDKTARGETSYSROOT)/usr/bin -o $(TARGET2) $(OBJECTS2) $(LIBS)
