@@ -3,11 +3,20 @@
  ******************************************************************************/
 #pragma once
 
+
+#define VERSION_MAJOR @VERSION_MAJOR@
+#define VERSINO_MINOR @VERSION_MINOR@
+
+#cmakedefine HW_RPI
+
 #define USE_LINUX
 //#define USE_JSON
 //#define USE_WS
 //#define USE_BLUETOOTH
+
+#ifndef HW_RPI
 #define USE_SENSORS
+#endif
 
 //#define SERIAL_PORT "/dev/ttyACM0"
 #define SERIAL_PORT "/dev/ttyS0"

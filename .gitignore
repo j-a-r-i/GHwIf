@@ -2,3 +2,12 @@
 *~
 /ghwif
 /hwif
+/utest
+/CMakeCache.txt
+/.ninja_log
+/.ninja_deps
+/config.h
+/CMakeFiles/
+/build.ninja
+/cmake_install.cmake
+/rules.ninja
