@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 2.6)
 
 option(HW_RPI
        "Raspberry PI hardware" OFF)
-option(TEST
-       "Build unit tests" ON)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 1)
@@ -36,13 +34,3 @@ target_link_libraries(hwif uv
 			   curl
 			   ${EXTRA_LIBS}
 )
-
-
-if (TEST)
-   find_package(GTest REQUIRED)
-   include_directories(${GTEST_INCLUDE_DIRS})
-
-   add_executable(utest test/tdisk.cpp disk.cpp)
-   target_link_libraries(utest ${GTEST_LIBRARIES} pthread)
-
-endif (TEST)
