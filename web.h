@@ -14,6 +14,7 @@ public:
     virtual ~Web();
 
     void read();
+    void print();
 
 private:
     CURL *handle;

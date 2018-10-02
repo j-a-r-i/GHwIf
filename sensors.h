@@ -4,7 +4,24 @@
 #pragma once
 
 #include "infoitem.h"
+#include <string>
+#include <list>
 
+//------------------------------------------------------------------------------
+class SensorItem
+{
+    void setValue(double v) {
+	value = v;
+    }
+    double getValue() {
+	return value;
+    }
+private:
+    std::string name;
+    double value;
+};
+
+//------------------------------------------------------------------------------
 class Sensors : public InfoItem
 {
 public:
@@ -15,4 +32,5 @@ public:
     void read();
     void print();
 private:
+    std::list<SensorItem*> items;
 };

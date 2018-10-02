@@ -47,3 +47,7 @@ void Web::read()
 	std::cout << "CURL ERROR: " << curl_easy_strerror(result) << std::endl;
     }
 }
+
+void Web::print()
+{
+}

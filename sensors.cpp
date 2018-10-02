@@ -3,24 +3,25 @@
  ******************************************************************************/
 #include <sensors/sensors.h>
 #include <iostream>
+#include <sstream>
+#include <string>
 #include "sensors.h"
 
+/*
+const char *sensors[] = {
+"atk0110.temp1",
+"atk0110.temp2",
+"coretemp.temp2",
+"coretemp.temp3"
+};
+*/
 
-Sensors::Sensors()
-{
-    sensors_init(NULL);
-}
-
-Sensors::~Sensors()
-{
-    sensors_cleanup();
-}
-
-
-void Sensors::read()
+template<typename Func>
+void each_sensor(Func fn)
 {
     sensors_chip_name const * cn;
     int c = 0;
+    std::stringstream ss;
 
     while ((cn = sensors_get_detected_chips(0, &c)) != 0)
     {
@@ -47,7 +48,12 @@ void Sensors::read()
                         std::cout << "error " << err << std::endl;
                     }
                     else {
-			std::cout << cn->prefix << "." << feat->name << "=" << val << std::endl;
+			ss << cn->prefix << "." << feat->name;
+			fn(ss.str().c_str(), val);
+
+			ss.clear();
+			ss.str(std::string());
+			//std::cout << cn->prefix << "." << feat->name << "=" << val << std::endl;
                     }
                 }
             }
@@ -56,6 +62,31 @@ void Sensors::read()
     }
 }
 
+//------------------------------------------------------------------------------
+Sensors::Sensors()
+{
+    sensors_init(NULL);
+
+    each_sensor([](const char* name, double value) {
+	    std::cout << name << "=" << value << std::endl;
+	});
+}
+
+Sensors::~Sensors()
+{
+    sensors_cleanup();
+}
+
+void Sensors::read()
+{
+    each_sensor([](const char* name, double value) {
+	    std::cout << name << "=" << value << std::endl;
+	});
+
+}
+
 void Sensors::print()
 {
 }
+
+
