@@ -266,6 +266,12 @@ void test4()
 int main(int argc, char *argv[])
 {
     std::list<InfoItem*> infos;
+
+#ifdef HW_RPI
+    std::cout << "Using RPI" << std::endl;
+#else
+    std::cout << "Using PC" << std::endl;
+#endif
     
 #ifdef USE_SENSORS
     Sensors s;
