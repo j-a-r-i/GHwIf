@@ -3,6 +3,9 @@
  ******************************************************************************/
 #include "web.h"
 #include <iostream>
+#include <sstream>
+
+#define SITE_NASDAQ "www.nasdaqomxnordic.com"
 
 size_t curl_write(void *buffer, size_t size, size_t nmemb, void *user_data)
 {
@@ -35,8 +38,17 @@ void Web::read()
     }
 
     CURLcode result;
+    std::ostringstream os;
+
+    os << "https://" << SITE_NASDAQ
+       << "/webproxy/DataFeedProxy.aspx?"
+       << "Subsystem="     << "History" << "&"
+       << "Action=Get"     << "DataSeries" << "&"
+       << "Instrument=HEX" << "24311" << "&"
+       << "FromDate="      << "2018-09-24";
     
-    curl_easy_setopt(handle, CURLOPT_URL, "http://www.iltalehti.fi/index.html");
+    
+    curl_easy_setopt(handle, CURLOPT_URL, os.str().c_str()); //"http://www.iltalehti.fi/index.html");
     curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);
 
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_write);
