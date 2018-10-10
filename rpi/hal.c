@@ -43,8 +43,8 @@ typedef struct IoPinTable {
 } IoPinTable_t;
 
 IoPinTable_t PINMAP[] = {
-    [PIN_PIN1] = { 5, PIN_OUTPUT },
-    [PIN_PIN2] = { 6, PIN_OUTPUT }
+    [PIN_NRF24_CE]  = { 17, PIN_OUTPUT },
+    [PIN_NRF24_CSN] = { 27, PIN_OUTPUT }
 };
     
 

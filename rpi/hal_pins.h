@@ -1,6 +1,6 @@
 #pragma once
 
 typedef enum pin {
-    PIN_PIN1 = 0,
-    PIN_PIN2 = 0,
+    PIN_NRF24_CE  = 0,
+    PIN_NRF24_CSN
 } pin_t;
