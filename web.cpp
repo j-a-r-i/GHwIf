@@ -2,6 +2,7 @@
  * Copyright (C) 2018 Jari Ojanen
  ******************************************************************************/
 #include "web.h"
+#include "xmlparsesimple.h"
 #include <iostream>
 #include <sstream>
 
@@ -9,8 +10,11 @@
 
 size_t curl_write(void *buffer, size_t size, size_t nmemb, void *user_data)
 {
-    std::cout << "CURL: " << (char*)buffer << std::endl;
-    
+    Web *self = (Web*)user_data;
+
+    if (self != NULL)
+	self->onData((const char*)buffer);
+
     return size * nmemb;
 }
 
@@ -52,12 +56,20 @@ void Web::read()
     curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);
 
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_write);
-    curl_easy_setopt(handle, CURLOPT_WRITEDATA, NULL);
+    curl_easy_setopt(handle, CURLOPT_WRITEDATA, this);
 
     result = curl_easy_perform(handle);
     if (result != CURLE_OK) {
 	std::cout << "CURL ERROR: " << curl_easy_strerror(result) << std::endl;
     }
+}
+
+void Web::onData(const char* str)
+{
+    XmlParseSimple parser("hi", "cp");
+
+    parser.parse(str);
+    //std::cout << "CURL: " << (char*)str << std::endl;
 }
 
 void Web::print()

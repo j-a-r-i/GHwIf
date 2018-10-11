@@ -16,6 +16,8 @@ public:
     void read();
     void print();
 
+    void onData(const char* str);
+
 private:
     CURL *handle;
 };
