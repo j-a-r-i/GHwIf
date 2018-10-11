@@ -11,7 +11,7 @@ void delay_sec()
     std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
-TEST(Rpi, Io1)
+TEST(Hal, Io1)
 {
     io_init();
     io_mode(PIN_NRF24_CE, IO_MODE_OUTPUT);
@@ -26,7 +26,7 @@ TEST(Rpi, Io1)
 }
 
 
-TEST(Rpi, Io2)
+TEST(Hal, Io2)
 {
     io_init();
     io_mode(PIN_NRF24_CSN, IO_MODE_OUTPUT);
@@ -37,5 +37,15 @@ TEST(Rpi, Io2)
 
 	io_clear(PIN_NRF24_CSN);
 	delay_sec();	
+    }
+}
+
+TEST(Hal, Spi1)
+{
+    spi_init(0);
+
+    for (int i=0; i<200; i++) {
+	spi_write(0, 0xF0F0);
+	delay_sec();
     }
 }

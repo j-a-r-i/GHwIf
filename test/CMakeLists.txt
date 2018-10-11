@@ -7,7 +7,7 @@ find_package(GTest REQUIRED)
 find_package(CURL  REQUIRED)
 
 include_directories(${GTEST_INCLUDE_DIRS}
-  /mnt/work/stm32/drivers
+  ../../drivers
   ../rpi)
 
 if (HW_RPI)

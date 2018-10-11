@@ -17,7 +17,7 @@ configure_file(
 include_directories("${PROJECT_BINARY_DIR}"
   ${CURL_INCLUDE_DIR}
   ${EXPAT_INCLUDE_DIR}
-  /mnt/work/stm32/drivers
+  ../drivers
   rpi)
 
 if (HW_RPI)

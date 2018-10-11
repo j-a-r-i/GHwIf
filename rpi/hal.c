@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <sys/ioctl.h>
+#include <linux/types.h>
+#include <linux/spi/spidev.h>
 
 #define BCM2708_PERI_BASE        0x20000000
 #define GPIO_BASE                (BCM2708_PERI_BASE + 0x200000) /* GPIO controller */
@@ -11,6 +14,8 @@
 
 void *gpio_map;
 volatile unsigned *gpio;
+
+int fd_spi;
 
 //------------------------------------------------------------------------------
 //<sample_copy>
@@ -111,11 +116,50 @@ uint8_t io_read(pin_t pin)
 //------------------------------------------------------------------------------
 void spi_init(uint8_t port)
 {
+    uint8_t mode = SPI_LSB_FIRST | SPI_CPOL | SPI_3WIRE;
+    uint8_t bits = 16;
+    int ret;
+	
+    fd_spi = open("/dev/spidev0.0", O_RDWR);
+    if (fd_spi < 0) {
+	printf("Cannot open SPI device!\n");
+	return;
+    }
+
+    ret = ioctl(fd_spi, SPI_IOC_WR_MODE, &mode);
+    if (ret == -1) {
+	printf("ERROR: SPI mode setting!\n");
+	return;
+    }
+
+    ret = ioctl(fd_spi, SPI_IOC_WR_BITS_PER_WORD, &bits);
+    if (ret == -1) {
+	printf("ERROR: SPI mode setting!\n");
+	return;
+    }
 }
 
 //------------------------------------------------------------------------------
 uint16_t spi_write(uint8_t port, uint16_t data)
 {
-    return 0;
+    int ret;
+    uint16_t rval = 0;
+
+    struct spi_ioc_transfer trans = {
+	.tx_buf = (unsigned long)&data,
+	.rx_buf = (unsigned long)&rval,
+	.len = 2,
+	.delay_usecs = 0,
+	.speed_hz = 500000,
+	.bits_per_word = 16
+    };
+
+    ret = ioctl(fd_spi, SPI_IOC_MESSAGE(1), &trans);
+    if (ret == -1) {
+	printf("ERROR: SPI mode setting!\n");
+	return 0;
+    }
+ 
+    return rval;
 }
 
