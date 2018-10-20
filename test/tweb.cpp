@@ -1,15 +1,20 @@
 #include <gtest/gtest.h>
 #include "../web.h"
 
-TEST(Web, Test1)
+TEST(Web, nasdaq)
 {
     Web w;
+    w.setSite(Web::NASDAQ);
     w.read();
 
     EXPECT_EQ ( 10.0, 10.0);
 }
 
-TEST(Web, Test2)
+TEST(Web, fmi)
 {
-    EXPECT_EQ(10.0, 12.0);
+    Web w(false);
+    w.setSite(Web::FMI);
+    w.read();
+    
+    EXPECT_EQ(10.0, 10.0);
 }

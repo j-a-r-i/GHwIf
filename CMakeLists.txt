@@ -5,9 +5,12 @@ option(HW_RPI
 
 find_package(EXPAT REQUIRED)
 find_package(CURL  REQUIRED)
-     
+
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 1)
+
+include(private.txt)
+
 
 configure_file(
     "${PROJECT_SOURCE_DIR}/config.h.in"
@@ -41,5 +44,6 @@ add_executable(hwif main2.cpp
 target_link_libraries(hwif uv
   ${CURL_LIBRARIES}
   ${EXPAT_LIBRARIES}
+  sqlite3
   ${EXTRA_LIBS}
 )

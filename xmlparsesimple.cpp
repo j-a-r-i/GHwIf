@@ -3,13 +3,18 @@
 #include <string.h>
 #include "xmlparsesimple.h"
 
+#define VERBOSE
+
 void onStartElem(void *data, const char* element, const char** attributes)
 {
     XmlParseSimple *self = (XmlParseSimple*)data;
 
+#ifdef VERBOSE	
+	std::cout << "+" << element << std::endl;
+#endif
+
     if (self->isValidTag(element))
     {
-	//std::cout << "+" << element << std::endl;
 
 	for (int i=0; attributes[i]; i+=2) {
 	    if (self->isValidAttr(attributes[i]))
@@ -20,7 +25,9 @@ void onStartElem(void *data, const char* element, const char** attributes)
 
 void onEndElem(void *data, const char* element)
 {
+#ifdef VERBOSE
     //std::cout << "-" << element << std::endl;
+#endif
 }
 
 bool XmlParseSimple::isValidTag(const char* t)
@@ -33,18 +40,28 @@ bool XmlParseSimple::isValidAttr(const char* e)
     return (attribute == e);
 }
 
-void XmlParseSimple::parse(const char* str)
+
+void XmlParseSimple::begin()
 {
-    XML_Parser parser = XML_ParserCreate(NULL);
+    parser = XML_ParserCreate(NULL);
 
     XML_SetUserData(parser, this);
     XML_SetElementHandler(parser, onStartElem, onEndElem);
+}
 
-    if (XML_Parse(parser, str, strlen(str), XML_TRUE) == XML_STATUS_ERROR) {
-	std::cout << "XML parsing error "
+void XmlParseSimple::parse(const char* str)
+{
+    if (XML_Parse(parser, str, strlen(str), XML_FALSE) == XML_STATUS_ERROR) {
+	std::cout << "XML parsing error: "
 		  << XML_ErrorString(XML_GetErrorCode(parser))
 		  << std::endl;
     }
+}
 
+void XmlParseSimple::end()
+{
+#ifdef VERBOSE
+    std::cout << "XML parse end" << std::endl;
+#endif
     XML_ParserFree(parser);
 }
