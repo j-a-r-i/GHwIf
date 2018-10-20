@@ -1,7 +1,7 @@
 #ifndef __DB_H
 #define __DB_H
 
-#include "external\sqlite3.h"
+#include "sqlite3.h"
 
 //-----------------------------------------------------------------------------
 class Database

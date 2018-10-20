@@ -18,10 +18,12 @@ add_executable(utest
   tdisk.cpp ../disk.cpp
   tweb.cpp  ../web.cpp
   txml.cpp  ../xmlparsesimple.cpp
+  tdb.cpp   ../db.cpp
   ttimer.cpp
   ${EXTRA_SRCS})
 
 target_link_libraries(utest pthread
   ${GTEST_LIBRARIES}
   ${CURL_LIBRARIES}
+  sqlite3
   expat)
