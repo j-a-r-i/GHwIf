@@ -2,6 +2,8 @@
 #include <iostream>
 #include <string>
 
+//#define VERBOSE
+
 /**
  *  @arg fname  Database name can be also ":memory:"
  */
@@ -60,7 +62,9 @@ void Query::Handle()
 */
 void Query::HandleRow()
 {
+#ifdef VERBOSE
 	std::cout << "ROW:" << std::endl;
+#endif
 	for (int i = 0; i < sqlite3_column_count(_statement); i++) {
 		std::string val;
 
@@ -78,6 +82,8 @@ void Query::HandleRow()
 			val = "unknown type";
 			break;
 		}
+#ifdef VERBOSE
 		std::cout << "\t" << sqlite3_column_name(_statement, i) << " = " << val << std::endl;
+#endif
 	}
 }
