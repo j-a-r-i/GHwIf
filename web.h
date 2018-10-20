@@ -32,5 +32,5 @@ private:
     Site site;
     CURL *handle;
     bool verbose;
-    XmlParseSimple *parser;
+    XmlBase *parser;
 };

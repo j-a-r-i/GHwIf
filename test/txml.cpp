@@ -3,11 +3,37 @@
 
 const char *STR1 = "<foo><bar one=\"1\" two=\"2\"/></foo>";
 
-TEST(Xml, Test1)
+void load_parser(XmlParseTag *parser)
 {
-    XmlParseSimple parser("bar", "one");
+    parser->begin();
+    parser->parse(STR1);
+    parser->end();    
+}
 
-    parser.parse(STR1);
+TEST(Xml, test1)
+{
+    XmlParseTag parser("bar", "one");
 
-    EXPECT_EQ( 10.0, 10.0);
+    load_parser(&parser);
+
+    EXPECT_EQ( parser.getLast(), "1");
+}
+
+TEST(Xml, test2)
+{
+    XmlParseTag parser("bar", "two");
+
+    load_parser(&parser);
+
+    EXPECT_EQ( parser.getLast(), "21");
+}
+
+
+TEST(Xml, test3)
+{
+    XmlParseTag parser("bar", "not_found");
+
+    load_parser(&parser);
+
+    EXPECT_EQ( parser.getLast(), "");
 }

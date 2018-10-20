@@ -89,7 +89,7 @@ void Web::read()
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, this);
 
 
-    parser = new XmlParseSimple("hi", "cp");
+    parser = new XmlParseTag("hi", "cp");
 
     parser->begin();
     result = curl_easy_perform(handle);

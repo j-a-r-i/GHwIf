@@ -3,24 +3,40 @@
 #include <string>
 #include <expat.h>
 
-class XmlParseSimple
+class XmlBase
 {
 public:
-    XmlParseSimple(const char* t, const char* e) :
-	tag(t), attribute(e)
-    {
-    }
+    virtual void onStartElem(const char* element, const char** attributes) = 0;
+    virtual void onEndElem(const char* element) = 0;
+    virtual void onData(const char* data, int len) = 0;
 
     void begin();
     void parse(const char* str);
     void end();
-    
-    bool isValidTag(const char* t);
-    bool isValidAttr(const char* e);
+
+private:
+    XML_Parser parser;    
+};
+
+class XmlParseTag : public XmlBase
+{
+public:
+    XmlParseTag(const char* t, const char* e) :
+	tag(t), attribute(e)
+    {
+    }
+
+    std::string& getLast() {
+	return lastValue;
+    }
+
+    void onStartElem(const char* element, const char** attributes);
+    void onEndElem(const char* element);
+    void onData(const char* data, int len);
     
 private:
     std::string tag;
     std::string attribute;
 
-    XML_Parser parser;
+    std::string lastValue;
 };
