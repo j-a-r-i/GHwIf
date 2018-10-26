@@ -134,13 +134,11 @@ void onMessage(server* s, websocketpp::connection_hdl hdl, server::message_ptr m
 //------------------------------------------------------------------------------
 void onRs232Message(uv_poll_t *req, int status, int events)
 {
-	if (status < 0)
-	{
-		std::cout << "RS232 error " << status << std::endl;
-	}
-	else if (events & UV_READABLE)
-	{
-	}
+    if (status < 0) {
+	std::cout << "RS232 error " << status << std::endl;
+    }
+    else if (events & UV_READABLE) {
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -272,7 +270,7 @@ int main(int argc, char *argv[])
 #else
     std::cout << "Using PC" << std::endl;
 #endif
-    
+
 #ifdef USE_SENSORS
     Sensors s;
     infos.push_back(&s);

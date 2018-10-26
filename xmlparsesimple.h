@@ -18,6 +18,7 @@ private:
     XML_Parser parser;    
 };
 
+//------------------------------------------------------------------------------
 class XmlParseTag : public XmlBase
 {
 public:
@@ -37,6 +38,31 @@ public:
 private:
     std::string tag;
     std::string attribute;
+
+    std::string lastValue;
+};
+
+//------------------------------------------------------------------------------
+class XmlParseData : public XmlBase
+{
+public:
+    XmlParseData(const char* t) :
+	tag(t),
+	valid(false)
+    {
+    }
+
+    std::string& getLast() {
+	return lastValue;
+    }
+
+    void onStartElem(const char* element, const char** attributes);
+    void onEndElem(const char* element);
+    void onData(const char* data, int len);
+    
+private:
+    std::string tag;
+    bool valid;
 
     std::string lastValue;
 };

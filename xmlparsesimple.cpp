@@ -1,17 +1,14 @@
-#include <iostream>
 #include <expat.h>
 #include <string.h>
 #include "xmlparsesimple.h"
+#include "logger.h"
 
-//#define VERBOSE
 
 void onXmlStartElem(void *data, const char* element, const char** attributes)
 {
     XmlBase *self = (XmlBase*)data;
 
-#ifdef VERBOSE	
-    std::cout << "+" << element << std::endl;
-#endif
+    Log::dbg("onXmlStartElem", element);
 
     if (self != NULL)
 	self->onStartElem(element, attributes);
@@ -20,9 +17,8 @@ void onXmlStartElem(void *data, const char* element, const char** attributes)
 void onXmlEndElem(void *data, const char* element)
 {
     XmlBase *self = (XmlBase*)data;
-#ifdef VERBOSE
-    //std::cout << "-" << element << std::endl;
-#endif
+
+    //Log::dbg("onXmlEndElem", element);
 
     if (self != NULL)
 	self->onEndElem(element);
@@ -31,9 +27,8 @@ void onXmlEndElem(void *data, const char* element)
 void onXmlData(void *data, const char* str, int len)
 {
     XmlBase *self = (XmlBase*)data;
-#ifdef VERBOSE
-//    std::cout << "DATA:" << str << std::endl;
-#endif
+
+    //Log::dbg("onXmlData", str);
 
     if (self != NULL) {
 	//str[len] = 0;
@@ -56,17 +51,15 @@ void XmlBase::begin()
 void XmlBase::parse(const char* str)
 {
     if (XML_Parse(parser, str, strlen(str), XML_FALSE) == XML_STATUS_ERROR) {
-	std::cout << "XML parsing error: "
-		  << XML_ErrorString(XML_GetErrorCode(parser))
-		  << std::endl;
+	Log::err("XmlBase::parse",
+		 XML_ErrorString(XML_GetErrorCode(parser)));
     }
 }
 
 void XmlBase::end()
 {
-#ifdef VERBOSE
-    std::cout << "XML parse end" << std::endl;
-#endif
+    Log::dbg("XmlBase::end", "end");
+
     XML_ParserFree(parser);
 }
 
@@ -101,5 +94,30 @@ void XmlParseTag::onData(const char* data, int len)
     
     std::string d(data, len);
 
+    //std::cout << "D:" << d << "(len=" << len << ")" << std::endl;
+}
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+void XmlParseData::onStartElem(const char* element, const char** attributes)
+{
+    if (tag == element) {
+	valid = true;
+    }
+}
+
+void XmlParseData::onEndElem(const char* element)
+{
+    valid = false;
+}
+
+void XmlParseData::onData(const char* data, int len)
+{
+    if (!valid)
+	return;
+    
+    lastValue.assign(data, len);
+    
     //std::cout << "D:" << d << "(len=" << len << ")" << std::endl;
 }

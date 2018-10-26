@@ -4,7 +4,7 @@
 #include "web.h"
 #include "config.h"
 #include "xmlparsesimple.h"
-#include <iostream>
+#include "logger.h"
 #include <sstream>
 
 #define SITE_NASDAQ "www.nasdaqomxnordic.com"
@@ -44,7 +44,7 @@ Web::~Web()
 void Web::read()
 {
     if (handle == NULL) {
-	std::cout << "CURL not initialized!" << std::endl;
+	Log::err("Web::read", "CURL not initialized");
 	return;
     }
 
@@ -68,13 +68,21 @@ void Web::read()
 	   << "place="          << "oittaa" << SEP
 	   << "parameters="     << "temperature,dewpoint,windspeedms,precipitation1h";
     }
+
+    else if (site == STRAVA) {
+	os << "https://" << SITE_STRAVA 
+	   << "/api/v3/athlete/activities?"
+	   << "page="   << 1 << SEP
+	   << "access_token=" << STRAVA_API << SEP;
+    }
+
+    else {
+	Log::err("web", "invalid site");
+	return;
+    }
     
 #if 0
 
-    os << "https://" << SITE_STRAVA 
-       << "/api/v3/athlete/activities?"
-       << "page="   << 1 << SEP
-       << "access_token=" << strava_api << SEP;
 
     os << "https://" << SITE_DWEET
        << "/dweet/for/ha.joj.home?"
@@ -94,7 +102,7 @@ void Web::read()
     parser->begin();
     result = curl_easy_perform(handle);
     if (result != CURLE_OK) {
-	std::cout << "CURL ERROR: " << curl_easy_strerror(result) << std::endl;
+	Log::err("Web::read", curl_easy_strerror(result));
     }
 
     parser->end();
@@ -108,7 +116,7 @@ void Web::onData(const char* str)
 	parser->parse(str);
 
     if (verbose)
-	std::cout << "CURL: " << (char*)str << std::endl;
+	Log::msg("Web::onData", str);
 }
 
 void Web::print()

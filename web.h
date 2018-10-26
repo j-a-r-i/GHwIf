@@ -12,7 +12,8 @@ class Web : public InfoItem
 public:
     enum Site {
 	NASDAQ,
-	FMI
+	FMI,
+	STRAVA
     };
     
     Web(bool verbose = false);
