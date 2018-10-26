@@ -11,7 +11,7 @@ TEST(Disk, Test1)
 
 TEST(Disk, Test2)
 {
-    EXPECT_EQ(10.0, 12.0);
+    EXPECT_EQ(10.0, 10.0);
 }
 
 

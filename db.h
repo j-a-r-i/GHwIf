@@ -1,5 +1,4 @@
-#ifndef __DB_H
-#define __DB_H
+#pragma once
 
 #include "sqlite3.h"
 
@@ -30,5 +29,3 @@ protected:
 private:
 	sqlite3_stmt *_statement;
 };
-
-#endif

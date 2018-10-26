@@ -24,3 +24,18 @@
 //#define SERIAL_PORT "/dev/ttyACM0"
 #define SERIAL_PORT "/dev/ttyS0"
 
+enum CfgItem {
+    CFG_FMI_API = 0,
+    CFG_STRAVA_API,
+    CFG_SCHEME_INIT,
+    CFG_SERIAL_PORT,
+    CFG_MAX
+};
+
+class Cfg
+{
+public:
+    static void init();
+    static const char* get(CfgItem item);
+    static void set(CfgItem item, const char* value);
+};

@@ -1,5 +1,5 @@
 #include "db.h"
-#include <iostream>
+#include "logger.h"
 #include <string>
 
 //#define VERBOSE
@@ -11,7 +11,7 @@ Database::Database(const char* fname)
 {
     int stat = sqlite3_open(fname, &_db);
     if (stat != SQLITE_OK) {
-	std::cout << "Error opening sqlite database:" << stat << std::endl;
+	Log::err("database open", sqlite3_errmsg(_db));
     }
 }
 
@@ -19,7 +19,7 @@ Database::~Database()
 {
     int stat = sqlite3_close(_db);
     if (stat != SQLITE_OK) {
-	std::cout << "Error closing sqlite database:" << stat << std::endl;
+	Log::err("database close", sqlite3_errmsg(_db));
     }
 }
 
@@ -28,8 +28,8 @@ sqlite3_stmt *Database::Prepare(const char* sql)
     sqlite3_stmt *stmt;
     int stat = sqlite3_prepare(_db, sql, -1, &stmt, NULL);
     if (stat != SQLITE_OK) {
-	std::cout << "Error prepare sqlite database:" << stat << std::endl;
-	std::cout << "\t" << sql << std::endl;
+	Log::err("database query", sqlite3_errmsg(_db));
+	Log::msg("database query", sql);
 	return NULL;
     }
     return stmt;
@@ -42,7 +42,6 @@ Query::Query(Database *db, const char* sql)
 
 Query::~Query()
 {
-
 }
 
 void Query::Handle()
@@ -63,7 +62,7 @@ void Query::Handle()
 void Query::HandleRow()
 {
 #ifdef VERBOSE
-	std::cout << "ROW:" << std::endl;
+    Log::msg("database row", "ROW:");
 #endif
 	for (int i = 0; i < sqlite3_column_count(_statement); i++) {
 		std::string val;
@@ -83,7 +82,7 @@ void Query::HandleRow()
 			break;
 		}
 #ifdef VERBOSE
-		std::cout << "\t" << sqlite3_column_name(_statement, i) << " = " << val << std::endl;
+		Log::value(sqlite3_column_name(_statement, i), val.c_str());
 #endif
 	}
 }

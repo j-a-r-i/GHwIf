@@ -6,6 +6,7 @@ option(HW_RPI
 find_package(EXPAT REQUIRED)
 find_package(CURL  REQUIRED)
 
+
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 1)
 
@@ -21,6 +22,7 @@ include_directories("${PROJECT_BINARY_DIR}"
   ${CURL_INCLUDE_DIR}
   ${EXPAT_INCLUDE_DIR}
   ../drivers
+  /usr/include/lua5.3
   rpi)
 
 if (HW_RPI)
@@ -38,6 +40,8 @@ add_executable(hwif main2.cpp
 		    web.cpp
 		    disk.cpp
 		    xmlparsesimple.cpp
+		    logger.cpp
+		    luascript.cpp
 		    ${EXTRA_SRCS}
 )
 
@@ -45,5 +49,6 @@ target_link_libraries(hwif uv
   ${CURL_LIBRARIES}
   ${EXPAT_LIBRARIES}
   sqlite3
+  lua5.3
   ${EXTRA_LIBS}
 )
