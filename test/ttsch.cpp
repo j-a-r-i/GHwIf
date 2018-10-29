@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <stdio.h>
 #include "../logger.h"
+#include "../config.h"
 #include "../tinyscheme/scheme-private.h"
 #include "../tinyscheme/scheme.h"
 
@@ -8,7 +9,7 @@ const char *SCM1 = R"(
 (define items '("one" "two" "three"))
 
 (display2 "foo")
-(display2 123)
+(display2 (cfg-get 2))
 (for-each
   (lambda (x)
      (display " - ")
@@ -29,6 +30,19 @@ pointer display2(scheme *sch, pointer args)
 	    printf("<%d>\n", ivalue(car));
 	}
     }
+}
+
+pointer cfg_get(scheme *sch, pointer args)
+{
+    if (args != sch->NIL) {
+	pointer car = pair_car(args);
+	if (is_integer(car)) {
+	    int val = ivalue(car);
+	    //printf("<%d>\n", val);
+	    return mk_string(sch, Cfg::get((CfgItem)val));
+	}
+    }
+    return sch->NIL;
 }
 
 /*
@@ -60,6 +74,10 @@ TEST(tinysch, ret_val)
     scheme_define(&sch, sch.global_env,
 		  mk_symbol(&sch,      "display2"),
 		  mk_foreign_func(&sch,display2)); 
+
+    scheme_define(&sch, sch.global_env,
+		  mk_symbol(&sch,      "cfg-get"),
+		  mk_foreign_func(&sch, cfg_get)); 
     
     scheme_load_string(&sch, SCM1);
 
