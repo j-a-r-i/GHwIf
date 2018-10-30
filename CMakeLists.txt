@@ -22,7 +22,7 @@ include_directories("${PROJECT_BINARY_DIR}"
   ${CURL_INCLUDE_DIR}
   ${EXPAT_INCLUDE_DIR}
   ../drivers
-  /usr/include/lua5.3
+#  /usr/include/lua5.3
   rpi)
 
 if (HW_RPI)
@@ -41,7 +41,10 @@ add_executable(hwif main2.cpp
 		    disk.cpp
 		    xmlparsesimple.cpp
 		    logger.cpp
-		    luascript.cpp
+		    config.cpp
+		    # luascript.cpp
+		    scmscript.cpp
+		    tinyscheme/scheme.c
 		    ${EXTRA_SRCS}
 )
 

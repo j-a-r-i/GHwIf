@@ -13,7 +13,7 @@ class SensorItem
     void setValue(double v) {
 	value = v;
     }
-    double getValue() {
+    double getValue() const {
 	return value;
     }
 private:

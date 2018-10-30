@@ -14,9 +14,13 @@ if (HW_RPI)
   set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
   set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
-  include_directories(/mnt/rpi/usr/include
-                      /mnt/rpi/usr/include/arm-linux-gnueabihf)
-  link_directories(/mnt/rpi/usr/lib
+  include_directories(
+    /mnt/rpi/usr/include
+    /mnt/rpi/usr/include/arm-linux-gnueabihf
+    /mnt/rpi/usr/include/arm-linux-gnueabihf/curl)
+  
+  link_directories(
+    /mnt/rpi/usr/lib
     /mnt/rpi/usr/lib/arm-linux-gnueabihf
     /mnt/rpi/lib)
 		    
@@ -24,7 +28,7 @@ if (HW_RPI)
 endif (HW_RPI)
 
 find_package(GTest REQUIRED)
-find_package(CURL  REQUIRED)
+#find_package(CURL  REQUIRED)
 
 include_directories(${GTEST_INCLUDE_DIRS}
   ../../drivers
@@ -43,14 +47,15 @@ add_executable(utest
 #  tlua.cpp  ../luascript.cpp
 #  tguile.cpp ../guilescript.cpp
   ttimer.cpp
-  ttsch.cpp ../tinyscheme/scheme.c
+  ttsch.cpp  ../scmscript.cpp ../tinyscheme/scheme.c
   ../logger.cpp ../config.cpp
   tcfg.cpp
   ${EXTRA_SRCS})
 
 target_link_libraries(utest pthread
   ${GTEST_LIBRARIES}
-  ${CURL_LIBRARIES}
+#  ${CURL_LIBRARIES}
+  curl
   sqlite3
 #  lua5.3
 #  guile-2.0

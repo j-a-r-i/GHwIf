@@ -2,8 +2,7 @@
 #include <stdio.h>
 #include "../logger.h"
 #include "../config.h"
-#include "../tinyscheme/scheme-private.h"
-#include "../tinyscheme/scheme.h"
+#include "../scmscript.h"
 
 const char *SCM1 = R"(
 (define items '("one" "two" "three"))
@@ -45,55 +44,15 @@ pointer cfg_get(scheme *sch, pointer args)
     return sch->NIL;
 }
 
-/*
-SCM lget(SCM *a)
-{
-    lua_pushnumber(l, 12.0);
-    return 1;
-}
-*/
-
 /** test return value from lua to c
  */
 TEST(tinysch, ret_val)
 {
-    scheme sch;
+    Cfg::set(CFG_SCHEME_INIT, "../tinyscheme/init.scm");
+    ScmScript scm;
 
-    if (!scheme_init(&sch)) {
-	Log::err("scheme", "init");
-	return;
-    }
+    scm.addFn("display2", display2);
+    scm.addFn("cfg-get",  cfg_get);
 
-    FILE *finit = fopen("../tinyscheme/init.scm", "r");
-    scheme_load_file(&sch, finit);
-    fclose(finit);
-
-    scheme_set_input_port_file(&sch, stdin);
-    scheme_set_output_port_file(&sch, stdout);
-
-    scheme_define(&sch, sch.global_env,
-		  mk_symbol(&sch,      "display2"),
-		  mk_foreign_func(&sch,display2)); 
-
-    scheme_define(&sch, sch.global_env,
-		  mk_symbol(&sch,      "cfg-get"),
-		  mk_foreign_func(&sch, cfg_get)); 
-    
-    scheme_load_string(&sch, SCM1);
-
-    scheme_deinit(&sch);
+    scm.exec(SCM1);
 }
-
-/** test calling C function from lua.
- *
-TEST(guile, call_c)
-{
-    LuaScript lua;
-    double value;
-
-    lua.addFn("get", lget);
-    
-    value = lua.load("test2.lua");
-    
-    EXPECT_EQ(value, 12.0);
-    }*/
