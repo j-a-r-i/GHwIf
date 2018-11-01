@@ -63,7 +63,7 @@ void each_sensor(Func fn)
 }
 
 //------------------------------------------------------------------------------
-Sensors::Sensors()
+Sensors::Sensors() : InfoItem("sensors")
 {
     sensors_init(NULL);
 

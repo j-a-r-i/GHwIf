@@ -23,6 +23,8 @@ public:
     
     void load(const char* filename);
 
+    void mainLoop();
+
 private:
     scheme scm;
 };

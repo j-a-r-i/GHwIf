@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 option(HW_RPI
        "Raspberry PI hardware" OFF)
 
@@ -10,6 +12,7 @@ find_package(CURL  REQUIRED)
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 1)
 
+include(CTest)
 include(private.txt)
 
 

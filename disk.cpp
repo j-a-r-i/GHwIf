@@ -38,10 +38,14 @@ void DiskItem::print()
 }
 
 //------------------------------------------------------------------------------
-Disk::Disk()
+Disk::Disk() : InfoItem("disk")
 {
     items.push_back(new DiskItem("/"));
     items.push_back(new DiskItem("/mnt"));
+}
+
+Disk::~Disk()
+{
 }
 
 void Disk::print()

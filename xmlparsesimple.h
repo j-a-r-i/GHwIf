@@ -14,6 +14,13 @@ public:
     void parse(const char* str);
     void end();
 
+    const char* result() {
+	return lastValue.c_str();
+    }
+    
+protected:
+    std::string lastValue;
+
 private:
     XML_Parser parser;    
 };
@@ -38,8 +45,6 @@ public:
 private:
     std::string tag;
     std::string attribute;
-
-    std::string lastValue;
 };
 
 //------------------------------------------------------------------------------
@@ -63,6 +68,4 @@ public:
 private:
     std::string tag;
     bool valid;
-
-    std::string lastValue;
 };

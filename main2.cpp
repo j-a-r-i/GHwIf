@@ -4,12 +4,15 @@
 #include <iostream>
 #include <fstream>
 #include <list>
+#include <unistd.h>
 #include "config.h"
+#include "logger.h"
 #include "Socket.h"
 #include "measures.h"
 //#include "db.h"
 #include "web.h"
 #include "disk.h"
+#include "scmscript.h"
 
 #ifdef USE_JSON
   #include "rapidjson/document.h"
@@ -261,35 +264,90 @@ void test4()
 }
 
 //------------------------------------------------------------------------------
+class Runtime
+{
+public:
+    void addInfo(InfoItem* info) {
+	infos.push_back(info);
+    }
+
+    void exec() {
+	// read items
+	//
+	//for (auto info : infos) {
+	//   info->read();
+	//    info->print();
+	//}
+	scm.load("test.scm");
+
+	scm.mainLoop();
+    }
+
+    void addFunc(const char* name, scmfn func) {
+	scm.addFn(name, func);
+    }
+
+    void webLoad(int i) {
+	web.setVerbose(true);
+	web.setSite((Web::Site)i);
+	web.read();
+	web.setVerbose(false);
+    }
+    
+private:
+    ScmScript scm;
+    std::list<InfoItem*> infos;
+    Web web;
+};
+
+Runtime gRuntime;
+
+
+pointer scm_web(scheme *sch, pointer args)
+{
+    if (args != sch->NIL) {
+	pointer car = pair_car(args);
+	if (is_integer(car)) {
+	    gRuntime.webLoad(ivalue(car));
+	}
+	else {
+	    Log::err("scm.web", "invalid argument type");
+	}
+    }
+    else {
+	Log::err("scm.web", "missing argument");
+    }
+}
+
+
+
+//------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-    std::list<InfoItem*> infos;
-
 #ifdef HW_RPI
-    std::cout << "Using RPI" << std::endl;
+    Log::value("HW", "RPI");
 #else
-    std::cout << "Using PC" << std::endl;
+    Log::value("HW", "PC");
 #endif
 
+    gRuntime.addFunc("web", scm_web);
+    
 #ifdef USE_SENSORS
     Sensors s;
-    infos.push_back(&s);
+    gRuntime.addInfo(&s);
 #endif
 
-    test4();
-
-//    Web w;
-//    infos.push_back(&w);
+    Web w;
+    gRuntime.addInfo(&w);
 
     Disk d;
-    infos.push_back(&d);
+    gRuntime.addInfo(&d);
 
-    // read items
-    //
-    for (auto info : infos) {
-	info->read();
-	info->print();
-    }
+    
+    gRuntime.webLoad(0);
+    
+    gRuntime.exec();
+
     return 0;
 }
 

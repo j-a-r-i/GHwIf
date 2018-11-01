@@ -11,7 +11,8 @@ class Web : public InfoItem
 {
 public:
     enum Site {
-	NASDAQ,
+	NASDAQ_HIST,
+	NASDAQ_LAST,
 	FMI,
 	STRAVA
     };
@@ -22,6 +23,10 @@ public:
 
     void setSite(Site s) {
 	site = s;
+    }
+
+    void setVerbose(bool val) {
+	verbose = val;
     }
     
     void read();

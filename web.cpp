@@ -22,7 +22,7 @@ size_t curl_write(void *buffer, size_t size, size_t nmemb, void *user_data)
     return size * nmemb;
 }
 
-Web::Web(bool v)
+Web::Web(bool v) : InfoItem("web")
 {
     curl_global_init(CURL_GLOBAL_ALL);
 
@@ -51,13 +51,25 @@ void Web::read()
     CURLcode result;
     std::ostringstream os;
 
-    if (site == NASDAQ) {
+    if (site == NASDAQ_HIST) {
 	os << "https://" << SITE_NASDAQ
 	   << "/webproxy/DataFeedProxy.aspx?"
 	   << "Subsystem="     << "History" << SEP
 	   << "Action=Get"     << "DataSeries" << SEP
 	   << "Instrument=HEX" << "24311" << SEP
 	   << "FromDate="      << "2018-09-24";
+
+	parser = new XmlParseTag("hi", "cp");
+    }
+
+    else if (site == NASDAQ_LAST) {
+	os << "https://" << SITE_NASDAQ
+	   << "/webproxy/DataFeedProxy.aspx?"
+	   << "Subsystem="     << "Prices" << SEP
+	   << "Action=Get"     << "Instrument" << SEP
+	   << "Instrument=HEX" << "24311";
+
+	parser = new XmlParseTag("inst", "lsp");
     }
 
     else if (site == FMI) {
@@ -67,6 +79,8 @@ void Web::read()
 	   << "storedquery_id=" << "fmi::forecast::hirlam::surface::point::multipointcoverage" << SEP
 	   << "place="          << "oittaa" << SEP
 	   << "parameters="     << "temperature,dewpoint,windspeedms,precipitation1h";
+
+	parser = new XmlParseTag("hi", "cp");
     }
 
     else if (site == STRAVA) {
@@ -74,6 +88,8 @@ void Web::read()
 	   << "/api/v3/athlete/activities?"
 	   << "page="   << 1 << SEP
 	   << "access_token=" << STRAVA_API << SEP;
+
+	parser = new XmlParseTag("hi", "cp");
     }
 
     else {
@@ -82,8 +98,6 @@ void Web::read()
     }
     
 #if 0
-
-
     os << "https://" << SITE_DWEET
        << "/dweet/for/ha.joj.home?"
        << "foo=" << 1 << SEP
@@ -96,16 +110,13 @@ void Web::read()
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_write);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, this);
 
-
-    parser = new XmlParseTag("hi", "cp");
-
     parser->begin();
     result = curl_easy_perform(handle);
     if (result != CURLE_OK) {
 	Log::err("Web::read", curl_easy_strerror(result));
     }
-
     parser->end();
+    Log::value("result", parser->result());
     delete parser;
     parser = NULL;
 }

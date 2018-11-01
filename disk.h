@@ -34,7 +34,8 @@ class Disk : public InfoItem
 {
 public:
     Disk();  ///@todo clean up items vector in destructor
-
+    ~Disk();
+    
     void read();
     void print();
 

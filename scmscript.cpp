@@ -7,6 +7,7 @@
 
 ScmScript::ScmScript()
 {
+    Log::msg("scm", "init");
     if (!scheme_init(&scm)) {
 	Log::err("scheme", "init");
 	return;
@@ -20,6 +21,7 @@ ScmScript::ScmScript()
 
 ScmScript::~ScmScript()
 {
+    Log::msg("scm", "deinit");
     scheme_deinit(&scm);
 }
 
@@ -42,7 +44,11 @@ void ScmScript::load(const char* filename)
 	Log::err("scheme open", filename);
 	return;
     }
-    scheme_load_file(&scm, f); 
+    scheme_load_named_file(&scm, f, filename); 
     fclose(f);
 }
 
+void ScmScript::mainLoop()
+{
+    scheme_load_named_file(&scm, stdin, 0);
+}
