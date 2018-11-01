@@ -272,14 +272,7 @@ public:
     }
 
     void exec() {
-	// read items
-	//
-	//for (auto info : infos) {
-	//   info->read();
-	//    info->print();
-	//}
 	scm.load("test.scm");
-
 	scm.mainLoop();
     }
 
@@ -287,6 +280,13 @@ public:
 	scm.addFn(name, func);
     }
 
+    void dumpInfos() {
+	for (auto info : infos) {
+	    info->read();
+	    info->print();
+	}
+    }
+    
     void webLoad(int i) {
 	web.setVerbose(true);
 	web.setSite((Web::Site)i);
@@ -317,6 +317,18 @@ pointer scm_web(scheme *sch, pointer args)
     else {
 	Log::err("scm.web", "missing argument");
     }
+    return sch->NIL;
+}
+
+pointer scm_infos(scheme *sch, pointer args)
+{
+    if (args == sch->NIL) {
+	gRuntime.dumpInfos();
+    }
+    else {
+	Log::err("scm.web", "extra argument");
+    }
+    return sch->NIL;
 }
 
 
@@ -330,7 +342,8 @@ int main(int argc, char *argv[])
     Log::value("HW", "PC");
 #endif
 
-    gRuntime.addFunc("web", scm_web);
+    gRuntime.addFunc("web",   scm_web);
+    gRuntime.addFunc("infos", scm_infos);
     
 #ifdef USE_SENSORS
     Sensors s;
@@ -338,7 +351,7 @@ int main(int argc, char *argv[])
 #endif
 
     Web w;
-    gRuntime.addInfo(&w);
+    //gRuntime.addInfo(&w);
 
     Disk d;
     gRuntime.addInfo(&d);
