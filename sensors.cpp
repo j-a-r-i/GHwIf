@@ -37,7 +37,7 @@ void each_sensor(Func fn)
 			Log::err(__FUNCTION__, "sensor_get_value");
                     }
                     else {
-			fn(label, val, subf->number);
+			fn(cn->prefix, label, val, subf->number);
                     }
                 }
             }
@@ -47,12 +47,25 @@ void each_sensor(Func fn)
 }
 
 //------------------------------------------------------------------------------
+SensorItem::SensorItem(const char *name, const char* chip, int feat) :
+    InfoItem(name),
+    chipName(chip),
+    subFeature(feat)
+{
+}
+    
+
+//------------------------------------------------------------------------------
 Sensors::Sensors() : InfoReader("sensors")
 {
     sensors_init(NULL);
 
-    each_sensor([](const char* name, double value, int subFeature) {
+    each_sensor([this](const char* chip, const char* name, double value, int subFeature) {
 	    Log::value(name, value);
+
+	    SensorItem *item = new SensorItem(name, chip, subFeature);
+	    
+	    infos.push_back(item);
 	});
 }
 
@@ -63,7 +76,7 @@ Sensors::~Sensors()
 
 void Sensors::read()
 {
-    each_sensor([](const char* name, double value, int subFeature) {
+    each_sensor([](const char* chip, const char* name, double value, int subFeature) {
 	    Log::value(name, value);
 	});
 

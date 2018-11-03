@@ -5,7 +5,6 @@
 #include <fstream>
 #include <list>
 #include <unistd.h>
-#include <exception>
 #include "config.h"
 #include "logger.h"
 #include "Socket.h"
@@ -15,6 +14,12 @@
 #include "disk.h"
 #include "sun.h"
 #include "scmscript.h"
+#include "common.h"
+#ifdef HW_RPI
+  #include "rpi/main_rpi.h"
+#else
+  #include "main_pc.h"
+#endif
 
 #ifdef USE_JSON
   #include "rapidjson/document.h"
@@ -31,9 +36,9 @@
 #include <uv.h>
 
 #ifdef USE_WS
-#define _WEBSOCKETPP_CPP11_THREAD_
-#include <websocketpp/config/core.hpp>
-#include <websocketpp/server.hpp>
+  #define _WEBSOCKETPP_CPP11_THREAD_
+  #include <websocketpp/config/core.hpp>
+  #include <websocketpp/server.hpp>
 #endif
 
 //#pragma comment (lib, "libuv.lib")
@@ -271,29 +276,13 @@ const char* errorString[] = {
 };
 
 //------------------------------------------------------------------------------
-class TheException : public std::exception
-{
-public:
-    enum Error {
-	EMissingArgument,
-	EArgumentType,
-    };
-    
-    TheException(Error e) :
-	error(e)
-    {
-    }
-    
-    const char* what() const throw () {
-	return errorString[error];
-    }
+const char* TheException::what() const throw () {
+    return errorString[error];
+}
 
-private:
-    Error error;
-};
 
 //------------------------------------------------------------------------------
-class Runtime
+class Runtime : public BaseRuntime
 {
 public:
     void add(InfoReader* reader) {
@@ -413,9 +402,9 @@ pointer scm_dump(scheme *sch, pointer args)
 int main(int argc, char *argv[])
 {
 #ifdef HW_RPI
-    Log::value("HW", "RPI");
+    rpi_init(&gRuntime);
 #else
-    Log::value("HW", "PC");
+    pc_init(&gRuntime);
 #endif
 
     gRuntime.addFunc("web-load",    scm_web_load);

@@ -1,11 +1,12 @@
 #pragma once
 
 #include <stdint.h>
+#include "hal.h"
 
 /** Error codes
  */
 typedef enum errors {
     ERR_MY     = 0x01,
-} error_t;
+} errorcode_t;
 
-extern void _error(error_t code);
+extern void _error(errorcode_t code);

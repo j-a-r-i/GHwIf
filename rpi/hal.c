@@ -59,12 +59,16 @@ void delay_us(uint16_t time)
 }
 
 //------------------------------------------------------------------------------
+/** This implementation uses memory registers.
+ *
+ * @see https://www.raspberrypi.org/app/uploads/2012/02/BCM2835-ARM-Peripherals.pdf
+ */
 void io_init()
 {
     int fd;
     
     if ((fd = open("/dev/gpiomem", O_RDWR|O_SYNC)) < 0) {
-	printf("error opening /dev/gpiomem\n");
+	printf("ERROR opening /dev/gpiomem\n");
 	return;
     }
 
@@ -78,7 +82,7 @@ void io_init()
     close(fd);
 
     if (gpio_map == MAP_FAILED) {
-	printf("error mmap %ld\n", (long)gpio_map);
+	printf("ERROR mmap %ld\n", (long)gpio_map);
 	return;
     }
 
@@ -116,25 +120,26 @@ uint8_t io_read(pin_t pin)
 //------------------------------------------------------------------------------
 void spi_init(uint8_t port)
 {
-    uint8_t mode = SPI_LSB_FIRST | SPI_CPOL | SPI_3WIRE;
-    uint8_t bits = 16;
+    //uint8_t mode = SPI_LSB_FIRST | SPI_CPOL | SPI_3WIRE;
+    uint8_t mode = SPI_MODE_3;
+    uint8_t bits = 8;
     int ret;
 	
     fd_spi = open("/dev/spidev0.0", O_RDWR);
-    if (fd_spi < 0) {
-	printf("Cannot open SPI device!\n");
+    if (fd_spi <= 0) {
+	printf("ERROR SPI: open device!\n");
 	return;
     }
 
     ret = ioctl(fd_spi, SPI_IOC_WR_MODE, &mode);
     if (ret == -1) {
-	printf("ERROR: SPI mode setting!\n");
+	printf("ERROR SPI: mode setting!\n");
 	return;
     }
 
     ret = ioctl(fd_spi, SPI_IOC_WR_BITS_PER_WORD, &bits);
     if (ret == -1) {
-	printf("ERROR: SPI mode setting!\n");
+	printf("ERROR SPI: bits settings!\n");
 	return;
     }
 }
@@ -151,15 +156,14 @@ uint16_t spi_write(uint8_t port, uint16_t data)
 	.len = 2,
 	.delay_usecs = 0,
 	.speed_hz = 500000,
-	.bits_per_word = 16
+	.bits_per_word = 8
     };
 
     ret = ioctl(fd_spi, SPI_IOC_MESSAGE(1), &trans);
     if (ret == -1) {
-	printf("ERROR: SPI mode setting!\n");
+	printf("ERROR: SPI transfer!\n");
 	return 0;
     }
  
     return rval;
 }
-

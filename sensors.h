@@ -11,6 +11,8 @@
 class SensorItem : public InfoItem
 {
 public:
+    SensorItem(const char *name, const char* chip, int feat);
+    
     void setValue(double v) {
 	value = v;
     }
@@ -18,6 +20,9 @@ public:
 	return value;
     }
 private:
+    std::string chipName;
+    int subFeature;
+    
     double value;
 };
 
@@ -31,6 +36,4 @@ public:
 
     void read();
     void print();
-private:
-    std::list<SensorItem*> items;
 };

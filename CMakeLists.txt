@@ -5,12 +5,35 @@ set(CMAKE_BUILD_TYPE Debug)
 option(HW_RPI
        "Raspberry PI hardware" OFF)
 
+if (HW_RPI)
+  set(CMAKE_SYSTEM_NAME    Linux)
+  set(CMAKE_SYSTEM_VERSION 1)
+  set(CMAKE_C_COMPILER     arm-linux-gnueabihf-gcc)
+  set(CMAKE_CXX_COMPILER   arm-linux-gnueabihf-g++)
+
+  set(CMAKE_FIND_ROOT_PATH              /mnt/rpi)
+  set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+  set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+  set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+
+  include_directories(
+    /mnt/rpi/usr/include
+    /mnt/rpi/usr/include/arm-linux-gnueabihf
+    /mnt/rpi/usr/include/arm-linux-gnueabihf/curl)
+  
+  link_directories(
+    /mnt/rpi/usr/lib
+    /mnt/rpi/usr/lib/arm-linux-gnueabihf
+    /mnt/rpi/lib)	    
+endif (HW_RPI)
+
+
 find_package(EXPAT REQUIRED)
-find_package(CURL  REQUIRED)
+#find_package(CURL  REQUIRED)
 
 
 set(VERSION_MAJOR 0)
-set(VERSION_MINOR 1)
+set(VERSION_MINOR 2)
 
 include(CTest)
 include(private.txt)
@@ -22,7 +45,7 @@ configure_file(
 )
 
 include_directories("${PROJECT_BINARY_DIR}"
-  ${CURL_INCLUDE_DIR}
+#  ${CURL_INCLUDE_DIR}
   ${EXPAT_INCLUDE_DIR}
   ../drivers
 #  /usr/include/lua5.3
@@ -30,10 +53,10 @@ include_directories("${PROJECT_BINARY_DIR}"
 
 if (HW_RPI)
    set(EXTRA_LIBS ${EXTRA_LIBS} )
-   set(EXTRA_SRCS ${EXTRA_SRCS} rpi/hal.c)
+   set(EXTRA_SRCS ${EXTRA_SRCS} rpi/main_rpi.cpp rpi/hal.c)
 else (HW_RPI)
    set(EXTRA_LIBS ${EXTRA_LIBS} sensors)
-   set(EXTRA_SRCS ${EXTRA_SRCS} sensors.cpp)
+   set(EXTRA_SRCS ${EXTRA_SRCS} main_pc.cpp sensors.cpp)
 endif (HW_RPI)
 
 add_executable(hwif main2.cpp
@@ -53,9 +76,10 @@ add_executable(hwif main2.cpp
 )
 
 target_link_libraries(hwif uv
-  ${CURL_LIBRARIES}
+  # ${CURL_LIBRARIES}
   ${EXPAT_LIBRARIES}
+  curl
   sqlite3
-  lua5.3
+#  lua5.3
   ${EXTRA_LIBS}
 )
