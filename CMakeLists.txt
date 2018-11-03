@@ -53,7 +53,7 @@ include_directories("${PROJECT_BINARY_DIR}"
 
 if (HW_RPI)
    set(EXTRA_LIBS ${EXTRA_LIBS} )
-   set(EXTRA_SRCS ${EXTRA_SRCS} rpi/main_rpi.cpp rpi/hal.c)
+   set(EXTRA_SRCS ${EXTRA_SRCS} rpi/main_rpi.cpp rpi/hal.cpp)
 else (HW_RPI)
    set(EXTRA_LIBS ${EXTRA_LIBS} sensors)
    set(EXTRA_SRCS ${EXTRA_SRCS} main_pc.cpp sensors.cpp)

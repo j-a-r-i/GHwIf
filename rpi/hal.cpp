@@ -7,6 +7,8 @@
 #include <sys/ioctl.h>
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
+#include <string.h> // for memset
+#include "../logger.h"
 
 #define BCM2708_PERI_BASE        0x20000000
 #define GPIO_BASE                (BCM2708_PERI_BASE + 0x200000) /* GPIO controller */
@@ -68,7 +70,7 @@ void io_init()
     int fd;
     
     if ((fd = open("/dev/gpiomem", O_RDWR|O_SYNC)) < 0) {
-	printf("ERROR opening /dev/gpiomem\n");
+	Log::err(__FUNCTION__, "opening /dev/gpiomem");
 	return;
     }
 
@@ -82,7 +84,7 @@ void io_init()
     close(fd);
 
     if (gpio_map == MAP_FAILED) {
-	printf("ERROR mmap %ld\n", (long)gpio_map);
+	Log::err(__FUNCTION__, "mmap failed");
 	return;
     }
 
@@ -127,19 +129,19 @@ void spi_init(uint8_t port)
 	
     fd_spi = open("/dev/spidev0.0", O_RDWR);
     if (fd_spi <= 0) {
-	printf("ERROR SPI: open device!\n");
+	Log::err(__FUNCTION__, "open device");
 	return;
     }
 
     ret = ioctl(fd_spi, SPI_IOC_WR_MODE, &mode);
     if (ret == -1) {
-	printf("ERROR SPI: mode setting!\n");
+	Log::err(__FUNCTION__, "mode setting");
 	return;
     }
 
     ret = ioctl(fd_spi, SPI_IOC_WR_BITS_PER_WORD, &bits);
     if (ret == -1) {
-	printf("ERROR SPI: bits settings!\n");
+	Log::err(__FUNCTION__, "bits setting");
 	return;
     }
 }
@@ -150,18 +152,20 @@ uint16_t spi_write(uint8_t port, uint16_t data)
     int ret;
     uint16_t rval = 0;
 
-    struct spi_ioc_transfer trans = {
-	.tx_buf = (unsigned long)&data,
-	.rx_buf = (unsigned long)&rval,
-	.len = 2,
-	.delay_usecs = 0,
-	.speed_hz = 500000,
-	.bits_per_word = 8
-    };
+    spi_ioc_transfer trans;
+
+    memset(&trans, 0, sizeof(spi_ioc_transfer));
+    
+    trans.tx_buf = (unsigned long)&data;
+    trans.rx_buf = (unsigned long)&rval;
+    trans.len = 2;
+    trans.delay_usecs = 0;
+    trans.speed_hz = 500000;
+    trans.bits_per_word = 8;
 
     ret = ioctl(fd_spi, SPI_IOC_MESSAGE(1), &trans);
     if (ret == -1) {
-	printf("ERROR: SPI transfer!\n");
+	Log::err(__FUNCTION__, "transfer");
 	return 0;
     }
  
