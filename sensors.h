@@ -8,8 +8,9 @@
 #include <list>
 
 //------------------------------------------------------------------------------
-class SensorItem
+class SensorItem : public InfoItem
 {
+public:
     void setValue(double v) {
 	value = v;
     }
@@ -17,7 +18,6 @@ class SensorItem
 	return value;
     }
 private:
-    std::string name;
     double value;
 };
 

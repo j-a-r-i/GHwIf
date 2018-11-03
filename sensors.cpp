@@ -2,9 +2,8 @@
  * Copyright (C) 2016-8 Jari Ojanen
  ******************************************************************************/
 #include <sensors/sensors.h>
-#include <iostream>
-#include <string>
 #include "sensors.h"
+#include "logger.h"
 
 template<typename Func>
 void each_sensor(Func fn)
@@ -35,10 +34,10 @@ void each_sensor(Func fn)
 		    char *label = sensors_get_label(cn, feat);
                     int err = sensors_get_value(cn, subf->number, &val);
                     if (err < 0) {
-                        std::cout << "error " << err << std::endl;
+			Log::err(__FUNCTION__, "sensor_get_value");
                     }
                     else {
-			fn(label, val);
+			fn(label, val, subf->number);
                     }
                 }
             }
@@ -52,8 +51,8 @@ Sensors::Sensors() : InfoReader("sensors")
 {
     sensors_init(NULL);
 
-    each_sensor([](const char* name, double value) {
-	    std::cout << name << "=" << value << std::endl;
+    each_sensor([](const char* name, double value, int subFeature) {
+	    Log::value(name, value);
 	});
 }
 
@@ -64,8 +63,8 @@ Sensors::~Sensors()
 
 void Sensors::read()
 {
-    each_sensor([](const char* name, double value) {
-	    std::cout << name << "=" << value << std::endl;
+    each_sensor([](const char* name, double value, int subFeature) {
+	    Log::value(name, value);
 	});
 
 }
