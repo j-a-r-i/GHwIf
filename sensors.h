@@ -22,7 +22,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-class Sensors : public InfoItem
+class Sensors : public InfoReader
 {
 public:
     Sensors();

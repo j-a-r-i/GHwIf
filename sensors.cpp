@@ -3,29 +3,18 @@
  ******************************************************************************/
 #include <sensors/sensors.h>
 #include <iostream>
-#include <sstream>
 #include <string>
 #include "sensors.h"
-
-/*
-const char *sensors[] = {
-"atk0110.temp1",
-"atk0110.temp2",
-"coretemp.temp2",
-"coretemp.temp3"
-};
-*/
 
 template<typename Func>
 void each_sensor(Func fn)
 {
     sensors_chip_name const * cn;
     int c = 0;
-    std::stringstream ss;
 
     while ((cn = sensors_get_detected_chips(0, &c)) != 0)
     {
-        //std::cout << cn->prefix << " " << cn->path << std::endl;
+        //std::cout << "-----------------" << cn->prefix << " " << cn->path << std::endl;
 
         sensors_feature const *feat;
         int f = 0;
@@ -43,17 +32,13 @@ void each_sensor(Func fn)
 		    (subf->type == SENSORS_SUBFEATURE_TEMP_INPUT))
                 {
                     double val = 0.0;
+		    char *label = sensors_get_label(cn, feat);
                     int err = sensors_get_value(cn, subf->number, &val);
                     if (err < 0) {
                         std::cout << "error " << err << std::endl;
                     }
                     else {
-			ss << cn->prefix << "." << feat->name;
-			fn(ss.str().c_str(), val);
-
-			ss.clear();
-			ss.str(std::string());
-			//std::cout << cn->prefix << "." << feat->name << "=" << val << std::endl;
+			fn(label, val);
                     }
                 }
             }
@@ -63,7 +48,7 @@ void each_sensor(Func fn)
 }
 
 //------------------------------------------------------------------------------
-Sensors::Sensors() : InfoItem("sensors")
+Sensors::Sensors() : InfoReader("sensors")
 {
     sensors_init(NULL);
 

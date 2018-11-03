@@ -13,6 +13,7 @@
 //#include "db.h"
 #include "web.h"
 #include "disk.h"
+#include "sun.h"
 #include "scmscript.h"
 
 #ifdef USE_JSON
@@ -295,8 +296,8 @@ private:
 class Runtime
 {
 public:
-    void addInfo(InfoItem* info) {
-	infos.push_back(info);
+    void add(InfoReader* reader) {
+	readers.push_back(reader);
     }
 
     void exec() {
@@ -308,10 +309,16 @@ public:
 	scm.addFn(name, func);
     }
 
-    void dumpInfos() {
-	for (auto info : infos) {
-	    info->read();
-	    info->print();
+    void readAll() {
+	for (auto reader : readers) {
+	    reader->read();
+	    reader->print();
+	}
+    }
+
+    void dump() {
+	for (auto reader : readers) {
+	    reader->dump();
 	}
     }
     
@@ -326,7 +333,7 @@ public:
     
 private:
     ScmScript scm;
-    std::list<InfoItem*> infos;
+    std::list<InfoReader*> readers;
     Web web;
 };
 
@@ -378,10 +385,21 @@ pointer scm_web_verbose(scheme *sch, pointer args)
     return sch->NIL;
 }
 
-pointer scm_infos(scheme *sch, pointer args)
+pointer scm_read_all(scheme *sch, pointer args)
 {
     if (args == sch->NIL) {
-	gRuntime.dumpInfos();
+	gRuntime.readAll();
+    }
+    else {
+	Log::err(__FUNCTION__, "extra argument");
+    }
+    return sch->NIL;
+}
+
+pointer scm_dump(scheme *sch, pointer args)
+{
+    if (args == sch->NIL) {
+	gRuntime.dump();
     }
     else {
 	Log::err(__FUNCTION__, "extra argument");
@@ -402,19 +420,22 @@ int main(int argc, char *argv[])
 
     gRuntime.addFunc("web-load",    scm_web_load);
     gRuntime.addFunc("web-verbose", scm_web_verbose);
-    gRuntime.addFunc("infos",       scm_infos);
+    gRuntime.addFunc("read-all",    scm_read_all);
+    gRuntime.addFunc("dump",        scm_dump);
     
 #ifdef USE_SENSORS
     Sensors s;
-    gRuntime.addInfo(&s);
+    gRuntime.add(&s);
 #endif
 
     Web w;
-    //gRuntime.addInfo(&w);
+    //gRuntime.add(&w);
 
     Disk d;
-    gRuntime.addInfo(&d);
+    gRuntime.add(&d);
 
+    Sun sun;
+    gRuntime.add(&sun);
     
     gRuntime.webLoad(0, 24311);
     

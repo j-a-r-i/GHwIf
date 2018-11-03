@@ -22,7 +22,7 @@ size_t curl_write(void *buffer, size_t size, size_t nmemb, void *user_data)
     return size * nmemb;
 }
 
-Web::Web(bool v) : InfoItem("web")
+Web::Web(bool v) : InfoReader("web")
 {
     curl_global_init(CURL_GLOBAL_ALL);
 

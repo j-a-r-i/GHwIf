@@ -6,6 +6,7 @@
 #include <sys/statvfs.h>
 
 DiskItem::DiskItem(const char* mntPoint) :
+    InfoItem(mntPoint),
     mountPoint(mntPoint)
 {
     size = 0;
@@ -38,10 +39,14 @@ void DiskItem::print()
 }
 
 //------------------------------------------------------------------------------
-Disk::Disk() : InfoItem("disk")
+Disk::Disk() : InfoReader("disk")
 {
     items.push_back(new DiskItem("/"));
     items.push_back(new DiskItem("/mnt"));
+
+    for (auto disk : items) {
+	infos.push_back(disk);
+    }
 }
 
 Disk::~Disk()
@@ -60,12 +65,4 @@ void Disk::read()
     for (auto item : items) {
 	item->read();
     }
-}
-
-DiskItem *Disk::get(uint index)
-{
-    if (index < items.size())
-	return items[index];
-
-    return NULL;
 }

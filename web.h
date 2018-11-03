@@ -7,7 +7,7 @@
 #include "infoitem.h"
 #include "xmlparsesimple.h"
 
-class Web : public InfoItem
+class Web : public InfoReader
 {
 public:
     enum Site {

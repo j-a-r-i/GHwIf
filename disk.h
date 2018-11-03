@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------
 /** Reads free space in a partition.
  */
-class DiskItem
+class DiskItem : public InfoItem
 {
 public:
     DiskItem(const char* mntPoint);
@@ -30,7 +30,7 @@ private:
 //------------------------------------------------------------------------------
 /** Reads free space in all the partitions.
  */
-class Disk : public InfoItem
+class Disk : public InfoReader
 {
 public:
     Disk();  ///@todo clean up items vector in destructor
@@ -38,8 +38,6 @@ public:
     
     void read();
     void print();
-
-    DiskItem *get(uint index);
 
 private:
     std::vector<DiskItem*> items;

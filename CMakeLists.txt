@@ -47,6 +47,7 @@ add_executable(hwif main2.cpp
 		    config.cpp
 		    # luascript.cpp
 		    scmscript.cpp
+		    sun.cpp
 		    tinyscheme/scheme.c
 		    ${EXTRA_SRCS}
 )
