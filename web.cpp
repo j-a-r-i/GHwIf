@@ -56,18 +56,19 @@ void Web::read()
 	   << "/webproxy/DataFeedProxy.aspx?"
 	   << "Subsystem="     << "History" << SEP
 	   << "Action=Get"     << "DataSeries" << SEP
-	   << "Instrument=HEX" << "24311" << SEP
+	   << "Instrument=HEX" << siteArg << SEP
 	   << "FromDate="      << "2018-09-24";
 
 	parser = new XmlParseTag("hi", "cp");
     }
-
+//SiteArg 24311 = NOKIA
+    
     else if (site == NASDAQ_LAST) {
 	os << "https://" << SITE_NASDAQ
 	   << "/webproxy/DataFeedProxy.aspx?"
 	   << "Subsystem="     << "Prices" << SEP
 	   << "Action=Get"     << "Instrument" << SEP
-	   << "Instrument=HEX" << "24311";
+	   << "Instrument=HEX" << siteArg;
 
 	parser = new XmlParseTag("inst", "lsp");
     }

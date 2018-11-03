@@ -21,8 +21,9 @@ public:
 
     virtual ~Web();
 
-    void setSite(Site s) {
+    void setSite(Site s, int arg) {
 	site = s;
+	siteArg = arg;
     }
 
     void setVerbose(bool val) {
@@ -36,6 +37,11 @@ public:
 
 private:
     Site site;
+    
+    /** Parameter to create site name. This is site dependent.
+     */
+    uint siteArg;
+    
     CURL *handle;
     bool verbose;
     XmlBase *parser;

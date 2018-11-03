@@ -5,6 +5,7 @@
 #include <fstream>
 #include <list>
 #include <unistd.h>
+#include <exception>
 #include "config.h"
 #include "logger.h"
 #include "Socket.h"
@@ -263,6 +264,33 @@ void test4()
 #endif
 }
 
+const char* errorString[] = {
+    "missing argument",
+    "argument type"
+};
+
+//------------------------------------------------------------------------------
+class TheException : public std::exception
+{
+public:
+    enum Error {
+	EMissingArgument,
+	EArgumentType,
+    };
+    
+    TheException(Error e) :
+	error(e)
+    {
+    }
+    
+    const char* what() const throw () {
+	return errorString[error];
+    }
+
+private:
+    Error error;
+};
+
 //------------------------------------------------------------------------------
 class Runtime
 {
@@ -287,11 +315,13 @@ public:
 	}
     }
     
-    void webLoad(int i) {
-	web.setVerbose(true);
-	web.setSite((Web::Site)i);
+    void webLoad(int i, int arg) {
+	web.setSite((Web::Site)i, arg);
 	web.read();
-	web.setVerbose(false);
+    }
+
+    void webVerbose(bool value) {
+	web.setVerbose(value);
     }
     
 private:
@@ -302,20 +332,48 @@ private:
 
 Runtime gRuntime;
 
-
-pointer scm_web(scheme *sch, pointer args)
+int arg_integer(scheme *sch, pointer arg)
 {
-    if (args != sch->NIL) {
-	pointer car = pair_car(args);
+    int retVal = 0;
+    
+    if (arg != sch->NIL) {
+	pointer car = pair_car(arg);
 	if (is_integer(car)) {
-	    gRuntime.webLoad(ivalue(car));
+	    retVal = ivalue(car);
 	}
 	else {
-	    Log::err("scm.web", "invalid argument type");
+	    throw TheException(TheException::EArgumentType);
 	}
     }
     else {
-	Log::err("scm.web", "missing argument");
+	throw TheException(TheException::EMissingArgument);
+    }
+    return retVal;
+}
+
+pointer scm_web_load(scheme *sch, pointer args)
+{
+    try {
+	int i1 = arg_integer(sch, args);
+	int i2 = arg_integer(sch, pair_cdr(args));
+
+	gRuntime.webLoad(i1, i2);
+    }
+    catch (TheException& e) {
+	Log::err(__FUNCTION__, e.what());
+    }
+    return sch->NIL;
+}
+
+pointer scm_web_verbose(scheme *sch, pointer args)
+{
+    try {
+	int i = arg_integer(sch, args);
+
+	gRuntime.webVerbose(i);
+    }
+    catch (TheException& e) {
+	Log::err(__FUNCTION__, e.what());
     }
     return sch->NIL;
 }
@@ -326,7 +384,7 @@ pointer scm_infos(scheme *sch, pointer args)
 	gRuntime.dumpInfos();
     }
     else {
-	Log::err("scm.web", "extra argument");
+	Log::err(__FUNCTION__, "extra argument");
     }
     return sch->NIL;
 }
@@ -342,8 +400,9 @@ int main(int argc, char *argv[])
     Log::value("HW", "PC");
 #endif
 
-    gRuntime.addFunc("web",   scm_web);
-    gRuntime.addFunc("infos", scm_infos);
+    gRuntime.addFunc("web-load",    scm_web_load);
+    gRuntime.addFunc("web-verbose", scm_web_verbose);
+    gRuntime.addFunc("infos",       scm_infos);
     
 #ifdef USE_SENSORS
     Sensors s;
@@ -357,7 +416,7 @@ int main(int argc, char *argv[])
     gRuntime.addInfo(&d);
 
     
-    gRuntime.webLoad(0);
+    gRuntime.webLoad(0, 24311);
     
     gRuntime.exec();
 

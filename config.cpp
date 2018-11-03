@@ -16,7 +16,10 @@ configitem_t CfgData[] = {
     [CFG_FMI_API]     = { FMI_API,      true },
     [CFG_STRAVA_API]  = { STRAVA_API,   true },
     [CFG_SCHEME_INIT] = { "tinyscheme/init.scm", false },
+    [CFG_SCHEME_SYSTEM]={ "system.scm", false },
     [CFG_SERIAL_PORT] = { "/dev/ttyS0", false },
+    [CFG_LOCATION_LAT]= { "10.0",       false },
+    [CFG_LOCATION_LON]= { "20.0",       false },
 
     [CFG_MAX]         = { "",         true }
 };

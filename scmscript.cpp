@@ -14,6 +14,7 @@ ScmScript::ScmScript()
     }
 
     load(Cfg::get(CFG_SCHEME_INIT));
+    load(Cfg::get(CFG_SCHEME_SYSTEM));
 
     scheme_set_input_port_file(&scm, stdin);
     scheme_set_output_port_file(&scm, stdout);
@@ -39,6 +40,8 @@ void ScmScript::exec(const char* code)
 
 void ScmScript::load(const char* filename)
 {
+    Log::msg("scm load", filename);
+    
     FILE *f = fopen(filename, "r");
     if (f == NULL) {
 	Log::err("scheme open", filename);
