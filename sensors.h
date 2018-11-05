@@ -19,6 +19,15 @@ public:
     double getValue() const {
 	return value;
     }
+
+    const std::string& getChipName() const {
+	return chipName;
+    }
+
+    int getFeature() const {
+	return subFeature;
+    }
+    
 private:
     std::string chipName;
     int subFeature;

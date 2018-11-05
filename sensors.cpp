@@ -30,15 +30,9 @@ void each_sensor(Func fn)
 		if ((subf->flags & SENSORS_MODE_R) &&
 		    (subf->type == SENSORS_SUBFEATURE_TEMP_INPUT))
                 {
-                    double val = 0.0;
 		    char *label = sensors_get_label(cn, feat);
-                    int err = sensors_get_value(cn, subf->number, &val);
-                    if (err < 0) {
-			Log::err(__FUNCTION__, "sensor_get_value");
-                    }
-                    else {
-			fn(cn->prefix, label, val, subf->number);
-                    }
+
+		    fn(cn->prefix, label, subf->number);
                 }
             }
             
@@ -60,9 +54,7 @@ Sensors::Sensors() : InfoReader("sensors")
 {
     sensors_init(NULL);
 
-    each_sensor([this](const char* chip, const char* name, double value, int subFeature) {
-	    Log::value(name, value);
-
+    each_sensor([this](const char* chip, const char* name, int subFeature) {
 	    SensorItem *item = new SensorItem(name, chip, subFeature);
 	    
 	    infos.push_back(item);
@@ -76,10 +68,25 @@ Sensors::~Sensors()
 
 void Sensors::read()
 {
-    each_sensor([](const char* chip, const char* name, double value, int subFeature) {
-	    Log::value(name, value);
-	});
+    sensors_chip_name const * cn;
+    int c = 0;
+    
+    while ((cn = sensors_get_detected_chips(0, &c)) != 0) {
+	for (auto item : infos) {
+	    SensorItem *sensor = static_cast<SensorItem*>(item);
 
+	    if (sensor->getChipName() == cn->prefix) {
+		double val = 0.0;
+		int err = sensors_get_value(cn, sensor->getFeature(), &val);
+		if (err < 0) {
+		    Log::err(__FUNCTION__, "sensor_get_value");
+		}
+		else {
+		    Log::value(sensor->getName().c_str(), val);
+		}
+	    }
+	}
+    }
 }
 
 void Sensors::print()
