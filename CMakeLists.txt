@@ -1,9 +1,23 @@
 cmake_minimum_required(VERSION 2.6)
 
 set(CMAKE_BUILD_TYPE Debug)
+set(hw "pc" CACHE STRING "Hardware type rpi/pc/win")
 
-option(HW_RPI
-       "Raspberry PI hardware" OFF)
+if (hw STREQUAL "rpi")
+  message(STATUS "hw is RPI")
+  set(HW_RPI ON)
+elseif (hw STREQUAL "pc")
+  message(STATUS "hw is linux pc")
+  set(HW_RPI OFF)
+elseif (hw STREQUAL "win")
+  message(STATUS "hw is windows pc")
+  set(HW_RPI OFF)
+else()
+  message(FATAL_ERROR "unknown hardware")
+endif()
+
+#option(HW_RPI
+#       "Raspberry PI hardware" OFF)
 
 if (HW_RPI)
   set(CMAKE_SYSTEM_NAME    Linux)

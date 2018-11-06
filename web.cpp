@@ -91,17 +91,17 @@ void Web::read()
 	   << "page="   << 1 << SEP
 	   << "access_token=" << STRAVA_API << SEP;
 
-	parser = new XmlParseTag("hi", "cp");
+	parser = new DummyParse();
     }
 
     else if (site == SUNRISE) {
 	os << "https://" << SITE_SUNRISE
 	   << "/json?"
 	   << "lat=" << Cfg::get(CFG_LOCATION_LAT) << SEP
-	   << "lon=" << Cfg::get(CFG_LOCATION_LON) << SEP
-	   << "date=" << "today";
+	   << "lng=" << Cfg::get(CFG_LOCATION_LON);
+	    //<< "date=" << "today";
 
-	parser = new XmlParseTag("hi", "cp");
+	parser = new DummyParse();
     }
 
     else {
@@ -116,6 +116,8 @@ void Web::read()
        << "bar=" << 2 << SEP;
 #endif
 
+    //Log::msg("web", os.str().c_str());
+    
     curl_easy_setopt(handle, CURLOPT_URL, os.str().c_str()); //"http://www.iltalehti.fi/index.html");
     curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);
 
