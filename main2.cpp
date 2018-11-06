@@ -294,7 +294,7 @@ public:
 	scm.mainLoop();
     }
 
-    void addFunc(const char* name, scmfn func) {
+    void addFunc(const char* name, foreign_func func) {
 	scm.addFn(name, func);
     }
 

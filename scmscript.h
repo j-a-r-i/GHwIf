@@ -6,8 +6,6 @@
 #include "tinyscheme/scheme-private.h"
 #include "tinyscheme/scheme.h"
 
-typedef pointer (*scmfn)(scheme *scm, pointer args);
-
 /** interface to tinyscheme
  */
 class ScmScript
@@ -17,7 +15,7 @@ public:
     ScmScript();
     virtual ~ScmScript();
 
-    void addFn(const char* name, scmfn func);
+    void addFn(const char* name, foreign_func func);
 
     void exec(const char* code);
     

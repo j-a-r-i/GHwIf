@@ -26,7 +26,7 @@ ScmScript::~ScmScript()
     scheme_deinit(&scm);
 }
 
-void ScmScript::addFn(const char* name, scmfn func)
+void ScmScript::addFn(const char* name, foreign_func func)
 {
     scheme_define(&scm, scm.global_env,
 		  mk_symbol(&scm,      name),

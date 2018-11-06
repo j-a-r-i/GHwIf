@@ -10,7 +10,7 @@ class BaseRuntime
 public:
     virtual void add(InfoReader* reader) = 0;
 
-    virtual void addFunc(const char* name, scmfn func) = 0;
+    virtual void addFunc(const char* name, foreign_func func) = 0;
 };
 
 //------------------------------------------------------------------------------
