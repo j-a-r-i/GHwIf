@@ -14,7 +14,8 @@ public:
 	NASDAQ_HIST,
 	NASDAQ_LAST,
 	FMI,
-	STRAVA
+	STRAVA,
+	SUNRISE
     };
     
     Web(bool verbose = false);
@@ -44,5 +45,5 @@ private:
     
     CURL *handle;
     bool verbose;
-    XmlBase *parser;
+    BaseParse *parser;
 };

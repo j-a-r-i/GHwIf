@@ -7,10 +7,11 @@
 #include "logger.h"
 #include <sstream>
 
-#define SITE_NASDAQ "www.nasdaqomxnordic.com"
-#define SITE_FMI    "data.fmi.fi"
-#define SITE_STRAVA "www.strava.com"
-#define SITE_DWEET  "dweet.io"
+#define SITE_NASDAQ  "www.nasdaqomxnordic.com"
+#define SITE_FMI     "data.fmi.fi"
+#define SITE_STRAVA  "www.strava.com"
+#define SITE_SUNRISE "api.sunrise-sunset.org"
+#define SITE_DWEET   "dweet.io"
 
 size_t curl_write(void *buffer, size_t size, size_t nmemb, void *user_data)
 {
@@ -89,6 +90,16 @@ void Web::read()
 	   << "/api/v3/athlete/activities?"
 	   << "page="   << 1 << SEP
 	   << "access_token=" << STRAVA_API << SEP;
+
+	parser = new XmlParseTag("hi", "cp");
+    }
+
+    else if (site == SUNRISE) {
+	os << "https://" << SITE_SUNRISE
+	   << "/json?"
+	   << "lat=" << Cfg::get(CFG_LOCATION_LAT) << SEP
+	   << "lon=" << Cfg::get(CFG_LOCATION_LON) << SEP
+	   << "date=" << "today";
 
 	parser = new XmlParseTag("hi", "cp");
     }

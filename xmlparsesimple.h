@@ -3,7 +3,31 @@
 #include <string>
 #include <expat.h>
 
-class XmlBase
+//------------------------------------------------------------------------------
+class BaseParse
+{
+public:
+    virtual void begin() = 0;
+    virtual void parse(const char* str) = 0;
+    virtual void end() = 0;
+
+    virtual const char* result() = 0;
+};
+
+//------------------------------------------------------------------------------
+class DummyParse : public BaseParse
+{
+public:
+    void begin();
+    void parse(const char* str);
+    void end();
+
+    const char* result();
+};
+
+
+//------------------------------------------------------------------------------
+class XmlBase : public BaseParse
 {
 public:
     virtual void onStartElem(const char* element, const char** attributes) = 0;
