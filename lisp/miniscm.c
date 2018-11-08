@@ -89,10 +89,6 @@
 #undef AVOID_HACK_LOOP
 #endif
 
-#ifndef	FIRST_CELLSEGS
-#error Please define your system type.
-#endif
-
 /* cell structure */
 struct cell {
 	unsigned short flag;
@@ -101,9 +97,7 @@ struct cell {
 			char   *_svalue;
 			short   _keynum;
 		} _string;
-		struct {
-			long    _ivalue;
-		} _number;
+	        long    _ivalue;
 		struct {
 			struct cell *_car;
 			struct cell *_cdr;
@@ -136,14 +130,14 @@ extern void init_globals();
 extern void gc(pointer a, pointer b);
 
 /* macros for cell operations */
-#define type(p)         ((p)->_flag)
+#define type(p)         ((p)->flag)
 
 #define isstring(p)     (type(p)&T_STRING)
 #define strvalue(p)     ((p)->_object._string._svalue)
 #define keynum(p)       ((p)->_object._string._keynum)
 
 #define isnumber(p)     (type(p)&T_NUMBER)
-#define ivalue(p)       ((p)->_object._number._ivalue)
+#define ivalue(p)       ((p)->_object._ivalue)
 
 #define ispair(p)       (type(p)&T_PAIR)
 #define car(p)          ((p)->_object._cons._car)
@@ -156,7 +150,6 @@ extern void gc(pointer a, pointer b);
 
 #define issyntax(p)     (type(p)&T_SYNTAX)
 #define isproc(p)       (type(p)&T_PROC)
-#define syntaxname(p)   strvalue(car(p))
 #define syntaxnum(p)    keynum(car(p))
 #define procnum(p)      ivalue(p)
 
@@ -170,15 +163,10 @@ extern void gc(pointer a, pointer b);
 #define iscontinuation(p) (type(p)&T_CONTINUATION)
 #define cont_dump(p)    cdr(p)
 
-#define ispromise(p)    (type(p)&T_PROMISE)
-#define setpromise(p)   type(p) |= T_PROMISE
-
 #define isatom(p)       (type(p)&T_ATOM)
-#define setatom(p)      type(p) |= T_ATOM
 #define clratom(p)      type(p) &= CLRATOM
 
 #define ismark(p)       (type(p)&MARK)
-#define setmark(p)      type(p) |= MARK
 #define clrmark(p)      type(p) &= UNMARK
 
 #define caar(p)         car(car(p))
@@ -248,11 +236,11 @@ int alloc_cellseg(int n)
 		cell_seg[++last_cell_seg] = p;
 		fcells += CELL_SEGSIZE;
 		for (i = 0; i < CELL_SEGSIZE - 1; i++, p++) {
-			type(p) = 0;
+			p->flag = 0;
 			car(p) = NIL;
 			cdr(p) = p + 1;
 		}
-		type(p) = 0;
+		p->flag = 0;
 		car(p) = NIL;
 		cdr(p) = free_cell;
 		free_cell = cell_seg[last_cell_seg];
@@ -330,7 +318,7 @@ pointer cons(pointer a, pointer b)
 {
 	register pointer x = get_cell(a, b);
 
-	type(x) = T_PAIR;
+	x->flag = T_PAIR;
 	car(x) = a;
 	cdr(x) = b;
 	return (x);
@@ -341,7 +329,7 @@ pointer mk_number(long num)
 {
 	register pointer x = get_cell(NIL, NIL);
 
-	type(x) = (T_NUMBER | T_ATOM);
+	x->flag = (T_NUMBER | T_ATOM);
 	ivalue(x) = num;
 	return (x);
 }
@@ -379,7 +367,7 @@ pointer mk_string(const char *str)
 	register pointer x = get_cell(NIL, NIL);
 
 	strvalue(x) = store_string(str);
-	type(x) = (T_STRING | T_ATOM);
+	x->flag = (T_STRING | T_ATOM);
 	keynum(x) = (short) (-1);
 	return (x);
 }
@@ -398,7 +386,7 @@ pointer mk_symbol(const char *name)
 		return (car(x));
 	else {
 		x = cons(mk_string(name), NIL);
-		type(x) = T_SYMBOL;
+		x->flag = T_SYMBOL;
 		oblist = cons(x, oblist);
 		return (x);
 	}
@@ -458,12 +446,12 @@ void mark(pointer a)
 
 E1:	t = (pointer) 0;
 	p = a;
-E2:	setmark(p);
+E2:	p->flag |= MARK;
 E3:	if (isatom(p))
 		goto E6;
 E4:	q = car(p);
 	if (q && !ismark(q)) {
-		setatom(p);
+		p->flag |= T_ATOM;
 		car(p) = t;
 		t = p;
 		p = q;
@@ -527,7 +515,7 @@ void gc(pointer a, pointer b)
 			if (ismark(p))
 				clrmark(p);
 			else {
-				type(p) = 0;
+				p->flag = 0;
 				cdr(p) = free_cell;
 				car(p) = NIL;
 				free_cell = p;
@@ -583,12 +571,6 @@ int     inchar()
 	return (*currentline++);
 }
 
-/* clear input buffer */
-void clearinput()
-{
-	currentline = endline = linebuff;
-}
-
 /* back to standard input */
 void flushinput()
 {
@@ -596,7 +578,7 @@ void flushinput()
 		fclose(infp);
 		infp = stdin;
 	}
-	clearinput();
+	currentline = endline = linebuff;
 }
 
 /* back character to input buffer */
@@ -754,7 +736,7 @@ pointer mk_closure(pointer c, pointer e)
 {
 	register pointer x = get_cell(c, e);
 
-	type(x) = T_CLOSURE;
+	x->flag = T_CLOSURE;
 	car(x) = c;
 	cdr(x) = e;
 	return (x);
@@ -765,7 +747,7 @@ pointer mk_continuation(pointer d)
 {
 	register pointer x = get_cell(NIL, d);
 
-	type(x) = T_CONTINUATION;
+	x->flag = T_CONTINUATION;
 	cont_dump(x) = d;
 	return (x);
 }
@@ -1340,7 +1322,7 @@ pointer opexe_1(uint8_t op)
 
 	case OP_DELAY:		/* delay */
 		x = mk_closure(cons(NIL, code), envir);
-		setpromise(x);
+		x->flag |= T_PROMISE;
 		s_return(x);
 
 	case OP_AND0:		/* and */
@@ -1389,7 +1371,7 @@ pointer opexe_1(uint8_t op)
 	case OP_C1STREAM:	/* cons-stream */
 		args = value;	/* save value to register args for gc */
 		x = mk_closure(cons(NIL, code), envir);
-		setpromise(x);
+		x->flag |= T_PROMISE;
 		s_return(cons(args, x));
 
 #ifdef USE_MACRO
@@ -1403,7 +1385,7 @@ pointer opexe_1(uint8_t op)
 		s_goto(OP_EVAL);
 
 	case OP_1MACRO:	/* macro */
-		type(value) |= T_MACRO;
+		value->flag |= T_MACRO;
 		for (x = car(envir); x != NIL; x = cdr(x))
 			if (caar(x) == code)
 				break;
@@ -1616,7 +1598,7 @@ pointer opexe_4(uint8_t op)
 	switch (op) {
 	case OP_FORCE:		/* force */
 		code = car(args);
-		if (ispromise(code)) {
+		if (code->flag & T_PROMISE) {
 			args = NIL;
 			s_goto(OP_APPLY);
 		} else {
@@ -2063,7 +2045,7 @@ void mk_syntax(unsigned short op, const char *name)
 	pointer x;
 
 	x = cons(mk_string(name), NIL);
-	type(x) = (T_SYNTAX | T_SYMBOL);
+	x->flag = (T_SYNTAX | T_SYMBOL);
 	syntaxnum(x) = op;
 	oblist = cons(x, oblist);
 }
@@ -2074,7 +2056,7 @@ void mk_proc(unsigned short op, const char *name)
 
 	x = mk_symbol(name);
 	y = get_cell(NIL, NIL);
-	type(y) = (T_PROC | T_ATOM);
+	y->flag = (T_PROC | T_ATOM);
 	ivalue(y) = (long) op;
 	car(global_env) = cons(cons(x, y), car(global_env));
 }
@@ -2088,13 +2070,13 @@ void init_vars_global()
 	infp = stdin;
 	outfp = stdout;
 	/* init NIL */
-	type(NIL) = (T_ATOM | MARK);
+	NIL->flag = (T_ATOM | MARK);
 	car(NIL) = cdr(NIL) = NIL;
 	/* init T */
-	type(T) = (T_ATOM | MARK);
+	T->flag = (T_ATOM | MARK);
 	car(T) = cdr(T) = T;
 	/* init F */
-	type(F) = (T_ATOM | MARK);
+	F->flag = (T_ATOM | MARK);
 	car(F) = cdr(F) = F;
 	/* init global_env */
 	global_env = cons(NIL, NIL);
