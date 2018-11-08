@@ -26,43 +26,6 @@
  */ 
 
 /*
- * Here is System declaration.
- * Please define exactly one symbol in the following section.
- */
-/* #define LSC		*/	/* LightSpeed C for Macintosh */
-/* #define LSC4		*/	/* THINK C version 4.0 for Macintosh */
-/* #define MPW2		*/	/* Macintosh Programmer's Workshop v2.0x */
-/* #define BSD		*/	/* 4.x BSD */
-/* #define MSC		*/	/* Microsoft C Compiler v.4.00 - 7.00 */
-/* #define TURBOC	*/	/* Turbo C compiler v.2.0, or TC++ 1.0  */
-/* #define SYSV		*/	/* System-V, or POSIX */
-/* #define VAXC		*/	/* VAX/VMS VAXC 2.x or later */ /* (automatic) */
-
-#ifdef __BORLANDC__	/* Borland C++ - MS-DOS */
-#define TURBOC
-#endif
-
-#ifdef __TURBOC__	/* Turbo C V1.5 - MS-DOS */
-#define TURBOC
-#endif
-
-#ifdef mips		/* DECstation running OSF/1 */
-#define BSD
-#endif
-
-#ifdef __osf__		/* Alpha AXP running OSF/1 */
-#define BSD
-#endif
-
-#ifdef __DECC		/* Alpha AXP running VMS */
-#define VAXC
-#endif
-
-#ifdef _AIX		/* RS/6000 running AIX */
-#define BSD
-#endif
-
-/*
  * Define or undefine following symbols as you need.
  */
 /* #define VERBOSE */	/* define this if you want verbose GC */
@@ -88,21 +51,10 @@
  *  Basic memory allocation units
  */
 
-#ifdef TURBOC             	/* rcs */
-#define CELL_SEGSIZE  2048
-#define CELL_NSEGMENT  100
-#define STR_SEGSIZE   2048
-#define STR_NSEGMENT   100
-#else
 #define CELL_SEGSIZE    5000	/* # of cells in one segment */
 #define CELL_NSEGMENT   100	/* # of segments for cells */
 #define STR_SEGSIZE     2500	/* bytes of one string segment */
 #define STR_NSEGMENT    100	/* # of segments for strings */
-#endif
-
-
-
-#define banner "Hello, This is Mini-Scheme Interpreter Version 0.85k4-a.\n"
 
 
 #include <stdio.h>
@@ -113,77 +65,22 @@
 
 
 /* System dependency */
-#ifdef LSC
-#include <strings.h>
-#include <unix.h>
-#define malloc(x)	NewPtr((long)(x))
-#define prompt "> "
-#define InitFile "init.scm"
-#define FIRST_CELLSEGS 5
-#endif
-
-#ifdef LSC4
-#include <string.h>
-#include <stdlib.h>
-#define malloc(x)	NewPtr((long)(x))
-#define prompt "> "
-#define InitFile "init.scm"
-#define FIRST_CELLSEGS 5
-#endif
-
-#ifdef MPW2
-#include <strings.h>
-#include <memory.h>
-#define malloc(x)	NewPtr((long)(x))
-#define prompt "> [enter at next line]\n"
-#define InitFile "init.scm"
-#define FIRST_CELLSEGS 5
-#endif
-
-#ifdef BSD
-#include <strings.h>
-#include <signal.h>
-#define prompt "> "
-#define InitFile "init.scm"
-#define FIRST_CELLSEGS 10
-#endif
-
 #ifdef MSC
 #include <string.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <process.h>
-#define prompt "> "
-#define InitFile "init.scm"
 #define FIRST_CELLSEGS 3
 #endif
 
-#ifdef TURBOC
 #include <string.h>
 #include <stdlib.h>
-#define prompt "> "
-#define InitFile "init.scm"
-#define FIRST_CELLSEGS 3
-#endif
-
-#ifdef SYSV
-#include <string.h>
 #include <malloc.h>
-#if __STDC__
-# include <stdlib.h>
-#endif
+#include <stdint.h>
 #define prompt "> "
 #define InitFile "init.scm"
 #define FIRST_CELLSEGS 10
-#endif
 
-#ifdef	VAXC
-#include <string.h>
-#include <stdlib.h>
-#define prompt "> "
-#define InitFile "init.scm"
-#define FIRST_CELLSEGS 10
-#endif
 
 #ifdef __GNUC__
 /*
@@ -194,15 +91,11 @@
 
 #ifndef	FIRST_CELLSEGS
 #error Please define your system type.
-/*
- * We refrain this to raise an error anyway even if on pre-ANSI system.
- */
-error Please define your system type.
 #endif
 
 /* cell structure */
 struct cell {
-	unsigned short _flag;
+	unsigned short flag;
 	union {
 		struct {
 			char   *_svalue;
@@ -236,6 +129,11 @@ typedef struct cell *pointer;
 #define CLRATOM      49151	/* 1011111111111111 */	/* only for gc */
 #define MARK         32768	/* 1000000000000000 */
 #define UNMARK       32767	/* 0111111111111111 */
+
+extern void FatalError(char *fmt);
+extern void Error(char *fmt);
+extern void init_globals();
+extern void gc(pointer a, pointer b);
 
 /* macros for cell operations */
 #define type(p)         ((p)->_flag)
@@ -322,24 +220,20 @@ pointer QUOTE;			/* pointer to syntax quote */
 pointer QQUOTE;			/* pointer to symbol quasiquote */
 pointer UNQUOTE;		/* pointer to symbol unquote */
 pointer UNQUOTESP;		/* pointer to symbol unquote-splicing */
-
 #endif
 
 pointer free_cell = &_NIL;	/* pointer to top of free cells */
 long    fcells = 0;		/* # of free cells */
-
 FILE   *infp;			/* input file */
 FILE   *outfp;			/* output file */
 
 #ifdef USE_SETJMP
 jmp_buf error_jmp;
-
 #endif
 char    gc_verbose;		/* if gc_verbose is not zero, print gc status */
 
 /* allocate new cell segment */
-alloc_cellseg(n)
-int     n;
+int alloc_cellseg(int n)
 {
 	register pointer p;
 	register long i;
@@ -367,8 +261,7 @@ int     n;
 }
 
 /* allocate new string segment */
-alloc_strseg(n)
-int     n;
+int alloc_strseg(int n)
 {
 	register char *p;
 	register long i;
@@ -388,7 +281,7 @@ int     n;
 }
 
 /* initialization of Mini-Scheme */
-init_scheme()
+void init_scheme()
 {
 	register pointer i;
 
@@ -405,8 +298,7 @@ init_scheme()
 }
 
 /* get new cell.  parameter a, b is marked by gc. */
-pointer get_cell(a, b)
-register pointer a, b;
+pointer get_cell(pointer a, pointer b)
 {
 	register pointer x;
 
@@ -434,8 +326,7 @@ register pointer a, b;
 }
 
 /* get new cons cell */
-pointer cons(a, b)
-register pointer a, b;
+pointer cons(pointer a, pointer b)
 {
 	register pointer x = get_cell(a, b);
 
@@ -446,8 +337,7 @@ register pointer a, b;
 }
 
 /* get number atom */
-pointer mk_number(num)
-register long num;
+pointer mk_number(long num)
 {
 	register pointer x = get_cell(NIL, NIL);
 
@@ -457,8 +347,7 @@ register long num;
 }
 
 /* allocate name to string area */
-char   *store_string(name)
-char   *name;
+char   *store_string(const char *name)
 {
 	register char *q;
 	register short i;
@@ -485,8 +374,7 @@ FOUND:
 }
 
 /* get new string */
-pointer mk_string(str)
-char   *str;
+pointer mk_string(const char *str)
 {
 	register pointer x = get_cell(NIL, NIL);
 
@@ -497,8 +385,7 @@ char   *str;
 }
 
 /* get new symbol */
-pointer mk_symbol(name)
-char   *name;
+pointer mk_symbol(const char *name)
 {
 	register pointer x;
 
@@ -518,8 +405,7 @@ char   *name;
 }
 
 /* make symbol or number atom from string */
-pointer mk_atom(q)
-char   *q;
+pointer mk_atom(char *q)
 {
 	char    c, *p;
 
@@ -535,8 +421,7 @@ char   *q;
 }
 
 /* make constant */
-pointer mk_const(name)
-char   *name;
+pointer mk_const(char *name)
 {
 	long    x;
 	char    tmp[256];
@@ -567,8 +452,7 @@ char   *name;
  *  We use algorithm E (Kunuth, The Art of Computer Programming Vol.1,
  *  sec.3.5) for marking.
  */
-mark(a)
-pointer a;
+void mark(pointer a)
 {
 	register pointer t, q, p;
 
@@ -611,8 +495,7 @@ E6:	if (!t)
 
 
 /* garbage collection. parameter a, b is marked. */
-gc(a, b)
-register pointer a, b;
+void gc(pointer a, pointer b)
 {
 	register pointer p;
 	register short i;
@@ -701,13 +584,13 @@ int     inchar()
 }
 
 /* clear input buffer */
-clearinput()
+void clearinput()
 {
 	currentline = endline = linebuff;
 }
 
 /* back to standard input */
-flushinput()
+void flushinput()
 {
 	if (infp != stdin) {
 		fclose(infp);
@@ -717,14 +600,22 @@ flushinput()
 }
 
 /* back character to input buffer */
-backchar()
+void backchar()
 {
 	currentline--;
 }
 
+/* check c is delimiter */
+int isdelim(char *s, char c)
+{
+	while (*s)
+		if (*s++ == c)
+			return (0);
+	return (1);
+}
+
 /* read chacters to delimiter */
-char   *readstr(delim)
-char   *delim;
+char   *readstr(char *delim)
 {
 	char   *p = strbuff;
 
@@ -752,19 +643,9 @@ char   *readstrexp()
 	}
 }
 
-/* check c is delimiter */
-isdelim(s, c)
-char   *s;
-char    c;
-{
-	while (*s)
-		if (*s++ == c)
-			return (0);
-	return (1);
-}
 
 /* skip white characters */
-skipspace()
+void skipspace()
 {
 	while (isspace(inchar()))
 		;
@@ -772,7 +653,7 @@ skipspace()
 }
 
 /* get token */
-token()
+int token()
 {
 	skipspace();
 	switch (inchar()) {
@@ -810,9 +691,7 @@ token()
 /* ========== Rootines for Printing ========== */
 #define	ok_abbrev(x)	(ispair(x) && cdr(x) == NIL)
 
-strunquote(p, s)
-char *p;
-char *s;
+void strunquote(char *p, char *s)
 {
 	*p++ = '"';
 	for ( ; *s; ++s) {
@@ -831,9 +710,7 @@ char *s;
 
 
 /* print atoms */
-int printatom(l, f)
-pointer l;
-int     f;
+void printatom(pointer l, int f)
 {
 	char	*p;
 	
@@ -866,18 +743,14 @@ int     f;
 		p = "#<CLOSURE>";
 	else if (iscontinuation(l))
 		p = "#<CONTINUATION>";
-	if (f < 0)
-		return strlen(p);
 	fputs(p, outfp);
-	return 0;
 }
 
 
 /* ========== Rootines for Evaluation Cycle ========== */
 
 /* make closure. c is code. e is environment */
-pointer mk_closure(c, e)
-register pointer c, e;
+pointer mk_closure(pointer c, pointer e)
 {
 	register pointer x = get_cell(c, e);
 
@@ -888,8 +761,7 @@ register pointer c, e;
 }
 
 /* make continuation. */
-pointer mk_continuation(d)
-register pointer d;
+pointer mk_continuation(pointer d)
 {
 	register pointer x = get_cell(NIL, d);
 
@@ -899,8 +771,8 @@ register pointer d;
 }
 
 /* reverse list -- make new cells */
-pointer reverse(a)
-register pointer a;		/* a must be checked by gc */
+pointer reverse(pointer a)
+		/* a must be checked by gc */
 {
 	register pointer p = NIL;
 
@@ -910,8 +782,7 @@ register pointer a;		/* a must be checked by gc */
 }
 
 /* reverse list --- no make new cells */
-pointer non_alloc_rev(term, list)
-pointer term, list;
+pointer non_alloc_rev(pointer term, pointer list)
 {
 	register pointer p = list, result = term, q;
 
@@ -925,8 +796,7 @@ pointer term, list;
 }
 
 /* append list -- make new cells */
-pointer append(a, b)
-register pointer a, b;
+pointer append(pointer a, pointer b)
 {
 	register pointer p = b, q;
 
@@ -943,8 +813,7 @@ register pointer a, b;
 }
 
 /* equivalence of atoms */
-eqv(a, b)
-register pointer a, b;
+int eqv(pointer a, pointer b)
 {
 	if (isstring(a)) {
 		if (isstring(b))
@@ -978,13 +847,13 @@ register pointer a, b;
 
 #define Error_0(s) BEGIN                       \
     args = cons(mk_string((s)), NIL);          \
-    operator = (short)OP_ERR0;                 \
+    operator = (uint8_t)OP_ERR0;                 \
     return T; END
 
 #define Error_1(s, a) BEGIN                    \
     args = cons((a), NIL);                     \
     args = cons(mk_string((s)), args);         \
-    operator = (short)OP_ERR0;                 \
+    operator = (uint8_t)OP_ERR0;                 \
     return T; END
 
 /* control macros for Eval_Cycle */
@@ -1117,22 +986,17 @@ register pointer a, b;
 
 #define	OP_LIST_LENGTH		96
 #define	OP_ASSQ			97
-#define	OP_PRINT_WIDTH		98
-#define	OP_P0_WIDTH		99
-#define	OP_P1_WIDTH		100
-#define	OP_GET_CLOSURE		101
-#define	OP_CLOSUREP		102
-#define	OP_MACROP		103
+#define	OP_GET_CLOSURE		98
+#define	OP_CLOSUREP		99
+#define	OP_MACROP		100
 
 
-static FILE *tmpfp;
 static int tok;
 static int print_flag;
 static pointer value;
-static short operator;
+static uint8_t operator;
 
-pointer opexe_0(op)
-register short op;
+pointer opexe_0(uint8_t op)
 {
 	register pointer x, y;
 
@@ -1417,8 +1281,7 @@ register short op;
 }
 
 
-pointer opexe_1(op)
-register short op;
+pointer opexe_1(uint8_t op)
 {
 	register pointer x, y;
 
@@ -1608,8 +1471,7 @@ register short op;
 }
 
 
-pointer opexe_2(op)
-register short op;
+pointer opexe_2(uint8_t op)
 {
 	register pointer x, y;
 	register long v;
@@ -1692,8 +1554,7 @@ register short op;
 }
 
 
-pointer opexe_3(op)
-register short op;
+pointer opexe_3(uint8_t op)
 {
 	register pointer x, y;
 
@@ -1748,8 +1609,7 @@ register short op;
 }
 
 
-pointer opexe_4(op)
-register short op;
+pointer opexe_4(uint8_t op)
 {
 	register pointer x, y;
 
@@ -1781,8 +1641,6 @@ register short op;
 		if (!isstring(car(args))) {
 			Error_0("error -- first argument must be string");
 		}
-		tmpfp = outfp;
-		outfp = stderr;
 		fprintf(outfp, "Error: ");
 		fprintf(outfp, "%s", strvalue(car(args)));
 		args = cdr(args);
@@ -1798,7 +1656,6 @@ register short op;
 		} else {
 			fprintf(outfp, "\n");
 			flushinput();
-			outfp = tmpfp;
 			s_goto(OP_T0LVL);
 		}
 
@@ -1860,8 +1717,7 @@ register short op;
 }
 
 
-pointer opexe_5(op)
-register short op;
+pointer opexe_5(uint8_t op)
 {
 	register pointer x, y;
 
@@ -2009,12 +1865,10 @@ register short op;
 }
 
 
-pointer opexe_6(op)
-register short op;
+pointer opexe_6(uint8_t op)
 {
 	register pointer x, y;
 	register long v;
-	static long	w;
 	char	buffer[32];
 
 	switch (op) {
@@ -2036,56 +1890,6 @@ register short op;
 			s_return(car(y));
 		} else {
 			s_return(F);
-		}
-		
-	case OP_PRINT_WIDTH:	/* print-width */	/* a.k */
-		w = 0;
-		args = car(args);
-		print_flag = -1;
-		s_goto(OP_P0_WIDTH);
-		
-	case OP_P0_WIDTH:
-		if (!ispair(args)) {
-			w += printatom(args, print_flag);
-			s_return(mk_number(w));
-		} else if (car(args) == QUOTE
-			   && ok_abbrev(cdr(args))) {
-			++w;
-			args = cadr(args);
-			s_goto(OP_P0_WIDTH);
-		} else if (car(args) == QQUOTE
-			   && ok_abbrev(cdr(args))) {
-			++w;
-			args = cadr(args);
-			s_goto(OP_P0_WIDTH);
-		} else if (car(args) == UNQUOTE
-			   && ok_abbrev(cdr(args))) {
-			++w;
-			args = cadr(args);
-			s_goto(OP_P0_WIDTH);
-		} else if (car(args) == UNQUOTESP
-			   && ok_abbrev(cdr(args))) {
-			w += 2;
-			args = cadr(args);
-			s_goto(OP_P0_WIDTH);
-		} else {
-			++w;
-			s_save(OP_P1_WIDTH, cdr(args), NIL);
-			args = car(args);
-			s_goto(OP_P0_WIDTH);
-		}
-		
-	case OP_P1_WIDTH:
-		if (ispair(args)) {
-			s_save(OP_P1_WIDTH, cdr(args), NIL);
-			++w;
-			args = car(args);
-			s_goto(OP_P0_WIDTH);
-		} else {
-			if (args != NIL)
-				w += 3 + printatom(args, print_flag);
-			++w;
-			s_return(mk_number(w));
 		}
 		
 	case OP_GET_CLOSURE:	/* get-closure-code */	/* a.k */
@@ -2127,7 +1931,7 @@ register short op;
 
 
 
-pointer	(*dispatch_table[])() = {
+pointer	(*dispatch_table[])(uint8_t) = {
 	opexe_0,	/* OP_LOAD = 0, */
 	opexe_0,	/* OP_T0LVL, */
 	opexe_0,	/* OP_T1LVL, */
@@ -2157,7 +1961,7 @@ pointer	(*dispatch_table[])() = {
 	
 	opexe_1,	/* OP_LET0REC, */
 	opexe_1,	/* OP_LET1REC, */
-	opexe_1,	/* OP_LETREC2, */
+	opexe_1,	/* OP_LET2REC, */
 	opexe_1,	/* OP_COND0, */
 	opexe_1,	/* OP_COND1, */
 	opexe_1,	/* OP_DELAY, */
@@ -2234,9 +2038,6 @@ pointer	(*dispatch_table[])() = {
 	
 	opexe_6,	/* OP_LIST_LENGTH, */
 	opexe_6,	/* OP_ASSQ, */
-	opexe_6,	/* OP_PRINT_WIDTH, */
-	opexe_6,	/* OP_P0_WIDTH, */
-	opexe_6,	/* OP_P1_WIDTH, */
 	opexe_6,	/* OP_GET_CLOSURE, */
 	opexe_6,	/* OP_CLOSUREP, */
 #ifdef USE_MACRO
@@ -2247,10 +2048,8 @@ pointer	(*dispatch_table[])() = {
 
 
 /* kernel of this intepreter */
-pointer Eval_Cycle(op)
-register short op;
+pointer Eval_Cycle(uint8_t op)
 {
-
 	operator = op;
 	for (;;)
 		if ((*dispatch_table[operator])(operator) == NIL)
@@ -2259,9 +2058,7 @@ register short op;
 
 /* ========== Initialization of internal keywords ========== */
 
-mk_syntax(op, name)
-unsigned short op;
-char   *name;
+void mk_syntax(unsigned short op, const char *name)
 {
 	pointer x;
 
@@ -2271,9 +2068,7 @@ char   *name;
 	oblist = cons(x, oblist);
 }
 
-mk_proc(op, name)
-unsigned short op;
-char   *name;
+void mk_proc(unsigned short op, const char *name)
 {
 	pointer x, y;
 
@@ -2285,7 +2080,7 @@ char   *name;
 }
 
 
-init_vars_global()
+void init_vars_global()
 {
 	pointer x;
 
@@ -2308,8 +2103,7 @@ init_vars_global()
 	car(global_env) = cons(cons(x, T), car(global_env));
 }
 
-
-init_syntax()
+void init_syntax()
 {
 	/* init syntax */
 	mk_syntax(OP_LAMBDA, "lambda");
@@ -2333,7 +2127,7 @@ init_syntax()
 }
 
 
-init_procs()
+void init_procs()
 {
 	/* init procedure */
 	mk_proc(OP_PEVAL, "eval");
@@ -2383,7 +2177,6 @@ init_procs()
 	mk_proc(OP_NEWSEGMENT, "new-segment");
 	mk_proc(OP_LIST_LENGTH, "list-length");	/* a.k */
 	mk_proc(OP_ASSQ, "assq");	/* a.k */
-	mk_proc(OP_PRINT_WIDTH, "print-width");	/* a.k */	
 	mk_proc(OP_GET_CLOSURE, "get-closure-code");	/* a.k */
 	mk_proc(OP_CLOSUREP, "closure?");	/* a.k */
 #ifdef USE_MACRO
@@ -2394,7 +2187,7 @@ init_procs()
 
 
 /* initialize several globals */
-init_globals()
+void init_globals()
 {
 	init_vars_global();
 	init_syntax();
@@ -2412,40 +2205,37 @@ init_globals()
 
 /* ========== Error ==========  */
 
-FatalError(fmt, a, b, c)
-char   *fmt, *a, *b, *c;
+void FatalError(char *fmt)
 {
 	fprintf(stderr, "Fatal error: ");
-	fprintf(stderr, fmt, a, b, c);
+	fprintf(stderr, fmt);
 	fprintf(stderr, "\n");
 	exit(1);
 }
 
 #ifdef USE_SETJMP
-Error(fmt, a, b, c)
-char   *fmt, *a, *b, *c;
+void Error(char *fmt)
 {
 	fprintf(stderr, "Error: ");
-	fprintf(stderr, fmt, a, b, c);
+	fprintf(stderr, fmt);
 	fprintf(stderr, "\n");
 	flushinput();
 	longjmp(error_jmp, OP_T0LVL);
 }
-
 #endif
 
-/* ========== Main ========== */
-
-main()
+//------------------------------------------------------------------------------
+int main()
 {
 	short   op = (short) OP_LOAD;
 
-	printf(banner);
+	printf("Mini-Scheme Interpreter V0.85j1.\n");
 	init_scheme();
 	args = cons(mk_string(InitFile), NIL);
 #ifdef USE_SETJMP
 	op = setjmp(error_jmp);
 #endif
 	Eval_Cycle(op);
-}
 
+	return 0;
+}
