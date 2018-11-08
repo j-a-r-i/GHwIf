@@ -80,7 +80,10 @@
 #define prompt "> "
 #define InitFile "init.scm"
 #define FIRST_CELLSEGS 10
+#include "miniscm.h"
 
+
+scm gScheme;
 
 #ifdef __GNUC__
 /*
@@ -88,6 +91,10 @@
  */
 #undef AVOID_HACK_LOOP
 #endif
+
+typedef struct cell cell;
+
+typedef cell *(*foreign_func)(cell*);
 
 /* cell structure */
 struct cell {
@@ -98,14 +105,13 @@ struct cell {
 			short   _keynum;
 		} _string;
 	        long    _ivalue;
+	        foreign_func ffunc;
 		struct {
-			struct cell *_car;
-			struct cell *_cdr;
+			cell *_car;
+			cell *_cdr;
 		} _cons;
 	} _object;
 };
-
-typedef struct cell *pointer;
 
 #define T_STRING         1	/* 0000000000000001 */
 #define T_NUMBER         2	/* 0000000000000010 */
@@ -119,6 +125,7 @@ typedef struct cell *pointer;
 # define T_MACRO        256	/* 0000000100000000 */
 #endif
 #define T_PROMISE      512	/* 0000001000000000 */
+#define T_FOREIGN     1024      
 #define T_ATOM       16384	/* 0100000000000000 */	/* only for gc */
 #define CLRATOM      49151	/* 1011111111111111 */	/* only for gc */
 #define MARK         32768	/* 1000000000000000 */
@@ -127,7 +134,7 @@ typedef struct cell *pointer;
 extern void FatalError(char *fmt);
 extern void Error(char *fmt);
 extern void init_globals();
-extern void gc(pointer a, pointer b);
+extern void gc(cell *a, cell *b);
 
 /* macros for cell operations */
 #define type(p)         ((p)->flag)
@@ -180,40 +187,39 @@ extern void gc(pointer a, pointer b);
 #define cddddr(p)       cdr(cdr(cdr(cdr(p))))
 
 /* arrays for segments */
-pointer cell_seg[CELL_NSEGMENT];
+cell *cell_seg[CELL_NSEGMENT];
 int     last_cell_seg = -1;
 char   *str_seg[STR_NSEGMENT];
 int     str_seglast = -1;
 
 /* We use 4 registers. */
-pointer args;			/* register for arguments of function */
-pointer envir;			/* stack register for current environment */
-pointer code;			/* register for current code */
-pointer dump;			/* stack register for next evaluation */
+cell *args;			/* register for arguments of function */
+cell *envir;			/* stack register for current environment */
+cell *code;			/* register for current code */
+cell *dump;			/* stack register for next evaluation */
 
 struct cell _NIL;
-pointer NIL = &_NIL;		/* special cell representing empty cell */
+cell *NIL = &_NIL;		/* special cell representing empty cell */
 struct cell _T;
-pointer T = &_T;		/* special cell representing #t */
+cell *T = &_T;		/* special cell representing #t */
 struct cell _F;
-pointer F = &_F;		/* special cell representing #f */
-pointer oblist = &_NIL;		/* pointer to symbol table */
-pointer global_env;		/* pointer to global environment */
+cell *F = &_F;		/* special cell representing #f */
+cell *oblist = &_NIL;		/* pointer to symbol table */
+cell *global_env;		/* pointer to global environment */
 
 /* global pointers to special symbols */
-pointer LAMBDA;			/* pointer to syntax lambda */
-pointer QUOTE;			/* pointer to syntax quote */
+cell *LAMBDA;			/* pointer to syntax lambda */
+cell *QUOTE;			/* pointer to syntax quote */
 
 #ifdef USE_QQUOTE
-pointer QQUOTE;			/* pointer to symbol quasiquote */
-pointer UNQUOTE;		/* pointer to symbol unquote */
-pointer UNQUOTESP;		/* pointer to symbol unquote-splicing */
+cell *QQUOTE;			/* pointer to symbol quasiquote */
+cell *UNQUOTE;		/* pointer to symbol unquote */
+cell *UNQUOTESP;		/* pointer to symbol unquote-splicing */
 #endif
 
-pointer free_cell = &_NIL;	/* pointer to top of free cells */
+cell *free_cell = &_NIL;	/* pointer to top of free cells */
 long    fcells = 0;		/* # of free cells */
 FILE   *infp;			/* input file */
-FILE   *outfp;			/* output file */
 
 #ifdef USE_SETJMP
 jmp_buf error_jmp;
@@ -223,15 +229,15 @@ char    gc_verbose;		/* if gc_verbose is not zero, print gc status */
 /* allocate new cell segment */
 int alloc_cellseg(int n)
 {
-	register pointer p;
+	register cell *p;
 	register long i;
 	register int k;
 
 	for (k = 0; k < n; k++) {
 		if (last_cell_seg >= CELL_NSEGMENT - 1)
 			return k;
-		p = (pointer) malloc(CELL_SEGSIZE * sizeof(struct cell));
-		if (p == (pointer) 0)
+		p = (cell*) malloc(CELL_SEGSIZE * sizeof(cell));
+		if (p == (cell*) 0)
 			return k;
 		cell_seg[++last_cell_seg] = p;
 		fcells += CELL_SEGSIZE;
@@ -271,7 +277,7 @@ int alloc_strseg(int n)
 /* initialization of Mini-Scheme */
 void init_scheme()
 {
-	register pointer i;
+	register cell *i;
 
 	if (alloc_cellseg(FIRST_CELLSEGS) != FIRST_CELLSEGS)
 		FatalError("Unable to allocate initial cell segments");
@@ -286,9 +292,9 @@ void init_scheme()
 }
 
 /* get new cell.  parameter a, b is marked by gc. */
-pointer get_cell(pointer a, pointer b)
+cell *get_cell(cell *a, cell *b)
 {
-	register pointer x;
+	register cell *x;
 
 	if (free_cell == NIL) {
 		gc(a, b);
@@ -314,9 +320,9 @@ pointer get_cell(pointer a, pointer b)
 }
 
 /* get new cons cell */
-pointer cons(pointer a, pointer b)
+cell *cons(cell *a, cell *b)
 {
-	register pointer x = get_cell(a, b);
+	register cell *x = get_cell(a, b);
 
 	x->flag = T_PAIR;
 	car(x) = a;
@@ -325,9 +331,9 @@ pointer cons(pointer a, pointer b)
 }
 
 /* get number atom */
-pointer mk_number(long num)
+cell *mk_number(long num)
 {
-	register pointer x = get_cell(NIL, NIL);
+	register cell *x = get_cell(NIL, NIL);
 
 	x->flag = (T_NUMBER | T_ATOM);
 	ivalue(x) = num;
@@ -362,9 +368,9 @@ FOUND:
 }
 
 /* get new string */
-pointer mk_string(const char *str)
+cell *mk_string(const char *str)
 {
-	register pointer x = get_cell(NIL, NIL);
+	register cell *x = get_cell(NIL, NIL);
 
 	strvalue(x) = store_string(str);
 	x->flag = (T_STRING | T_ATOM);
@@ -373,9 +379,9 @@ pointer mk_string(const char *str)
 }
 
 /* get new symbol */
-pointer mk_symbol(const char *name)
+cell *mk_symbol(const char *name)
 {
-	register pointer x;
+	register cell *x;
 
 	/* fisrt check oblist */
 	for (x = oblist; x != NIL; x = cdr(x))
@@ -393,7 +399,7 @@ pointer mk_symbol(const char *name)
 }
 
 /* make symbol or number atom from string */
-pointer mk_atom(char *q)
+cell *mk_atom(char *q)
 {
 	char    c, *p;
 
@@ -409,7 +415,7 @@ pointer mk_atom(char *q)
 }
 
 /* make constant */
-pointer mk_const(char *name)
+cell *mk_const(char *name)
 {
 	long    x;
 	char    tmp[256];
@@ -440,11 +446,11 @@ pointer mk_const(char *name)
  *  We use algorithm E (Kunuth, The Art of Computer Programming Vol.1,
  *  sec.3.5) for marking.
  */
-void mark(pointer a)
+void mark(cell *a)
 {
-	register pointer t, q, p;
+	register cell *t, *q, *p;
 
-E1:	t = (pointer) 0;
+E1:	t = (cell*) 0;
 	p = a;
 E2:	p->flag |= MARK;
 E3:	if (isatom(p))
@@ -483,9 +489,9 @@ E6:	if (!t)
 
 
 /* garbage collection. parameter a, b is marked. */
-void gc(pointer a, pointer b)
+void gc(cell *a, cell *b)
 {
-	register pointer p;
+	register cell *p;
 	register short i;
 	register long j;
 
@@ -692,7 +698,7 @@ void strunquote(char *p, char *s)
 
 
 /* print atoms */
-void printatom(pointer l, int f)
+void printatom(cell *l, int f)
 {
 	char	*p;
 	
@@ -725,16 +731,16 @@ void printatom(pointer l, int f)
 		p = "#<CLOSURE>";
 	else if (iscontinuation(l))
 		p = "#<CONTINUATION>";
-	fputs(p, outfp);
+	gScheme.print(p);
 }
 
 
 /* ========== Rootines for Evaluation Cycle ========== */
 
 /* make closure. c is code. e is environment */
-pointer mk_closure(pointer c, pointer e)
+cell *mk_closure(cell *c, cell *e)
 {
-	register pointer x = get_cell(c, e);
+	register cell *x = get_cell(c, e);
 
 	x->flag = T_CLOSURE;
 	car(x) = c;
@@ -743,9 +749,9 @@ pointer mk_closure(pointer c, pointer e)
 }
 
 /* make continuation. */
-pointer mk_continuation(pointer d)
+cell *mk_continuation(cell *d)
 {
-	register pointer x = get_cell(NIL, d);
+	register cell *x = get_cell(NIL, d);
 
 	x->flag = T_CONTINUATION;
 	cont_dump(x) = d;
@@ -753,10 +759,10 @@ pointer mk_continuation(pointer d)
 }
 
 /* reverse list -- make new cells */
-pointer reverse(pointer a)
+cell *reverse(cell *a)
 		/* a must be checked by gc */
 {
-	register pointer p = NIL;
+	register cell *p = NIL;
 
 	for ( ; ispair(a); a = cdr(a))
 		p = cons(car(a), p);
@@ -764,9 +770,9 @@ pointer reverse(pointer a)
 }
 
 /* reverse list --- no make new cells */
-pointer non_alloc_rev(pointer term, pointer list)
+cell *non_alloc_rev(cell *term, cell *list)
 {
-	register pointer p = list, result = term, q;
+	register cell *p = list, *result = term, *q;
 
 	while (p != NIL) {
 		q = cdr(p);
@@ -778,9 +784,9 @@ pointer non_alloc_rev(pointer term, pointer list)
 }
 
 /* append list -- make new cells */
-pointer append(pointer a, pointer b)
+cell *append(cell *a, cell *b)
 {
-	register pointer p = b, q;
+	register cell *p = b, *q;
 
 	if (a != NIL) {
 		a = reverse(a);
@@ -795,7 +801,7 @@ pointer append(pointer a, pointer b)
 }
 
 /* equivalence of atoms */
-int eqv(pointer a, pointer b)
+int eqv(cell *a, cell *b)
 {
 	if (isstring(a)) {
 		if (isstring(b))
@@ -975,12 +981,12 @@ int eqv(pointer a, pointer b)
 
 static int tok;
 static int print_flag;
-static pointer value;
+static cell *value;
 static uint8_t operator;
 
-pointer opexe_0(uint8_t op)
+cell *opexe_0(uint8_t op)
 {
-	register pointer x, y;
+	register cell *x, *y;
 
 	switch (op) {
 	case OP_LOAD:		/* load */
@@ -991,11 +997,12 @@ pointer opexe_0(uint8_t op)
 			infp = stdin;
 			Error_1("Unable to open", car(args));
 		}
-		fprintf(outfp, "loading %s", strvalue(car(args)));
+		gScheme.print("loading ");
+		gScheme.print(strvalue(car(args)));
 		s_goto(OP_T0LVL);
 
 	case OP_T0LVL:	/* top level */
-		fprintf(outfp, "\n");
+	        gScheme.print("\n");
 		dump = NIL;
 		envir = global_env;
 		s_save(OP_VALUEPRINT, NIL, NIL);
@@ -1263,9 +1270,9 @@ pointer opexe_0(uint8_t op)
 }
 
 
-pointer opexe_1(uint8_t op)
+cell *opexe_1(uint8_t op)
 {
-	register pointer x, y;
+	register cell *x, *y;
 
 	switch (op) {
 	case OP_LET0REC:	/* letrec */
@@ -1453,9 +1460,9 @@ pointer opexe_1(uint8_t op)
 }
 
 
-pointer opexe_2(uint8_t op)
+cell *opexe_2(uint8_t op)
 {
-	register pointer x, y;
+	register cell *x, *y;
 	register long v;
 
 	switch (op) {
@@ -1536,9 +1543,9 @@ pointer opexe_2(uint8_t op)
 }
 
 
-pointer opexe_3(uint8_t op)
+cell *opexe_3(uint8_t op)
 {
-	register pointer x, y;
+	register cell *x, *y;
 
 	switch (op) {
 	case OP_NOT:		/* not */
@@ -1591,9 +1598,9 @@ pointer opexe_3(uint8_t op)
 }
 
 
-pointer opexe_4(uint8_t op)
+cell *opexe_4(uint8_t op)
 {
-	register pointer x, y;
+	register cell *x, *y;
 
 	switch (op) {
 	case OP_FORCE:		/* force */
@@ -1616,27 +1623,27 @@ pointer opexe_4(uint8_t op)
 		s_goto(OP_P0LIST);
 
 	case OP_NEWLINE:	/* newline */
-		fprintf(outfp, "\n");
+		gScheme.print("\n");
 		s_return(T);
 
 	case OP_ERR0:	/* error */
 		if (!isstring(car(args))) {
 			Error_0("error -- first argument must be string");
 		}
-		fprintf(outfp, "Error: ");
-		fprintf(outfp, "%s", strvalue(car(args)));
+		gScheme.print("Error: ");
+		gScheme.print(strvalue(car(args)));
 		args = cdr(args);
 		s_goto(OP_ERR1);
 
 	case OP_ERR1:	/* error */
-		fprintf(outfp, " ");
+		gScheme.print(" ");
 		if (args != NIL) {
 			s_save(OP_ERR1, cdr(args), NIL);
 			args = car(args);
 			print_flag = 1;
 			s_goto(OP_P0LIST);
 		} else {
-			fprintf(outfp, "\n");
+			gScheme.print("\n");
 			flushinput();
 			s_goto(OP_T0LVL);
 		}
@@ -1692,16 +1699,17 @@ pointer opexe_4(uint8_t op)
 		if (!isnumber(car(args))) {
 			Error_0("new-segment -- argument must be number");
 		}
-		fprintf(outfp, "allocate %d new segments\n",
-			alloc_cellseg((int) ivalue(car(args))));
+		gScheme.print("allocate new segments\n");
+		
+		alloc_cellseg((int) ivalue(car(args)));
 		s_return(T);
 	}
 }
 
 
-pointer opexe_5(uint8_t op)
+cell *opexe_5(uint8_t op)
 {
-	register pointer x, y;
+	register cell *x, *y;
 
 	switch (op) {
 	/* ========== reading part ========== */
@@ -1801,23 +1809,23 @@ pointer opexe_5(uint8_t op)
 			printatom(args, print_flag);
 			s_return(T);
 		} else if (car(args) == QUOTE && ok_abbrev(cdr(args))) {
-			fprintf(outfp, "'");
+			gScheme.print("'");
 			args = cadr(args);
 			s_goto(OP_P0LIST);
 		} else if (car(args) == QQUOTE && ok_abbrev(cdr(args))) {
-			fprintf(outfp, "`");
+			gScheme.print("`");
 			args = cadr(args);
 			s_goto(OP_P0LIST);
 		} else if (car(args) == UNQUOTE && ok_abbrev(cdr(args))) {
-			fprintf(outfp, ",");
+			gScheme.print(",");
 			args = cadr(args);
 			s_goto(OP_P0LIST);
 		} else if (car(args) == UNQUOTESP && ok_abbrev(cdr(args))) {
-			fprintf(outfp, ",@");
+			gScheme.print(",@");
 			args = cadr(args);
 			s_goto(OP_P0LIST);
 		} else {
-			fprintf(outfp, "(");
+			gScheme.print("(");
 			s_save(OP_P1LIST, cdr(args), NIL);
 			args = car(args);
 			s_goto(OP_P0LIST);
@@ -1826,15 +1834,15 @@ pointer opexe_5(uint8_t op)
 	case OP_P1LIST:
 		if (ispair(args)) {
 			s_save(OP_P1LIST, cdr(args), NIL);
-			fprintf(outfp, " ");
+			gScheme.print(" ");
 			args = car(args);
 			s_goto(OP_P0LIST);
 		} else {
 			if (args != NIL) {
-				fprintf(outfp, " . ");
+				gScheme.print(" . ");
 				printatom(args, print_flag);
 			}
-			fprintf(outfp, ")");
+			gScheme.print(")");
 			s_return(T);
 		}
 
@@ -1847,9 +1855,9 @@ pointer opexe_5(uint8_t op)
 }
 
 
-pointer opexe_6(uint8_t op)
+cell *opexe_6(uint8_t op)
 {
-	register pointer x, y;
+	register cell *x, *y;
 	register long v;
 	char	buffer[32];
 
@@ -1913,7 +1921,7 @@ pointer opexe_6(uint8_t op)
 
 
 
-pointer	(*dispatch_table[])(uint8_t) = {
+cell *(*dispatch_table[])(uint8_t) = {
 	opexe_0,	/* OP_LOAD = 0, */
 	opexe_0,	/* OP_T0LVL, */
 	opexe_0,	/* OP_T1LVL, */
@@ -2030,7 +2038,7 @@ pointer	(*dispatch_table[])(uint8_t) = {
 
 
 /* kernel of this intepreter */
-pointer Eval_Cycle(uint8_t op)
+cell *Eval_Cycle(uint8_t op)
 {
 	operator = op;
 	for (;;)
@@ -2042,7 +2050,7 @@ pointer Eval_Cycle(uint8_t op)
 
 void mk_syntax(unsigned short op, const char *name)
 {
-	pointer x;
+	cell *x;
 
 	x = cons(mk_string(name), NIL);
 	x->flag = (T_SYNTAX | T_SYMBOL);
@@ -2052,7 +2060,7 @@ void mk_syntax(unsigned short op, const char *name)
 
 void mk_proc(unsigned short op, const char *name)
 {
-	pointer x, y;
+	cell *x, *y;
 
 	x = mk_symbol(name);
 	y = get_cell(NIL, NIL);
@@ -2064,11 +2072,10 @@ void mk_proc(unsigned short op, const char *name)
 
 void init_vars_global()
 {
-	pointer x;
+	cell *x;
 
 	/* init input/output file */
 	infp = stdin;
-	outfp = stdout;
 	/* init NIL */
 	NIL->flag = (T_ATOM | MARK);
 	car(NIL) = cdr(NIL) = NIL;
@@ -2207,10 +2214,18 @@ void Error(char *fmt)
 #endif
 
 //------------------------------------------------------------------------------
+void print(const char* msg)
+{
+    printf("<%s>", msg);
+}
+
+
 int main()
 {
 	short   op = (short) OP_LOAD;
 
+	gScheme.print = print;
+	
 	printf("Mini-Scheme Interpreter V0.85j1.\n");
 	init_scheme();
 	args = cons(mk_string(InitFile), NIL);
