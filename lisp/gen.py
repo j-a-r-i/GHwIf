@@ -90,8 +90,6 @@ OPS = [
  [ "OP_ERR1", None, 78, "opexe_4", None ],
  [ "OP_REVERSE", "reverse", 79, "opexe_4", "proc" ],
  [ "OP_APPEND", "append", 80, "opexe_4", "proc" ],
- [ "OP_PUT", "put", 81, "opexe_4", "proc" ],
- [ "OP_GET", "get", 82, "opexe_4", "proc" ],
  [ "OP_QUIT", "quit", 83, "opexe_4", "proc" ],
  [ "OP_GC", "gc", 84, "opexe_4", "proc" ],
  [ "OP_GCVERB", "gc-verbose", 85, "opexe_4", "proc" ],
@@ -100,9 +98,6 @@ OPS = [
  [ "OP_RDLIST", None, 88, "opexe_5", None ],
  [ "OP_RDDOT", None, 89, "opexe_5", None ],
  [ "OP_RDQUOTE", None, 90, "opexe_5", None ],
- [ "OP_RDQQUOTE", None, 91, "opexe_5", None ],
- [ "OP_RDUNQUOTE", None, 92, "opexe_5", None ],
- [ "OP_RDUQTSP", None, 93, "opexe_5", None ],
  [ "OP_P0LIST", None, 94, "opexe_5", None ],
  [ "OP_P1LIST", None, 95, "opexe_5", None ],
  [ "OP_LIST_LENGTH", "list-length", 96, "opexe_6", "proc" ],
@@ -111,6 +106,12 @@ OPS = [
  [ "OP_CLOSUREP", "closure?", 99, "opexe_6", "proc" ],
  [ "OP_MACROP", "macro?", 100, "opexe_6", "proc" ]
 ]
+
+# [ "OP_PUT", "put", 81, "opexe_4", "proc" ],
+# [ "OP_GET", "get", 82, "opexe_4", "proc" ],
+# [ "OP_RDQQUOTE", None, 91, "opexe_5", None ],
+# [ "OP_RDUNQUOTE", None, 92, "opexe_5", None ],
+# [ "OP_RDUQTSP", None, 93, "opexe_5", None ],
 
 
 en = OEnum("OpCodes")

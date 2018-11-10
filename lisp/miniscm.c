@@ -30,19 +30,7 @@
 			 * enougth to complain "do { } while (0)"
 			 * construction.
 			 */
-#define USE_SETJMP	/* undef this if you do not want to use setjmp() */
-#define USE_QQUOTE	/* undef this if you do not need quasiquote */
 #define USE_MACRO	/* undef this if you do not need macro */
-
-	
-#ifdef USE_QQUOTE
-/*--
- *  If your machine can't support "forward single quotation character"
- *  i.e., '`',  you may have trouble to use backquote.
- *  So use '^' in place of '`'.
- */
-# define BACKQUOTE '`'
-#endif
 
 /*
  *  Basic memory allocation units
@@ -56,9 +44,6 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#ifdef USE_SETJMP
-  #include <setjmp.h>
-#endif
 #include <string.h>
 #include <stdlib.h>
 #include <malloc.h>
@@ -176,19 +161,9 @@ cell *global_env;		/* pointer to global environment */
 cell *LAMBDA;			/* pointer to syntax lambda */
 cell *QUOTE;			/* pointer to syntax quote */
 
-#ifdef USE_QQUOTE
-cell *QQUOTE;			/* pointer to symbol quasiquote */
-cell *UNQUOTE;		/* pointer to symbol unquote */
-cell *UNQUOTESP;		/* pointer to symbol unquote-splicing */
-#endif
-
 cell *free_cell = &_NIL;	/* pointer to top of free cells */
 long    fcells = 0;		/* # of free cells */
 FILE   *infp;			/* input file */
-
-#ifdef USE_SETJMP
-jmp_buf error_jmp;
-#endif
 char    gc_verbose;		/* if gc_verbose is not zero, print gc status */
 
 /* allocate new cell segment */
@@ -264,19 +239,8 @@ cell *get_cell(cell *a, cell *b)
 	if (free_cell == NIL) {
 		gc(a, b);
 		if (free_cell == NIL)
-#ifdef USE_SETJMP
-			if (!alloc_cellseg(1)) {
-				args = envir = code = dump = NIL;
-				gc(NIL, NIL);
-				if (free_cell != NIL)
-					Error("run out of cells --- rerurn to top level");
-				else
-					FatalError("run out of cells --- unable to recover cells");
-			}
-#else
 			if (!alloc_cellseg(1))
 				FatalError("run out of cells  --- unable to recover cells");
-#endif
 	}
 	x = free_cell;
 	free_cell = cdr(x);
@@ -509,12 +473,7 @@ void gc(cell *a, cell *b)
 #define TOK_QUOTE   4
 #define TOK_COMMENT 5
 #define TOK_DQUOTE  6
-#ifdef USE_QQUOTE
-# define TOK_BQUOTE  7
-# define TOK_COMMA   8
-# define TOK_ATMARK  9
-#endif
-#define TOK_SHARP   10
+#define TOK_SHARP   7
 
 #define LINESIZE 1024
 char    linebuff[LINESIZE];
@@ -622,17 +581,6 @@ int token()
 		return (TOK_COMMENT);
 	case '"':
 		return (TOK_DQUOTE);
-#ifdef USE_QQUOTE
-	case BACKQUOTE:
-		return (TOK_BQUOTE);
-	case ',':
-		if (inchar() == '@')
-			return (TOK_ATMARK);
-		else {
-			backchar();
-			return (TOK_COMMA);
-		}
-#endif
 	case '#':
 		return (TOK_SHARP);
 	default:
@@ -1564,20 +1512,6 @@ cell *opexe_5(uint8_t op)
 			s_save(OP_RDQUOTE, NIL, NIL);
 			tok = token();
 			s_goto(OP_RDSEXPR);
-#ifdef USE_QQUOTE
-		case TOK_BQUOTE:
-			s_save(OP_RDQQUOTE, NIL, NIL);
-			tok = token();
-			s_goto(OP_RDSEXPR);
-		case TOK_COMMA:
-			s_save(OP_RDUNQUOTE, NIL, NIL);
-			tok = token();
-			s_goto(OP_RDSEXPR);
-		case TOK_ATMARK:
-			s_save(OP_RDUQTSP, NIL, NIL);
-			tok = token();
-			s_goto(OP_RDSEXPR);
-#endif
 		case TOK_ATOM:
 			s_return(mk_atom(readstr("();\t\n ")));
 		case TOK_DQUOTE:
@@ -1622,17 +1556,6 @@ cell *opexe_5(uint8_t op)
 	case OP_RDQUOTE:
 		s_return(cons(QUOTE, cons(value, NIL)));
 
-#ifdef USE_QQUOTE
-	case OP_RDQQUOTE:
-		s_return(cons(QQUOTE, cons(value, NIL)));
-
-	case OP_RDUNQUOTE:
-		s_return(cons(UNQUOTE, cons(value, NIL)));
-
-	case OP_RDUQTSP:
-		s_return(cons(UNQUOTESP, cons(value, NIL)));
-#endif
-
 	/* ========== printing part ========== */
 	case OP_P0LIST:
 		if (!ispair(args)) {
@@ -1640,18 +1563,6 @@ cell *opexe_5(uint8_t op)
 			s_return(T);
 		} else if (car(args) == QUOTE && ok_abbrev(cdr(args))) {
 			gScheme.print("'");
-			args = cadr(args);
-			s_goto(OP_P0LIST);
-		} else if (car(args) == QQUOTE && ok_abbrev(cdr(args))) {
-			gScheme.print("`");
-			args = cadr(args);
-			s_goto(OP_P0LIST);
-		} else if (car(args) == UNQUOTE && ok_abbrev(cdr(args))) {
-			gScheme.print(",");
-			args = cadr(args);
-			s_goto(OP_P0LIST);
-		} else if (car(args) == UNQUOTESP && ok_abbrev(cdr(args))) {
-			gScheme.print(",@");
 			args = cadr(args);
 			s_goto(OP_P0LIST);
 		} else {
@@ -1896,12 +1807,6 @@ void init_globals()
 	/* intialization of global pointers to special symbols */
 	LAMBDA = mk_symbol("lambda");
 	QUOTE = mk_symbol("quote");
-#ifdef USE_QQUOTE
-	QQUOTE = mk_symbol("quasiquote");
-	UNQUOTE = mk_symbol("unquote");
-	UNQUOTESP = mk_symbol("unquote-splicing");
-#endif
-
 }
 
 /* ========== Error ==========  */
@@ -1913,17 +1818,6 @@ void FatalError(char *fmt)
 	fprintf(stderr, "\n");
 	exit(1);
 }
-
-#ifdef USE_SETJMP
-void Error(char *fmt)
-{
-	fprintf(stderr, "Error: ");
-	fprintf(stderr, fmt);
-	fprintf(stderr, "\n");
-	flushinput();
-	longjmp(error_jmp, OP_T0LVL);
-}
-#endif
 
 //------------------------------------------------------------------------------
 void print(const char* msg)
@@ -1940,9 +1834,6 @@ int main()
 	printf("Mini-Scheme Interpreter V0.85j2.\n");
 	init_scheme();
 	args = cons(mk_string("init.scm"), NIL);
-#ifdef USE_SETJMP
-	op = setjmp(error_jmp);
-#endif
 	Eval_Cycle(op);
 
 	return 0;

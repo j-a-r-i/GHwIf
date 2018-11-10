@@ -84,8 +84,6 @@ const char *OpNames[] =
     "ERR1",
     "REVERSE",
     "APPEND",
-    "PUT",
-    "GET",
     "QUIT",
     "GC",
     "GCVERB",
@@ -94,9 +92,6 @@ const char *OpNames[] =
     "RDLIST",
     "RDDOT",
     "RDQUOTE",
-    "RDQQUOTE",
-    "RDUNQUOTE",
-    "RDUQTSP",
     "P0LIST",
     "P1LIST",
     "LIST_LENGTH",
@@ -189,8 +184,6 @@ ScmFunc dispatch_table[] =
     opexe_4,  // OP_ERR1
     opexe_4,  // OP_REVERSE
     opexe_4,  // OP_APPEND
-    opexe_4,  // OP_PUT
-    opexe_4,  // OP_GET
     opexe_4,  // OP_QUIT
     opexe_4,  // OP_GC
     opexe_4,  // OP_GCVERB
@@ -199,9 +192,6 @@ ScmFunc dispatch_table[] =
     opexe_5,  // OP_RDLIST
     opexe_5,  // OP_RDDOT
     opexe_5,  // OP_RDQUOTE
-    opexe_5,  // OP_RDQQUOTE
-    opexe_5,  // OP_RDUNQUOTE
-    opexe_5,  // OP_RDUQTSP
     opexe_5,  // OP_P0LIST
     opexe_5,  // OP_P1LIST
     opexe_6,  // OP_LIST_LENGTH
