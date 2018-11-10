@@ -25,9 +25,6 @@
  *--
  */ 
 
-/*
- * Define or undefine following symbols as you need.
- */
 /* #define VERBOSE */	/* define this if you want verbose GC */
 #define	AVOID_HACK_LOOP	/* define this if your compiler is poor
 			 * enougth to complain "do { } while (0)"
@@ -60,30 +57,17 @@
 #include <stdio.h>
 #include <ctype.h>
 #ifdef USE_SETJMP
-#include <setjmp.h>
+  #include <setjmp.h>
 #endif
-
-
-/* System dependency */
-#ifdef MSC
-#include <string.h>
-#include <stdlib.h>
-#include <malloc.h>
-#include <process.h>
-#define FIRST_CELLSEGS 3
-#endif
-
 #include <string.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <stdint.h>
-#define prompt "> "
-#define InitFile "init.scm"
-#define FIRST_CELLSEGS 10
 #include "miniscm.h"
+#include "op.h"
 
-
-scm gScheme;
+#define prompt "> "
+#define FIRST_CELLSEGS 10
 
 #ifdef __GNUC__
 /*
@@ -91,27 +75,6 @@ scm gScheme;
  */
 #undef AVOID_HACK_LOOP
 #endif
-
-typedef struct cell cell;
-
-typedef cell *(*foreign_func)(cell*);
-
-/* cell structure */
-struct cell {
-	unsigned short flag;
-	union {
-		struct {
-			char   *_svalue;
-			short   _keynum;
-		} _string;
-	        long    _ivalue;
-	        foreign_func ffunc;
-		struct {
-			cell *_car;
-			cell *_cdr;
-		} _cons;
-	} _object;
-};
 
 #define T_STRING         1	/* 0000000000000001 */
 #define T_NUMBER         2	/* 0000000000000010 */
@@ -139,42 +102,42 @@ extern void gc(cell *a, cell *b);
 /* macros for cell operations */
 #define type(p)         ((p)->flag)
 
-#define isstring(p)     (type(p)&T_STRING)
-#define strvalue(p)     ((p)->_object._string._svalue)
-#define keynum(p)       ((p)->_object._string._keynum)
+#define isstring(p)     ((p)->flag & T_STRING)
+#define strvalue(p)     ((p)->obj._string._svalue)
+#define keynum(p)       ((p)->obj._string._keynum)
 
-#define isnumber(p)     (type(p)&T_NUMBER)
-#define ivalue(p)       ((p)->_object._ivalue)
+#define isnumber(p)     ((p)->flag & T_NUMBER)
+#define ivalue(p)       ((p)->obj._ivalue)
 
-#define ispair(p)       (type(p)&T_PAIR)
-#define car(p)          ((p)->_object._cons._car)
-#define cdr(p)          ((p)->_object._cons._cdr)
+#define ispair(p)       ((p)->flag & T_PAIR)
+#define car(p)          ((p)->obj._cons._car)
+#define cdr(p)          ((p)->obj._cons._cdr)
 
-#define issymbol(p)     (type(p)&T_SYMBOL)
+#define issymbol(p)     ((p)->flag & T_SYMBOL)
 #define symname(p)      strvalue(car(p))
-#define hasprop(p)      (type(p)&T_SYMBOL)
+#define hasprop(p)      ((p)->flag & T_SYMBOL)
 #define symprop(p)      cdr(p)
 
-#define issyntax(p)     (type(p)&T_SYNTAX)
-#define isproc(p)       (type(p)&T_PROC)
+#define issyntax(p)     ((p)->flag & T_SYNTAX)
+#define isproc(p)       ((p)->flag & T_PROC)
 #define syntaxnum(p)    keynum(car(p))
 #define procnum(p)      ivalue(p)
 
-#define isclosure(p)    (type(p)&T_CLOSURE)
+#define isclosure(p)    ((p)->flag & T_CLOSURE)
 #ifdef USE_MACRO
-# define ismacro(p)      (type(p)&T_MACRO)
+# define ismacro(p)      ((p)->flag & T_MACRO)
 #endif
 #define closure_code(p) car(p)
 #define closure_env(p)  cdr(p)
 
-#define iscontinuation(p) (type(p)&T_CONTINUATION)
+#define iscontinuation(p) ((p)->flag & T_CONTINUATION)
 #define cont_dump(p)    cdr(p)
 
-#define isatom(p)       (type(p)&T_ATOM)
-#define clratom(p)      type(p) &= CLRATOM
+#define isatom(p)       ((p)->flag &T_ATOM)
+#define clratom(p)      (p)->flag &= CLRATOM
 
-#define ismark(p)       (type(p)&MARK)
-#define clrmark(p)      type(p) &= UNMARK
+#define ismark(p)       ((p)->flag & MARK)
+#define clrmark(p)      (p)->flag &= UNMARK
 
 #define caar(p)         car(car(p))
 #define cadr(p)         car(cdr(p))
@@ -185,6 +148,8 @@ extern void gc(cell *a, cell *b);
 #define cadaar(p)       car(cdr(car(car(p))))
 #define cadddr(p)       car(cdr(cdr(cdr(p))))
 #define cddddr(p)       cdr(cdr(cdr(cdr(p))))
+
+scm gScheme;
 
 /* arrays for segments */
 cell *cell_seg[CELL_NSEGMENT];
@@ -870,115 +835,6 @@ int eqv(cell *a, cell *b)
 
 /* ========== Evaluation Cycle ========== */
 
-/* operator code */
-#define	OP_LOAD			0
-#define	OP_T0LVL		1
-#define	OP_T1LVL		2
-#define	OP_READ			3
-#define	OP_VALUEPRINT		4
-#define	OP_EVAL			5
-#define	OP_E0ARGS		6
-#define	OP_E1ARGS		7
-#define	OP_APPLY		8
-#define	OP_DOMACRO		9
-
-#define	OP_LAMBDA		10
-#define	OP_QUOTE		11
-#define	OP_DEF0			12
-#define	OP_DEF1			13
-#define	OP_BEGIN		14
-#define	OP_IF0			15
-#define	OP_IF1			16
-#define	OP_SET0			17
-#define	OP_SET1			18
-#define	OP_LET0			19
-#define	OP_LET1			20
-#define	OP_LET2			21
-#define	OP_LET0AST		22
-#define	OP_LET1AST		23
-#define	OP_LET2AST		24
-#define	OP_LET0REC		25
-#define	OP_LET1REC		26
-#define	OP_LET2REC		27
-#define	OP_COND0		28
-#define	OP_COND1		29
-#define	OP_DELAY		30
-#define	OP_AND0			31
-#define	OP_AND1			32
-#define	OP_OR0			33
-#define	OP_OR1			34
-#define	OP_C0STREAM		35
-#define	OP_C1STREAM		36
-#define	OP_0MACRO		37
-#define	OP_1MACRO		38
-#define	OP_CASE0		39
-#define	OP_CASE1		40
-#define	OP_CASE2		41
-
-#define	OP_PEVAL		42
-#define	OP_PAPPLY		43
-#define	OP_CONTINUATION		44
-#define	OP_ADD			45
-#define	OP_SUB			46
-#define	OP_MUL			47
-#define	OP_DIV			48
-#define	OP_REM			49
-#define	OP_CAR			50
-#define	OP_CDR			51
-#define	OP_CONS			52
-#define	OP_SETCAR		53
-#define	OP_SETCDR		54
-#define	OP_NOT			55
-#define	OP_BOOL			56
-#define	OP_NULL			57
-#define	OP_ZEROP		58
-#define	OP_POSP			59
-#define	OP_NEGP			60
-#define	OP_NEQ			61
-#define	OP_LESS			62
-#define	OP_GRE			63
-#define	OP_LEQ			64
-#define	OP_GEQ			65
-#define	OP_SYMBOL		66
-#define	OP_NUMBER		67
-#define	OP_STRING		68
-#define	OP_PROC			69
-#define	OP_PAIR			70
-#define	OP_EQ			71
-#define	OP_EQV			72
-#define	OP_FORCE		73
-#define	OP_WRITE		74
-#define	OP_DISPLAY		75
-#define	OP_NEWLINE		76
-#define	OP_ERR0			77
-#define	OP_ERR1			78
-#define	OP_REVERSE		79
-#define	OP_APPEND		80
-#define	OP_PUT			81
-#define	OP_GET			82
-#define	OP_QUIT			83
-#define	OP_GC			84
-#define	OP_GCVERB		85
-#define	OP_NEWSEGMENT		86
-
-#define	OP_RDSEXPR		87
-#define	OP_RDLIST		88
-#define	OP_RDDOT		89
-#define	OP_RDQUOTE		90
-#define	OP_RDQQUOTE		91
-#define	OP_RDUNQUOTE		92
-#define	OP_RDUQTSP		93
-
-#define	OP_P0LIST		94
-#define	OP_P1LIST		95
-
-#define	OP_LIST_LENGTH		96
-#define	OP_ASSQ			97
-#define	OP_GET_CLOSURE		98
-#define	OP_CLOSUREP		99
-#define	OP_MACROP		100
-
-
 static int tok;
 static int print_flag;
 static cell *value;
@@ -1654,33 +1510,6 @@ cell *opexe_4(uint8_t op)
 	case OP_APPEND:	/* append */
 		s_return(append(car(args), cadr(args)));
 
-	case OP_PUT:		/* put */
-		if (!hasprop(car(args)) || !hasprop(cadr(args))) {
-			Error_0("Illegal use of put");
-		}
-		for (x = symprop(car(args)), y = cadr(args); x != NIL; x = cdr(x))
-			if (caar(x) == y)
-				break;
-		if (x != NIL)
-			cdar(x) = caddr(args);
-		else
-			symprop(car(args)) = cons(cons(y, caddr(args)),
-						  symprop(car(args)));
-		s_return(T);
-
-	case OP_GET:		/* get */
-		if (!hasprop(car(args)) || !hasprop(cadr(args))) {
-			Error_0("Illegal use of get");
-		}
-		for (x = symprop(car(args)), y = cadr(args); x != NIL; x = cdr(x))
-			if (caar(x) == y)
-				break;
-		if (x != NIL) {
-			s_return(cdar(x));
-		} else {
-			s_return(NIL);
-		}
-
 	case OP_QUIT:		/* quit */
 		return (NIL);
 
@@ -1714,6 +1543,7 @@ cell *opexe_5(uint8_t op)
 	switch (op) {
 	/* ========== reading part ========== */
 	case OP_RDSEXPR:
+	    printf("{%d}", tok);
 		switch (tok) {
 		case TOK_COMMENT:
 			while (inchar() != '\n')
@@ -1919,131 +1749,15 @@ cell *opexe_6(uint8_t op)
 }
 
 
-
-
-cell *(*dispatch_table[])(uint8_t) = {
-	opexe_0,	/* OP_LOAD = 0, */
-	opexe_0,	/* OP_T0LVL, */
-	opexe_0,	/* OP_T1LVL, */
-	opexe_0,	/* OP_READ, */
-	opexe_0,	/* OP_VALUEPRINT, */
-	opexe_0,	/* OP_EVAL, */
-	opexe_0,	/* OP_E0ARGS, */
-	opexe_0,	/* OP_E1ARGS, */
-	opexe_0,	/* OP_APPLY, */
-	opexe_0,	/* OP_DOMACRO, */
-	
-	opexe_0,	/* OP_LAMBDA, */
-	opexe_0,	/* OP_QUOTE, */
-	opexe_0,	/* OP_DEF0, */
-	opexe_0,	/* OP_DEF1, */
-	opexe_0,	/* OP_BEGIN, */
-	opexe_0,	/* OP_IF0, */
-	opexe_0,	/* OP_IF1, */
-	opexe_0,	/* OP_SET0, */
-	opexe_0,	/* OP_SET1, */
-	opexe_0,	/* OP_LET0, */
-	opexe_0,	/* OP_LET1, */
-	opexe_0,	/* OP_LET2, */
-	opexe_0,	/* OP_LET0AST, */
-	opexe_0,	/* OP_LET1AST, */
-	opexe_0,	/* OP_LET2AST, */
-	
-	opexe_1,	/* OP_LET0REC, */
-	opexe_1,	/* OP_LET1REC, */
-	opexe_1,	/* OP_LET2REC, */
-	opexe_1,	/* OP_COND0, */
-	opexe_1,	/* OP_COND1, */
-	opexe_1,	/* OP_DELAY, */
-	opexe_1,	/* OP_AND0, */
-	opexe_1,	/* OP_AND1, */
-	opexe_1,	/* OP_OR0, */
-	opexe_1,	/* OP_OR1, */
-	opexe_1,	/* OP_C0STREAM, */
-	opexe_1,	/* OP_C1STREAM, */
-	opexe_1,	/* OP_0MACRO, */
-	opexe_1,	/* OP_1MACRO, */
-	opexe_1,	/* OP_CASE0, */
-	opexe_1,	/* OP_CASE1, */
-	opexe_1,	/* OP_CASE2, */
-	
-	opexe_1,	/* OP_PEVAL, */
-	opexe_1,	/* OP_PAPPLY, */
-	opexe_1,	/* OP_CONTINUATION, */
-	
-	opexe_2,	/* OP_ADD, */
-	opexe_2,	/* OP_SUB, */
-	opexe_2,	/* OP_MUL, */
-	opexe_2,	/* OP_DIV, */
-	opexe_2,	/* OP_REM, */
-	opexe_2,	/* OP_CAR, */
-	opexe_2,	/* OP_CDR, */
-	opexe_2,	/* OP_CONS, */
-	opexe_2,	/* OP_SETCAR, */
-	opexe_2,	/* OP_SETCDR, */
-	
-	opexe_3,	/* OP_NOT, */
-	opexe_3,	/* OP_BOOL, */
-	opexe_3,	/* OP_NULL, */
-	opexe_3,	/* OP_ZEROP, */
-	opexe_3,	/* OP_POSP, */
-	opexe_3,	/* OP_NEGP, */
-	opexe_3,	/* OP_NEQ, */
-	opexe_3,	/* OP_LESS, */
-	opexe_3,	/* OP_GRE, */
-	opexe_3,	/* OP_LEQ, */
-	opexe_3,	/* OP_GEQ, */
-	opexe_3,	/* OP_SYMBOL, */
-	opexe_3,	/* OP_NUMBER, */
-	opexe_3,	/* OP_STRING, */
-	opexe_3,	/* OP_PROC, */
-	opexe_3,	/* OP_PAIR, */
-	opexe_3,	/* OP_EQ, */
-	opexe_3,	/* OP_EQV, */
-	
-	opexe_4,	/* OP_FORCE, */
-	opexe_4,	/* OP_WRITE, */
-	opexe_4,	/* OP_DISPLAY, */
-	opexe_4,	/* OP_NEWLINE, */
-	opexe_4,	/* OP_ERR0, */
-	opexe_4,	/* OP_ERR1, */
-	opexe_4,	/* OP_REVERSE, */
-	opexe_4,	/* OP_APPEND, */
-	opexe_4,	/* OP_PUT, */
-	opexe_4,	/* OP_GET, */
-	opexe_4,	/* OP_QUIT, */
-	opexe_4,	/* OP_GC, */
-	opexe_4,	/* OP_GCVERB, */
-	opexe_4,	/* OP_NEWSEGMENT, */
-	
-	opexe_5,	/* OP_RDSEXPR, */
-	opexe_5,	/* OP_RDLIST, */
-	opexe_5,	/* OP_RDDOT, */
-	opexe_5,	/* OP_RDQUOTE, */
-	opexe_5,	/* OP_RDQQUOTE, */
-	opexe_5,	/* OP_RDUNQUOTE, */
-	opexe_5,	/* OP_RDUQTSP, */
-	opexe_5,	/* OP_P0LIST, */
-	opexe_5,	/* OP_P1LIST, */
-	
-	opexe_6,	/* OP_LIST_LENGTH, */
-	opexe_6,	/* OP_ASSQ, */
-	opexe_6,	/* OP_GET_CLOSURE, */
-	opexe_6,	/* OP_CLOSUREP, */
-#ifdef USE_MACRO
-	opexe_6,	/* OP_MACROP, */
-#endif
-	
-};
-
-
 /* kernel of this intepreter */
 cell *Eval_Cycle(uint8_t op)
 {
 	operator = op;
-	for (;;)
-		if ((*dispatch_table[operator])(operator) == NIL)
-			return NIL;
+	for (;;) {
+	    printf("[%s]", OpNames[operator]);
+	    if ((*dispatch_table[operator])(operator) == NIL)
+		return NIL;
+	}
 }
 
 /* ========== Initialization of internal keywords ========== */
@@ -2159,8 +1873,6 @@ void init_procs()
 	mk_proc(OP_ERR0, "error");
 	mk_proc(OP_REVERSE, "reverse");
 	mk_proc(OP_APPEND, "append");
-	mk_proc(OP_PUT, "put");
-	mk_proc(OP_GET, "get");
 	mk_proc(OP_GC, "gc");
 	mk_proc(OP_GCVERB, "gc-verbose");
 	mk_proc(OP_NEWSEGMENT, "new-segment");
@@ -2219,16 +1931,15 @@ void print(const char* msg)
     printf("<%s>", msg);
 }
 
-
 int main()
 {
 	short   op = (short) OP_LOAD;
 
 	gScheme.print = print;
 	
-	printf("Mini-Scheme Interpreter V0.85j1.\n");
+	printf("Mini-Scheme Interpreter V0.85j2.\n");
 	init_scheme();
-	args = cons(mk_string(InitFile), NIL);
+	args = cons(mk_string("init.scm"), NIL);
 #ifdef USE_SETJMP
 	op = setjmp(error_jmp);
 #endif
