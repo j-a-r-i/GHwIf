@@ -4,6 +4,7 @@
 #include "scmscript.h"
 #include "logger.h"
 #include "config.h"
+#include <readline/readline.h>
 
 ScmScript::ScmScript()
 {
@@ -53,5 +54,20 @@ void ScmScript::load(const char* filename)
 
 void ScmScript::mainLoop()
 {
-    scheme_load_named_file(&scm, stdin, 0);
+    //scheme_load_named_file(&scm, stdin, 0);
+
+    while (1) {
+	char output[256];
+	char *line = readline("ha>");
+
+	output[0] = 0;
+	Log::msg("eval", line);
+	scheme_set_output_port_string(&scm, output, output+256);
+	scheme_load_string(&scm, line);
+	//sc->output.
+	Log::msg("ret", output);
+	
+	
+	delete(line);
+    }
 }
