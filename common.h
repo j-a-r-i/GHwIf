@@ -2,7 +2,11 @@
 
 #include <exception>
 #include "infoitem.h"
-#include "scmscript.h"
+#ifdef SCHEME
+  #include "scmscript.h"
+#else
+  #include "luascript.h"
+#endif
 
 //------------------------------------------------------------------------------
 class BaseRuntime
@@ -35,4 +39,6 @@ private:
 
 
 //------------------------------------------------------------------------------
+#ifdef SCHEME
 extern int arg_integer(scheme *sch, pointer arg);
+#endif

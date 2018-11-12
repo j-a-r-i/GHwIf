@@ -13,7 +13,12 @@
 #include "web.h"
 #include "disk.h"
 #include "sun.h"
-#include "scmscript.h"
+#ifdef SCHEME
+  #include "scmscript.h"
+#else
+  #include "luascript.h"
+#endif
+
 #include "common.h"
 #ifdef HW_RPI
   #include "rpi/main_rpi.h"
@@ -290,12 +295,12 @@ public:
     }
 
     void exec() {
-	scm.load("test.scm");
-	scm.mainLoop();
+	script.load("test.scm");
+	script.mainLoop();
     }
 
     void addFunc(const char* name, foreign_func func) {
-	scm.addFn(name, func);
+	script.addFn(name, func);
     }
 
     void readAll() {
@@ -321,13 +326,14 @@ public:
     }
     
 private:
-    ScmScript scm;
+    Script script;
     std::list<InfoReader*> readers;
     Web web;
 };
 
 Runtime gRuntime;
 
+#ifdef SCHEME
 int arg_integer(scheme *sch, pointer arg)
 {
     int retVal = 0;
@@ -395,7 +401,7 @@ pointer scm_dump(scheme *sch, pointer args)
     }
     return sch->NIL;
 }
-
+#endif
 
 
 //------------------------------------------------------------------------------
@@ -407,10 +413,12 @@ int main(int argc, char *argv[])
     pc_init(&gRuntime);
 #endif
 
+#ifdef SCHEME
     gRuntime.addFunc("web-load",    scm_web_load);
     gRuntime.addFunc("web-verbose", scm_web_verbose);
     gRuntime.addFunc("read-all",    scm_read_all);
     gRuntime.addFunc("dump",        scm_dump);
+#endif
     
 #ifdef USE_SENSORS
     Sensors s;

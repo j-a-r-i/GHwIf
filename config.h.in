@@ -11,6 +11,8 @@
 #define STRAVA_API    "@STRAVA_API@"
 
 #cmakedefine HW_RPI
+#cmakedefine HW_WIN
+#cmakedefine SCHEME
 
 #define USE_LINUX
 //#define USE_JSON

@@ -12,10 +12,14 @@ LuaScript::LuaScript()
     luaL_openlibs(lua);
 }
 
-void LuaScript::addFn(const char* name, luafn func)
+void LuaScript::addFn(const char* name, foreign_func func)
 {
     lua_pushcfunction(lua, func);
     lua_setglobal(lua, name);
+}
+
+void LuaScript::exec(const char *fname)
+{
 }
 
 double LuaScript::load(const char* fname)
@@ -33,6 +37,10 @@ double LuaScript::load(const char* fname)
     //Log::value("return", ret);
 
     return ret;
+}
+
+void LuaScript::mainLoop()
+{
 }
 
 LuaScript::~LuaScript()

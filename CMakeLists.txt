@@ -6,15 +6,24 @@ set(hw "pc" CACHE STRING "Hardware type rpi/pc/win")
 if (hw STREQUAL "rpi")
   message(STATUS "hw is RPI")
   set(HW_RPI ON)
+  set(HW_WIN OFF)
 elseif (hw STREQUAL "pc")
   message(STATUS "hw is linux pc")
   set(HW_RPI OFF)
+  set(HW_WIN OFF)
 elseif (hw STREQUAL "win")
   message(STATUS "hw is windows pc")
   set(HW_RPI OFF)
+  set(HW_WIN ON)
 else()
   message(FATAL_ERROR "unknown hardware")
 endif()
+
+option(SCHEME
+  "use mini/tinyscheme" OFF)
+
+set(VERSION_MAJOR 0)
+set(VERSION_MINOR 3)
 
 #option(HW_RPI
 #       "Raspberry PI hardware" OFF)
@@ -45,9 +54,6 @@ endif (HW_RPI)
 find_package(EXPAT REQUIRED)
 #find_package(CURL  REQUIRED)
 
-
-set(VERSION_MAJOR 0)
-set(VERSION_MINOR 2)
 
 include(CTest)
 include(private.txt)
@@ -82,18 +88,54 @@ add_executable(hwif main2.cpp
 		    xmlparsesimple.cpp
 		    logger.cpp
 		    config.cpp
-		    # luascript.cpp
-		    scmscript.cpp
+
+		    luascript.cpp
+		    lua/src/lauxlib.c
+		    lua/src/lapi.c
+		    lua/src/lstate.c
+		    lua/src/ltable.c
+		    lua/src/lmem.c
+		    lua/src/ldebug.c
+		    lua/src/ldo.c
+		    lua/src/lvm.c
+		    lua/src/lfunc.c
+		    lua/src/ltm.c
+		    lua/src/lgc.c
+		    lua/src/lobject.c
+		    lua/src/lctype.c
+		    lua/src/lstring.c
+		    lua/src/ldump.c
+		    lua/src/lparser.c
+		    lua/src/llex.c
+		    lua/src/lcode.c
+		    lua/src/lzio.c
+		    lua/src/lopcodes.c
+		    lua/src/lundump.c
+		    lua/src/linit.c
+		    lua/src/lbaselib.c
+		    lua/src/loadlib.c
+		    lua/src/ldblib.c
+		    lua/src/lutf8lib.c
+		    lua/src/lmathlib.c
+		    lua/src/lstrlib.c
+		    lua/src/loslib.c
+		    lua/src/liolib.c
+		    lua/src/ltablib.c
+		    lua/src/lcorolib.c
+		    
+#		    scmscript.cpp
+#		    tinyscheme/scheme.c
 		    sun.cpp
-		    tinyscheme/scheme.c
 		    ${EXTRA_SRCS}
 )
 
-target_link_libraries(hwif uv
+target_link_libraries(hwif
+  uv
   # ${CURL_LIBRARIES}
   ${EXPAT_LIBRARIES}
   curl
   sqlite3
+  readline
 #  lua5.3
   ${EXTRA_LIBS}
 )

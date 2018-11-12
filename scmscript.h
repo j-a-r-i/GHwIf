@@ -26,3 +26,5 @@ public:
 private:
     scheme scm;
 };
+
+typedef Script ScmScript;
