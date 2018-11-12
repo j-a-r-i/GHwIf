@@ -477,6 +477,18 @@ typedef enum {
     TOK_SHARP
 } EToken;    
 
+const char *TokenNames[] = {
+    "LPAREN",
+    "RPAREN",
+    "DOT",
+    "ATOM",
+    "QUOTE",
+    "COMMENT",
+    "DQUOTE",
+    "SHARP"
+};
+
+
 #define LINESIZE 1024
 char    linebuff[LINESIZE];
 char    strbuff[256];
@@ -764,31 +776,42 @@ int eqv(cell *a, cell *b)
     operator = (short)(a);                     \
     return T; END
 
-#define s_save(a, b, c)  (                     \
-    dump = cons(envir, cons((c), dump)),       \
-    dump = cons((b), dump),                    \
-    dump = cons(mk_number((long)(a)), dump))   \
+static cell *value;
+static OpCodes operator;
+static EToken tok;
+static int print_flag;
+static int par_level;
 
+void s_save(OpCodes a, cell *b, cell *c)
+{
+    printf("<sav>");
+    fflush(stdout);
+    
+    dump = cons(envir, cons((c), dump));
+    dump = cons((b), dump);
+    dump = cons(mk_number((long)(a)), dump);
+}
 
-#define s_return(a) BEGIN                      \
-    value = (a);                               \
-    operator = ivalue(car(dump));              \
-    args = cadr(dump);                         \
-    envir = caddr(dump);                       \
-    code = cadddr(dump);                       \
-    dump = cddddr(dump);                       \
-    return T; END
+cell *s_return(cell *a)
+{
+    printf("<ret>");
+    fflush(stdout);
+    
+    value = (a);
+    operator = ivalue(car(dump));
+    args = cadr(dump);
+    envir = caddr(dump);
+    code = cadddr(dump);
+    dump = cddddr(dump);
+    return T;
+}
 
-#define s_retbool(tf)	s_return((tf) ? T : F)
+#define s_retbool(tf)	return s_return((tf) ? T : F)
 
 
 
 /* ========== Evaluation Cycle ========== */
 
-static EToken tok;
-static int print_flag;
-static cell *value;
-static OpCodes operator;
 
 cell *opexe_read(uint8_t op)
 {
@@ -797,10 +820,11 @@ cell *opexe_read(uint8_t op)
 	switch (op) {
 	case OP_READ:		/* read */
 		tok = token();
+		par_level = 0;
 		s_goto(OP_RDSEXPR);
 
 	case OP_RDSEXPR:
-	    printf("{%d}", tok);
+	    printf("{%s}", TokenNames[tok]);
 		switch (tok) {
 		case TOK_COMMENT:
 			while (inchar() != '\n')
@@ -808,9 +832,10 @@ cell *opexe_read(uint8_t op)
 			tok = token();
 			s_goto(OP_RDSEXPR);
 		case TOK_LPAREN:
+		        par_level++;
 			tok = token();
 			if (tok == TOK_RPAREN) {
-				s_return(NIL);
+				return s_return(NIL);
 			} else if (tok == TOK_DOT) {
 				Error_0("syntax error -- illegal dot expression");
 			} else {
@@ -822,14 +847,14 @@ cell *opexe_read(uint8_t op)
 			tok = token();
 			s_goto(OP_RDSEXPR);
 		case TOK_ATOM:
-			s_return(mk_atom(readstr("();\t\n ")));
+			return s_return(mk_atom(readstr("();\t\n ")));
 		case TOK_DQUOTE:
-			s_return(mk_string(readstrexp()));
+			return s_return(mk_string(readstrexp()));
 		case TOK_SHARP:
 			if ((x = mk_const(readstr("();\t\n "))) == NIL) {
 				Error_0("Undefined sharp expression");
 			} else {
-				s_return(x);
+				return s_return(x);
 			}
 		default:
 			Error_0("syntax error -- illegal token");
@@ -839,13 +864,22 @@ cell *opexe_read(uint8_t op)
 	case OP_RDLIST:
 		args = cons(value, args);
 		tok = token();
+	    printf("/%s/", TokenNames[tok]);
 		if (tok == TOK_COMMENT) {
 			while (inchar() != '\n')
 				;
 			tok = token();
 		}
 		if (tok == TOK_RPAREN) {
-			s_return(non_alloc_rev(NIL, args));
+		        par_level--;
+#ifdef OWN_REPL
+			if (par_level == 0) {
+			    value = non_alloc_rev(NIL, args);
+			    return NIL;
+			}
+			else
+#endif
+			    return s_return(non_alloc_rev(NIL, args));
 		} else if (tok == TOK_DOT) {
 			s_save(OP_RDDOT, args, NIL);
 			tok = token();
@@ -859,11 +893,11 @@ cell *opexe_read(uint8_t op)
 		if (token() != TOK_RPAREN) {
 			Error_0("syntax error -- illegal dot expression");
 		} else {
-			s_return(non_alloc_rev(value, args));
+			return s_return(non_alloc_rev(value, args));
 		}
 
 	case OP_RDQUOTE:
-		s_return(cons(QUOTE, cons(value, NIL)));
+		return s_return(cons(QUOTE, cons(value, NIL)));
 
 	default:
 		sprintf(strbuff, "%d is illegal operator", operator);
@@ -886,7 +920,7 @@ cell *opexe_print(uint8_t op)
 	case OP_P0LIST:
 		if (!ispair(args)) {
 			printatom(args, print_flag);
-			s_return(T);
+			return s_return(T);
 		} else if (car(args) == QUOTE && ok_abbrev(cdr(args))) {
 			gScheme.print("'");
 			args = cadr(args);
@@ -910,7 +944,7 @@ cell *opexe_print(uint8_t op)
 				printatom(args, print_flag);
 			}
 			gScheme.print(")");
-			s_return(T);
+			return s_return(T);
 		}
 	    
 	default:
@@ -950,7 +984,7 @@ cell *opexe_0(uint8_t op)
 					break;
 			}
 			if (x != NIL) {
-				s_return(cdar(y));
+				return s_return(cdar(y));
 			} else {
 				Error_1("Unbounded variable", code);
 			}
@@ -968,7 +1002,7 @@ cell *opexe_0(uint8_t op)
 				s_goto(OP_EVAL);
 			}
 		} else {
-			s_return(code);
+			return s_return(code);
 		}
 
 #ifdef USE_MACRO
@@ -1028,7 +1062,7 @@ cell *opexe_0(uint8_t op)
 			s_goto(OP_BEGIN);
 		} else if (iscontinuation(code)) {	/* CONTINUATION */
 			dump = cont_dump(code);
-			s_return(args != NIL ? car(args) : NIL);
+			return s_return(args != NIL ? car(args) : NIL);
 		} else {
 			Error_0("Illegal function");
 		}
@@ -1040,10 +1074,10 @@ cell *opexe_0(uint8_t op)
 #endif
 
 	case OP_LAMBDA:	/* lambda */
-		s_return(mk_closure(code, envir));
+		return s_return(mk_closure(code, envir));
 
 	case OP_QUOTE:		/* quote */
-		s_return(car(code));
+		return s_return(car(code));
 
 	case OP_DEF0:	/* define */
 		if (ispair(car(code))) {
@@ -1067,7 +1101,12 @@ cell *opexe_0(uint8_t op)
 			cdar(x) = value;
 		else
 			car(envir) = cons(cons(code, value), car(envir));
-		s_return(code);
+#ifdef OWN_REPL
+		value = code;
+		return NIL;
+#else
+		return s_return(code);
+#endif
 
 	case OP_SET0:		/* set! */
 		s_save(OP_SET1, NIL, car(code));
@@ -1084,14 +1123,14 @@ cell *opexe_0(uint8_t op)
 		}
 		if (x != NIL) {
 			cdar(y) = value;
-			s_return(value);
+			return s_return(value);
 		} else {
 			Error_1("Unbounded variable", code);
 		}
 
 	case OP_BEGIN:		/* begin */
 		if (!ispair(code)) {
-			s_return(code);
+			return s_return(code);
 		}
 		if (cdr(code) != NIL) {
 			s_save(OP_BEGIN, NIL, cdr(code));
@@ -1229,12 +1268,12 @@ cell *opexe_1(uint8_t op)
 	case OP_COND1:		/* cond */
 		if (istrue(value)) {
 			if ((code = cdar(code)) == NIL) {
-				s_return(value);
+				return s_return(value);
 			}
 			s_goto(OP_BEGIN);
 		} else {
 			if ((code = cdr(code)) == NIL) {
-				s_return(NIL);
+				return s_return(NIL);
 			} else {
 				s_save(OP_COND1, NIL, code);
 				code = caar(code);
@@ -1245,11 +1284,11 @@ cell *opexe_1(uint8_t op)
 	case OP_DELAY:		/* delay */
 		x = mk_closure(cons(NIL, code), envir);
 		x->flag |= T_PROMISE;
-		s_return(x);
+		return s_return(x);
 
 	case OP_AND0:		/* and */
 		if (code == NIL) {
-			s_return(T);
+			return s_return(T);
 		}
 		s_save(OP_AND1, NIL, cdr(code));
 		code = car(code);
@@ -1257,9 +1296,9 @@ cell *opexe_1(uint8_t op)
 
 	case OP_AND1:		/* and */
 		if (isfalse(value)) {
-			s_return(value);
+			return s_return(value);
 		} else if (code == NIL) {
-			s_return(value);
+			return s_return(value);
 		} else {
 			s_save(OP_AND1, NIL, cdr(code));
 			code = car(code);
@@ -1268,7 +1307,7 @@ cell *opexe_1(uint8_t op)
 
 	case OP_OR0:		/* or */
 		if (code == NIL) {
-			s_return(F);
+			return s_return(F);
 		}
 		s_save(OP_OR1, NIL, cdr(code));
 		code = car(code);
@@ -1276,9 +1315,9 @@ cell *opexe_1(uint8_t op)
 
 	case OP_OR1:		/* or */
 		if (istrue(value)) {
-			s_return(value);
+			return s_return(value);
 		} else if (code == NIL) {
-			s_return(value);
+			return s_return(value);
 		} else {
 			s_save(OP_OR1, NIL, cdr(code));
 			code = car(code);
@@ -1294,7 +1333,7 @@ cell *opexe_1(uint8_t op)
 		args = value;	/* save value to register args for gc */
 		x = mk_closure(cons(NIL, code), envir);
 		x->flag |= T_PROMISE;
-		s_return(cons(args, x));
+		return s_return(cons(args, x));
 
 #ifdef USE_MACRO
 	case OP_0MACRO:	/* macro */
@@ -1315,7 +1354,7 @@ cell *opexe_1(uint8_t op)
 			cdar(x) = value;
 		else
 			car(envir) = cons(cons(code, value), car(envir));
-		s_return(code);
+		return s_return(code);
 #endif
 
 	case OP_CASE0:		/* case */
@@ -1343,14 +1382,14 @@ cell *opexe_1(uint8_t op)
 				s_goto(OP_EVAL);
 			}
 		} else {
-			s_return(NIL);
+			return s_return(NIL);
 		}
 
 	case OP_CASE2:		/* case */
 		if (istrue(value)) {
 			s_goto(OP_BEGIN);
 		} else {
-			s_return(NIL);
+			return s_return(NIL);
 		}
 	case OP_PAPPLY:	/* apply */
 		code = car(args);
@@ -1384,17 +1423,17 @@ cell *opexe_2(uint8_t op)
 	case OP_ADD:		/* + */
 		for (x = args, v = 0; x != NIL; x = cdr(x))
 			v += ivalue(car(x));
-		s_return(mk_number(v));
+		return s_return(mk_number(v));
 
 	case OP_SUB:		/* - */
 		for (x = cdr(args), v = ivalue(car(args)); x != NIL; x = cdr(x))
 			v -= ivalue(car(x));
-		s_return(mk_number(v));
+		return s_return(mk_number(v));
 
 	case OP_MUL:		/* * */
 		for (x = args, v = 1; x != NIL; x = cdr(x))
 			v *= ivalue(car(x));
-		s_return(mk_number(v));
+		return s_return(mk_number(v));
 
 	case OP_DIV:		/* / */
 		for (x = cdr(args), v = ivalue(car(args)); x != NIL; x = cdr(x)) {
@@ -1404,7 +1443,7 @@ cell *opexe_2(uint8_t op)
 				Error_0("Divided by zero");
 			}
 		}
-		s_return(mk_number(v));
+		return s_return(mk_number(v));
 
 	case OP_REM:		/* remainder */
 		for (x = cdr(args), v = ivalue(car(args)); x != NIL; x = cdr(x)) {
@@ -1414,30 +1453,30 @@ cell *opexe_2(uint8_t op)
 				Error_0("Divided by zero");
 			}
 		}
-		s_return(mk_number(v));
+		return s_return(mk_number(v));
 
 	case OP_CAR:		/* car */
 		if (ispair(car(args))) {
-			s_return(caar(args));
+			return s_return(caar(args));
 		} else {
 			Error_0("Unable to car for non-cons cell");
 		}
 
 	case OP_CDR:		/* cdr */
 		if (ispair(car(args))) {
-			s_return(cdar(args));
+			return s_return(cdar(args));
 		} else {
 			Error_0("Unable to cdr for non-cons cell");
 		}
 
 	case OP_CONS:		/* cons */
 		cdr(args) = cadr(args);
-		s_return(args);
+		return s_return(args);
 
 	case OP_SETCAR:	/* set-car! */
 		if (ispair(car(args))) {
 			caar(args) = cadr(args);
-			s_return(car(args));
+			return s_return(car(args));
 		} else {
 			Error_0("Unable to set-car! for non-cons cell");
 		}
@@ -1445,7 +1484,7 @@ cell *opexe_2(uint8_t op)
 	case OP_SETCDR:	/* set-cdr! */
 		if (ispair(car(args))) {
 			cdar(args) = cadr(args);
-			s_return(car(args));
+			return s_return(car(args));
 		} else {
 			Error_0("Unable to set-cdr! for non-cons cell");
 		}
@@ -1524,7 +1563,7 @@ cell *opexe_4(uint8_t op)
 			args = NIL;
 			s_goto(OP_APPLY);
 		} else {
-			s_return(code);
+			return s_return(code);
 		}
 
 	case OP_WRITE:		/* write */
@@ -1539,7 +1578,7 @@ cell *opexe_4(uint8_t op)
 
 	case OP_NEWLINE:	/* newline */
 		gScheme.print("\n");
-		s_return(T);
+		return s_return(T);
 
 	case OP_ERR0:	/* error */
 		if (!isstring(car(args))) {
@@ -1565,17 +1604,17 @@ cell *opexe_4(uint8_t op)
 		}
 
 	case OP_REVERSE:	/* reverse */
-		s_return(reverse(car(args)));
+		return s_return(reverse(car(args)));
 
 	case OP_APPEND:	/* append */
-		s_return(append(car(args), cadr(args)));
+		return s_return(append(car(args), cadr(args)));
 
 	case OP_QUIT:		/* quit */
 		return (NIL);
 
 	case OP_GC:		/* gc */
 		gc(NIL, NIL);
-		s_return(T);
+		return s_return(T);
 
 	case OP_GCVERB:		/* gc-verbose */
 	{	int	was = gc_verbose;
@@ -1591,7 +1630,7 @@ cell *opexe_4(uint8_t op)
 		gScheme.print("allocate new segments\n");
 		
 		alloc_cellseg((int) ivalue(car(args)));
-		s_return(T);
+		return s_return(T);
 	}
 }
 
@@ -1605,7 +1644,7 @@ cell *opexe_6(uint8_t op)
 	case OP_LIST_LENGTH:	/* list-length */	/* a.k */
 		for (x = car(args), v = 0; ispair(x); x = cdr(x))
 			++v;
-		s_return(mk_number(v));
+		return s_return(mk_number(v));
 		
 	case OP_ASSQ:		/* assq */	/* a.k */
 		x = car(args);
@@ -1617,23 +1656,23 @@ cell *opexe_6(uint8_t op)
 				break;
 		}
 		if (ispair(y)) {
-			s_return(car(y));
+			return s_return(car(y));
 		} else {
-			s_return(F);
+			return s_return(F);
 		}
 		
 	case OP_GET_CLOSURE:	/* get-closure-code */	/* a.k */
 		args = car(args);
 		if (args == NIL) {
-			s_return(F);
+			return s_return(F);
 		} else if (isclosure(args)) {
-			s_return(cons(LAMBDA, closure_code(value)));
+			return s_return(cons(LAMBDA, closure_code(value)));
 #ifdef USE_MACRO
 		} else if (ismacro(args)) {
-			s_return(cons(LAMBDA, closure_code(value)));
+			return s_return(cons(LAMBDA, closure_code(value)));
 #endif
 		} else {
-			s_return(F);
+			return s_return(F);
 		}
 	case OP_CLOSUREP:		/* closure? */
 		/*
@@ -1641,13 +1680,13 @@ cell *opexe_6(uint8_t op)
 		 * Therefore, (closure? <#MACRO>) ==> #t
 		 */
 		if (car(args) == NIL) {
-		    s_return(F);
+		    return s_return(F);
 		}
 		s_retbool(isclosure(car(args)));
 #ifdef USE_MACRO
 	case OP_MACROP:		/* macro? */
 		if (car(args) == NIL) {
-		    s_return(F);
+		    return s_return(F);
 		}
 		s_retbool(ismacro(car(args)));
 #endif
@@ -1821,7 +1860,7 @@ void FatalError(char *fmt)
 //------------------------------------------------------------------------------
 void print(const char* msg)
 {
-    printf("<%s>", msg);
+    printf("%s", msg);
 }
 
 int main()
@@ -1836,16 +1875,15 @@ int main()
 		printf("can not open init.scm");
     }
 
-    Eval_Cycle(OP_T0LVL);
-
     // repl
     //
+#ifdef OWN_REPL
     while (1) {
 	dump = NIL;
 	envir = global_env;
 
 	if (infp == stdin)
-	    print("\n>");
+	    print("\nscm>");
 
 	printf("\nREAD------------\n");
 	Eval_Cycle(OP_READ);
@@ -1856,6 +1894,8 @@ int main()
 	printf("\nPRINT------------\n");
 	Eval_Cycle(OP_VALUEPRINT);
     }
-    
+#else
+    Eval_Cycle(OP_T0LVL);    
+#endif
     return 0;
 }
