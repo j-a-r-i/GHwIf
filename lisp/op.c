@@ -3,11 +3,16 @@
 
 const char *OpNames[] =
 {
-    "LOAD",
     "T0LVL",
     "T1LVL",
     "READ",
+    "RDSEXPR",
+    "RDLIST",
+    "RDDOT",
+    "RDQUOTE",
     "VALUEPRINT",
+    "P0LIST",
+    "P1LIST",
     "EVAL",
     "E0ARGS",
     "E1ARGS",
@@ -88,12 +93,6 @@ const char *OpNames[] =
     "GC",
     "GCVERB",
     "NEWSEGMENT",
-    "RDSEXPR",
-    "RDLIST",
-    "RDDOT",
-    "RDQUOTE",
-    "P0LIST",
-    "P1LIST",
     "LIST_LENGTH",
     "ASSQ",
     "GET_CLOSURE",
@@ -103,11 +102,16 @@ const char *OpNames[] =
 ;
 ScmFunc dispatch_table[] =
 {
-    opexe_0,  // OP_LOAD
     opexe_0,  // OP_T0LVL
     opexe_0,  // OP_T1LVL
-    opexe_0,  // OP_READ
-    opexe_0,  // OP_VALUEPRINT
+    opexe_read,  // OP_READ
+    opexe_read,  // OP_RDSEXPR
+    opexe_read,  // OP_RDLIST
+    opexe_read,  // OP_RDDOT
+    opexe_read,  // OP_RDQUOTE
+    opexe_print,  // OP_VALUEPRINT
+    opexe_print,  // OP_P0LIST
+    opexe_print,  // OP_P1LIST
     opexe_0,  // OP_EVAL
     opexe_0,  // OP_E0ARGS
     opexe_0,  // OP_E1ARGS
@@ -188,12 +192,6 @@ ScmFunc dispatch_table[] =
     opexe_4,  // OP_GC
     opexe_4,  // OP_GCVERB
     opexe_4,  // OP_NEWSEGMENT
-    opexe_5,  // OP_RDSEXPR
-    opexe_5,  // OP_RDLIST
-    opexe_5,  // OP_RDDOT
-    opexe_5,  // OP_RDQUOTE
-    opexe_5,  // OP_P0LIST
-    opexe_5,  // OP_P1LIST
     opexe_6,  // OP_LIST_LENGTH
     opexe_6,  // OP_ASSQ
     opexe_6,  // OP_GET_CLOSURE

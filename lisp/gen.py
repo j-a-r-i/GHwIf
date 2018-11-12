@@ -9,11 +9,16 @@ from codegen import write_file_n, q
 
 
 OPS = [
-[ "OP_LOAD", "load", 0, "opexe_0", "proc" ],
  [ "OP_T0LVL", None, 1, "opexe_0", None ],
  [ "OP_T1LVL", None, 2, "opexe_0", None ],
- [ "OP_READ", "read", 3, "opexe_0", "proc" ],
- [ "OP_VALUEPRINT", None, 4, "opexe_0", None ],
+ [ "OP_READ", "read", 3, "opexe_read", "proc" ],
+ [ "OP_RDSEXPR", None, 87, "opexe_read", None ],
+ [ "OP_RDLIST", None, 88, "opexe_read", None ],
+ [ "OP_RDDOT", None, 89, "opexe_read", None ],
+ [ "OP_RDQUOTE", None, 90, "opexe_read", None ],
+ [ "OP_VALUEPRINT", None, 4, "opexe_print", None ],
+ [ "OP_P0LIST", None, 94, "opexe_print", None ],
+ [ "OP_P1LIST", None, 95, "opexe_print", None ],
  [ "OP_EVAL", None, 5, "opexe_0", None ],
  [ "OP_E0ARGS", None, 6, "opexe_0", None ],
  [ "OP_E1ARGS", None, 7, "opexe_0", None ],
@@ -94,12 +99,6 @@ OPS = [
  [ "OP_GC", "gc", 84, "opexe_4", "proc" ],
  [ "OP_GCVERB", "gc-verbose", 85, "opexe_4", "proc" ],
  [ "OP_NEWSEGMENT", "new-segment", 86, "opexe_4", "proc" ],
- [ "OP_RDSEXPR", None, 87, "opexe_5", None ],
- [ "OP_RDLIST", None, 88, "opexe_5", None ],
- [ "OP_RDDOT", None, 89, "opexe_5", None ],
- [ "OP_RDQUOTE", None, 90, "opexe_5", None ],
- [ "OP_P0LIST", None, 94, "opexe_5", None ],
- [ "OP_P1LIST", None, 95, "opexe_5", None ],
  [ "OP_LIST_LENGTH", "list-length", 96, "opexe_6", "proc" ],
  [ "OP_ASSQ", "assq", 97, "opexe_6", "proc" ],
  [ "OP_GET_CLOSURE", "get-closure-code", 98, "opexe_6", "proc" ],
@@ -107,6 +106,7 @@ OPS = [
  [ "OP_MACROP", "macro?", 100, "opexe_6", "proc" ]
 ]
 
+# [ "OP_LOAD", "load", 0, "opexe_0", "proc" ],
 # [ "OP_PUT", "put", 81, "opexe_4", "proc" ],
 # [ "OP_GET", "get", 82, "opexe_4", "proc" ],
 # [ "OP_RDQQUOTE", None, 91, "opexe_5", None ],

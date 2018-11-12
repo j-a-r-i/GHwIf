@@ -466,14 +466,16 @@ void gc(cell *a, cell *b)
 
 /* ========== Rootines for Reading ========== */
 
-#define TOK_LPAREN  0
-#define TOK_RPAREN  1
-#define TOK_DOT     2
-#define TOK_ATOM    3
-#define TOK_QUOTE   4
-#define TOK_COMMENT 5
-#define TOK_DQUOTE  6
-#define TOK_SHARP   7
+typedef enum {
+    TOK_LPAREN,
+    TOK_RPAREN,
+    TOK_DOT,
+    TOK_ATOM,
+    TOK_QUOTE,
+    TOK_COMMENT,
+    TOK_DQUOTE,
+    TOK_SHARP
+} EToken;    
 
 #define LINESIZE 1024
 char    linebuff[LINESIZE];
@@ -565,7 +567,7 @@ void skipspace()
 }
 
 /* get token */
-int token()
+EToken token()
 {
 	skipspace();
 	switch (inchar()) {
@@ -783,28 +785,147 @@ int eqv(cell *a, cell *b)
 
 /* ========== Evaluation Cycle ========== */
 
-static int tok;
+static EToken tok;
 static int print_flag;
 static cell *value;
-static uint8_t operator;
+static OpCodes operator;
+
+cell *opexe_read(uint8_t op)
+{
+    register cell *x;
+    
+	switch (op) {
+	case OP_READ:		/* read */
+		tok = token();
+		s_goto(OP_RDSEXPR);
+
+	case OP_RDSEXPR:
+	    printf("{%d}", tok);
+		switch (tok) {
+		case TOK_COMMENT:
+			while (inchar() != '\n')
+				;
+			tok = token();
+			s_goto(OP_RDSEXPR);
+		case TOK_LPAREN:
+			tok = token();
+			if (tok == TOK_RPAREN) {
+				s_return(NIL);
+			} else if (tok == TOK_DOT) {
+				Error_0("syntax error -- illegal dot expression");
+			} else {
+				s_save(OP_RDLIST, NIL, NIL);
+				s_goto(OP_RDSEXPR);
+			}
+		case TOK_QUOTE:
+			s_save(OP_RDQUOTE, NIL, NIL);
+			tok = token();
+			s_goto(OP_RDSEXPR);
+		case TOK_ATOM:
+			s_return(mk_atom(readstr("();\t\n ")));
+		case TOK_DQUOTE:
+			s_return(mk_string(readstrexp()));
+		case TOK_SHARP:
+			if ((x = mk_const(readstr("();\t\n "))) == NIL) {
+				Error_0("Undefined sharp expression");
+			} else {
+				s_return(x);
+			}
+		default:
+			Error_0("syntax error -- illegal token");
+		}
+		break;
+
+	case OP_RDLIST:
+		args = cons(value, args);
+		tok = token();
+		if (tok == TOK_COMMENT) {
+			while (inchar() != '\n')
+				;
+			tok = token();
+		}
+		if (tok == TOK_RPAREN) {
+			s_return(non_alloc_rev(NIL, args));
+		} else if (tok == TOK_DOT) {
+			s_save(OP_RDDOT, args, NIL);
+			tok = token();
+			s_goto(OP_RDSEXPR);
+		} else {
+			s_save(OP_RDLIST, args, NIL);;
+			s_goto(OP_RDSEXPR);
+		}
+
+	case OP_RDDOT:
+		if (token() != TOK_RPAREN) {
+			Error_0("syntax error -- illegal dot expression");
+		} else {
+			s_return(non_alloc_rev(value, args));
+		}
+
+	case OP_RDQUOTE:
+		s_return(cons(QUOTE, cons(value, NIL)));
+
+	default:
+		sprintf(strbuff, "%d is illegal operator", operator);
+		Error_0(strbuff);
+	}
+	return T;
+}
+
+cell *opexe_print(uint8_t op)
+{
+    register cell *x;
+    
+	switch (op) {
+	case OP_VALUEPRINT:	/* print evalution result */
+		print_flag = 1;
+		args = value;
+		s_save(OP_T0LVL, NIL, NIL);
+		s_goto(OP_P0LIST);
+
+	case OP_P0LIST:
+		if (!ispair(args)) {
+			printatom(args, print_flag);
+			s_return(T);
+		} else if (car(args) == QUOTE && ok_abbrev(cdr(args))) {
+			gScheme.print("'");
+			args = cadr(args);
+			s_goto(OP_P0LIST);
+		} else {
+			gScheme.print("(");
+			s_save(OP_P1LIST, cdr(args), NIL);
+			args = car(args);
+			s_goto(OP_P0LIST);
+		}
+
+	case OP_P1LIST:
+		if (ispair(args)) {
+			s_save(OP_P1LIST, cdr(args), NIL);
+			gScheme.print(" ");
+			args = car(args);
+			s_goto(OP_P0LIST);
+		} else {
+			if (args != NIL) {
+				gScheme.print(" . ");
+				printatom(args, print_flag);
+			}
+			gScheme.print(")");
+			s_return(T);
+		}
+	    
+	default:
+		sprintf(strbuff, "%d is illegal operator", operator);
+		Error_0(strbuff);
+	}
+	return T;
+}
+
 
 cell *opexe_0(uint8_t op)
 {
 	register cell *x, *y;
 
 	switch (op) {
-	case OP_LOAD:		/* load */
-		if (!isstring(car(args))) {
-			Error_0("load -- argument is not string");
-		}
-		if ((infp = fopen(strvalue(car(args)), "r")) == NULL) {
-			infp = stdin;
-			Error_1("Unable to open", car(args));
-		}
-		gScheme.print("loading ");
-		gScheme.print(strvalue(car(args)));
-		s_goto(OP_T0LVL);
-
 	case OP_T0LVL:	/* top level */
 	        gScheme.print("\n");
 		dump = NIL;
@@ -819,16 +940,6 @@ cell *opexe_0(uint8_t op)
 		code = value;
 		s_goto(OP_EVAL);
 		
-	case OP_READ:		/* read */
-		tok = token();
-		s_goto(OP_RDSEXPR);
-
-	case OP_VALUEPRINT:	/* print evalution result */
-		print_flag = 1;
-		args = value;
-		s_save(OP_T0LVL, NIL, NIL);
-		s_goto(OP_P0LIST);
-
 	case OP_EVAL:		/* main part of evalution */
 		if (issymbol(code)) {	/* symbol */
 			for (x = envir; x != NIL; x = cdr(x)) {
@@ -1449,7 +1560,8 @@ cell *opexe_4(uint8_t op)
 		} else {
 			gScheme.print("\n");
 			flushinput();
-			s_goto(OP_T0LVL);
+			//s_goto(OP_T0LVL);
+			return NIL;
 		}
 
 	case OP_REVERSE:	/* reverse */
@@ -1482,119 +1594,6 @@ cell *opexe_4(uint8_t op)
 		s_return(T);
 	}
 }
-
-
-cell *opexe_5(uint8_t op)
-{
-	register cell *x, *y;
-
-	switch (op) {
-	/* ========== reading part ========== */
-	case OP_RDSEXPR:
-	    printf("{%d}", tok);
-		switch (tok) {
-		case TOK_COMMENT:
-			while (inchar() != '\n')
-				;
-			tok = token();
-			s_goto(OP_RDSEXPR);
-		case TOK_LPAREN:
-			tok = token();
-			if (tok == TOK_RPAREN) {
-				s_return(NIL);
-			} else if (tok == TOK_DOT) {
-				Error_0("syntax error -- illegal dot expression");
-			} else {
-				s_save(OP_RDLIST, NIL, NIL);
-				s_goto(OP_RDSEXPR);
-			}
-		case TOK_QUOTE:
-			s_save(OP_RDQUOTE, NIL, NIL);
-			tok = token();
-			s_goto(OP_RDSEXPR);
-		case TOK_ATOM:
-			s_return(mk_atom(readstr("();\t\n ")));
-		case TOK_DQUOTE:
-			s_return(mk_string(readstrexp()));
-		case TOK_SHARP:
-			if ((x = mk_const(readstr("();\t\n "))) == NIL) {
-				Error_0("Undefined sharp expression");
-			} else {
-				s_return(x);
-			}
-		default:
-			Error_0("syntax error -- illegal token");
-		}
-		break;
-
-	case OP_RDLIST:
-		args = cons(value, args);
-		tok = token();
-		if (tok == TOK_COMMENT) {
-			while (inchar() != '\n')
-				;
-			tok = token();
-		}
-		if (tok == TOK_RPAREN) {
-			s_return(non_alloc_rev(NIL, args));
-		} else if (tok == TOK_DOT) {
-			s_save(OP_RDDOT, args, NIL);
-			tok = token();
-			s_goto(OP_RDSEXPR);
-		} else {
-			s_save(OP_RDLIST, args, NIL);;
-			s_goto(OP_RDSEXPR);
-		}
-
-	case OP_RDDOT:
-		if (token() != TOK_RPAREN) {
-			Error_0("syntax error -- illegal dot expression");
-		} else {
-			s_return(non_alloc_rev(value, args));
-		}
-
-	case OP_RDQUOTE:
-		s_return(cons(QUOTE, cons(value, NIL)));
-
-	/* ========== printing part ========== */
-	case OP_P0LIST:
-		if (!ispair(args)) {
-			printatom(args, print_flag);
-			s_return(T);
-		} else if (car(args) == QUOTE && ok_abbrev(cdr(args))) {
-			gScheme.print("'");
-			args = cadr(args);
-			s_goto(OP_P0LIST);
-		} else {
-			gScheme.print("(");
-			s_save(OP_P1LIST, cdr(args), NIL);
-			args = car(args);
-			s_goto(OP_P0LIST);
-		}
-
-	case OP_P1LIST:
-		if (ispair(args)) {
-			s_save(OP_P1LIST, cdr(args), NIL);
-			gScheme.print(" ");
-			args = car(args);
-			s_goto(OP_P0LIST);
-		} else {
-			if (args != NIL) {
-				gScheme.print(" . ");
-				printatom(args, print_flag);
-			}
-			gScheme.print(")");
-			s_return(T);
-		}
-
-	default:
-		sprintf(strbuff, "%d is illegal operator", operator);
-		Error_0(strbuff);
-
-	}
-	return T;
-}
-
 
 cell *opexe_6(uint8_t op)
 {
@@ -1661,11 +1660,12 @@ cell *opexe_6(uint8_t op)
 
 
 /* kernel of this intepreter */
-cell *Eval_Cycle(uint8_t op)
+cell *Eval_Cycle(OpCodes op)
 {
 	operator = op;
 	for (;;) {
 	    printf("[%s]", OpNames[operator]);
+	    fflush(stdout);
 	    if ((*dispatch_table[operator])(operator) == NIL)
 		return NIL;
 	}
@@ -1780,7 +1780,6 @@ void init_procs()
 	mk_proc(OP_WRITE, "write");
 	mk_proc(OP_DISPLAY, "display");
 	mk_proc(OP_NEWLINE, "newline");
-	mk_proc(OP_LOAD, "load");
 	mk_proc(OP_ERR0, "error");
 	mk_proc(OP_REVERSE, "reverse");
 	mk_proc(OP_APPEND, "append");
@@ -1827,14 +1826,36 @@ void print(const char* msg)
 
 int main()
 {
-	short   op = (short) OP_LOAD;
-
-	gScheme.print = print;
+    gScheme.print = print;
 	
-	printf("Mini-Scheme Interpreter V0.85j2.\n");
-	init_scheme();
-	args = cons(mk_string("init.scm"), NIL);
-	Eval_Cycle(op);
+    printf("Mini-Scheme Interpreter V0.85j2.\n");
+    init_scheme();
 
-	return 0;
+    if ((infp = fopen("init.scm", "r")) == NULL) {
+		infp = stdin;
+		printf("can not open init.scm");
+    }
+
+    Eval_Cycle(OP_T0LVL);
+
+    // repl
+    //
+    while (1) {
+	dump = NIL;
+	envir = global_env;
+
+	if (infp == stdin)
+	    print("\n>");
+
+	printf("\nREAD------------\n");
+	Eval_Cycle(OP_READ);
+	code = value;
+
+	Eval_Cycle(OP_EVAL);
+
+	printf("\nPRINT------------\n");
+	Eval_Cycle(OP_VALUEPRINT);
+    }
+    
+    return 0;
 }
