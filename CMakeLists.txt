@@ -20,7 +20,7 @@ else()
 endif()
 
 option(SCHEME
-  "use mini/tinyscheme" OFF)
+  "use mini/tinyscheme" ON)
 
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 3)
@@ -54,7 +54,6 @@ endif (HW_RPI)
 find_package(EXPAT REQUIRED)
 #find_package(CURL  REQUIRED)
 
-
 include(CTest)
 include(private.txt)
 
@@ -68,6 +67,8 @@ include_directories("${PROJECT_BINARY_DIR}"
 #  ${CURL_INCLUDE_DIR}
   ${EXPAT_INCLUDE_DIR}
   ../drivers
+  /usr/include/glib-2.0
+  /usr/lib/x86_64-linux-gnu/glib-2.0/include
 #  /usr/include/lua5.3
   rpi)
 
@@ -88,7 +89,7 @@ add_executable(hwif main2.cpp
 		    xmlparsesimple.cpp
 		    logger.cpp
 		    config.cpp
-
+#[[
 		    luascript.cpp
 		    lua/src/lauxlib.c
 		    lua/src/lapi.c
@@ -111,31 +112,34 @@ add_executable(hwif main2.cpp
 		    lua/src/lzio.c
 		    lua/src/lopcodes.c
 		    lua/src/lundump.c
-		    lua/src/linit.c
+		    #lua/src/linit.c
 		    lua/src/lbaselib.c
 		    lua/src/loadlib.c
 		    lua/src/ldblib.c
-		    lua/src/lutf8lib.c
-		    lua/src/lmathlib.c
+		    #lua/src/lutf8lib.c
+		    #lua/src/lmathlib.c
 		    lua/src/lstrlib.c
-		    lua/src/loslib.c
-		    lua/src/liolib.c
+		    #lua/src/loslib.c
+		    #lua/src/liolib.c
 		    lua/src/ltablib.c
 		    lua/src/lcorolib.c
-		    
-#		    scmscript.cpp
-#		    tinyscheme/scheme.c
+]]		    
+		    scmscript.cpp
+		    tinyscheme/scheme.c
 		    sun.cpp
 		    ${EXTRA_SRCS}
 )
 
 target_link_libraries(hwif
-  uv
+  # uv
   # ${CURL_LIBRARIES}
   ${EXPAT_LIBRARIES}
   curl
   sqlite3
   readline
 #  lua5.3
+  gio-2.0
+  gobject-2.0
+  glib-2.0
   ${EXTRA_LIBS}
 )
