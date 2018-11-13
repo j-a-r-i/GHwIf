@@ -8,7 +8,9 @@ extern "C" {
 #include "lua/src/lauxlib.h"
 #include "lua/src/lualib.h"
 }
-    
+
+#define INIT_SCRIPT "init.lua"
+
 typedef int (*foreign_func)(lua_State *l);
 
 class LuaScript
@@ -19,6 +21,8 @@ public:
 
     void addFn(const char* name, foreign_func func);
 
+    void eval(const char *line);
+    
     void exec(const char *func);
     
     double load(const char* filename);

@@ -6,6 +6,8 @@
 #include "tinyscheme/scheme-private.h"
 #include "tinyscheme/scheme.h"
 
+#define INIT_SCRIPT "test.scm"
+
 /** interface to tinyscheme
  */
 class ScmScript
@@ -17,7 +19,9 @@ public:
 
     void addFn(const char* name, foreign_func func);
 
-    void exec(const char* code);
+    void eval(const char* code);
+    
+    void exec(const char* func);
     
     void load(const char* filename);
 
@@ -27,4 +31,4 @@ private:
     scheme scm;
 };
 
-typedef Script ScmScript;
+typedef ScmScript Script;

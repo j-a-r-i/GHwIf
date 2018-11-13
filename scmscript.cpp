@@ -34,9 +34,14 @@ void ScmScript::addFn(const char* name, foreign_func func)
 		  mk_foreign_func(&scm,func)); 
 }
 
-void ScmScript::exec(const char* code)
+void ScmScript::eval(const char* line)
 {
-    scheme_load_string(&scm, code);
+    scheme_load_string(&scm, line);
+}
+
+void ScmScript::exec(const char* func)
+{
+    scheme_apply0(&scm, func);
 }
 
 void ScmScript::load(const char* filename)

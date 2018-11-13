@@ -3,13 +3,33 @@
  ******************************************************************************/
 #include "luascript.h"
 #include "logger.h"
+#include <string.h>
+
+/*
+** these libs are loaded by lua.c and are readily available to any Lua
+** program
+*/
+static const luaL_Reg loadedlibs[] = {
+  {"_G", luaopen_base},
+  {LUA_LOADLIBNAME, luaopen_package},
+  {LUA_COLIBNAME, luaopen_coroutine},
+  {LUA_TABLIBNAME, luaopen_table},
+  {LUA_STRLIBNAME, luaopen_string},
+  {LUA_DBLIBNAME, luaopen_debug},
+  {NULL, NULL}
+};
 
 
 LuaScript::LuaScript()
 {
     lua = luaL_newstate();
 
-    luaL_openlibs(lua);
+    const luaL_Reg *lib;
+    /* "require" functions from 'loadedlibs' and set results to global table */
+    for (lib = loadedlibs; lib->func; lib++) {
+	luaL_requiref(lua, lib->name, lib->func, 1);
+	lua_pop(lua, 1);  /* remove lib */
+    }
 }
 
 void LuaScript::addFn(const char* name, foreign_func func)
@@ -18,8 +38,31 @@ void LuaScript::addFn(const char* name, foreign_func func)
     lua_setglobal(lua, name);
 }
 
+void LuaScript::eval(const char *line)
+{
+    int error = luaL_loadbuffer(lua,
+				line,
+				strlen(line),
+				"line");
+
+    if (!error)
+	error = lua_pcall(lua, 0, 0, 0);
+
+    if (error) {
+	Log::err("lua::eval", lua_tostring(lua, -1));
+	lua_pop(lua, 1);                // pop error message from the stack
+    }
+}
+
 void LuaScript::exec(const char *fname)
 {
+    lua_getglobal(lua, fname);
+    lua_pushnumber(lua, 12);
+    lua_pushnumber(lua, 32);
+
+    if (lua_pcall(lua, 2, 0, 0) != 0) {
+	Log::err("lua::pcall", "fail");
+    }	
 }
 
 double LuaScript::load(const char* fname)
@@ -41,6 +84,7 @@ double LuaScript::load(const char* fname)
 
 void LuaScript::mainLoop()
 {
+    load("init.lua");
 }
 
 LuaScript::~LuaScript()
