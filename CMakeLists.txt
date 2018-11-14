@@ -1,29 +1,21 @@
 cmake_minimum_required(VERSION 2.6)
 
 set(CMAKE_BUILD_TYPE Debug)
-set(hw "pc" CACHE STRING "Hardware type rpi/pc/win")
+set(CMAKE_INSTALL_PREFIX "/opt")
 
-if (hw STREQUAL "rpi")
-  message(STATUS "hw is RPI")
-  set(HW_RPI ON)
-  set(HW_WIN OFF)
-elseif (hw STREQUAL "pc")
-  message(STATUS "hw is linux pc")
-  set(HW_RPI OFF)
-  set(HW_WIN OFF)
-elseif (hw STREQUAL "win")
-  message(STATUS "hw is windows pc")
-  set(HW_RPI OFF)
-  set(HW_WIN ON)
-else()
-  message(FATAL_ERROR "unknown hardware")
-endif()
+set(SERIAL_PORT   "/dev/ttyS0" CACHE STRING "serial port that is used")
+set(SQLITE_DB     "data.db"    CACHE STRING "sqlite database file")
+set(VERSION_MAJOR  0           CACHE INTEGER "version number1")
+set(VERSION_MINOR  4           CACHE INTEGER "version number2")
 
-option(SCHEME
-  "use mini/tinyscheme" ON)
+option(HW_LINUX      "build for linux/windows" ON)
+option(HW_RPI        "build for raspberry pi"  OFF)
+option(USE_SCHEME    "use mini/tinyscheme" ON)
+option(USE_SENSORS   "use lmsensors"       ON)
+option(USE_BLUETOOTH "use bluetooth"       OFF)
+option(USE_WS        "use websocket"       OFF)
+option(USE_JSON      "use json"            OFF)
 
-set(VERSION_MAJOR 0)
-set(VERSION_MINOR 3)
 
 #option(HW_RPI
 #       "Raspberry PI hardware" OFF)
@@ -86,7 +78,9 @@ add_executable(hwif main2.cpp
 		    measures.cpp
 		    web.cpp
 		    disk.cpp
+		    db.cpp
 		    xmlparsesimple.cpp
+		    htmlparse.cpp
 		    logger.cpp
 		    config.cpp
 #[[
@@ -135,6 +129,7 @@ target_link_libraries(hwif
   # ${CURL_LIBRARIES}
   ${EXPAT_LIBRARIES}
   curl
+  tidy
   sqlite3
   readline
 #  lua5.3

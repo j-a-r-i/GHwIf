@@ -20,7 +20,7 @@ configitem_t CfgData[] = {
     [CFG_SERIAL_PORT] = { "/dev/ttyS0",      false },
     [CFG_LOCATION_LAT]= { "60.205490",       false },
     [CFG_LOCATION_LON]= { "24.655899",       false },
-
+    [CFG_SQLITE_DB]   = { "data.db",         false },
     [CFG_MAX]         = { "",                true }
 };
 

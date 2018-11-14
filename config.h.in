@@ -11,20 +11,18 @@
 #define STRAVA_API    "@STRAVA_API@"
 
 #cmakedefine HW_RPI
-#cmakedefine HW_WIN
-#cmakedefine SCHEME
+#cmakedefine HW_LINUX
+#cmakedefine USE_SCHEME
+#cmakedefine USE_SENSORS
+#cmakedefine USE_BLUETOOTH
+#cmakedefine USE_WS
+#cmakedefine USE_JSON 
 
-#define USE_LINUX
-//#define USE_JSON
-//#define USE_WS
-//#define USE_BLUETOOTH
-
-#ifndef HW_RPI
-#define USE_SENSORS
-#endif
+#cmakedefine SERIAL_PORT "@SERIAL_PORT@" 
+#cmakedefine SQLITE_DB   "@SQLITE_DB@"
 
 //#define SERIAL_PORT "/dev/ttyACM0"
-#define SERIAL_PORT "/dev/ttyS0"
+//#define SERIAL_PORT "/dev/ttyS0"
 
 enum CfgItem {
     CFG_FMI_API = 0,
@@ -34,6 +32,7 @@ enum CfgItem {
     CFG_SERIAL_PORT,
     CFG_LOCATION_LAT,
     CFG_LOCATION_LON,
+    CFG_SQLITE_DB,
     CFG_MAX
 };
 
