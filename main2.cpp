@@ -9,11 +9,11 @@
 #include "logger.h"
 #include "Socket.h"
 #include "measures.h"
-//#include "db.h"
+#include "db.h"
 #include "web.h"
 #include "disk.h"
 #include "sun.h"
-#ifdef SCHEME
+#ifdef USE_SCHEME
   #include "scmscript.h"
 #else
   #include "luascript.h"
@@ -179,7 +179,10 @@ void test4()
 
 const char* errorString[] = {
     "missing argument",
-    "argument type"
+    "argument type",
+    "tidy: parse buffer",
+    "tidy: clean and repair",
+    "tidy: run diagnostics"
 };
 
 //------------------------------------------------------------------------------
@@ -192,6 +195,11 @@ const char* TheException::what() const throw () {
 class Runtime : public BaseRuntime
 {
 public:
+    Runtime() :
+	db(Cfg::get(CFG_SQLITE_DB))
+    {
+    }
+    
     void add(InfoReader* reader) {
 	readers.push_back(reader);
     }
@@ -231,39 +239,32 @@ public:
 	web.read();
     }
 
+    void webGet(const char* url) {
+	web.setSite(url, "a");
+	web.read();
+    }
+
     void webVerbose(bool value) {
 	web.setVerbose(value);
+    }
+
+    void dbQuery(const char* sql) {
+	Query query(&db, sql);
+
+	query.Handle();
     }
     
 private:
     Script script;
     std::list<InfoReader*> readers;
     Web web;
+    Database db;
 };
 
 Runtime gRuntime;
 
-#ifdef SCHEME
-int arg_integer(scheme *sch, pointer arg)
-{
-    int retVal = 0;
-    
-    if (arg != sch->NIL) {
-	pointer car = pair_car(arg);
-	if (is_integer(car)) {
-	    retVal = ivalue(car);
-	}
-	else {
-	    throw TheException(TheException::EArgumentType);
-	}
-    }
-    else {
-	throw TheException(TheException::EMissingArgument);
-    }
-    return retVal;
-}
-
-pointer scm_web_load(scheme *sch, pointer args)
+#ifdef USE_SCHEME
+cell *scm_web_load(scheme *sch, cell *args)
 {
     try {
 	int i1 = arg_integer(sch, args);
@@ -277,7 +278,20 @@ pointer scm_web_load(scheme *sch, pointer args)
     return sch->NIL;
 }
 
-pointer scm_web_verbose(scheme *sch, pointer args)
+cell *scm_web_get(scheme *sch, cell *args)
+{
+    try {
+	char *s1 = arg_string(sch, args);
+
+	gRuntime.webGet(s1);
+    }
+    catch (TheException& e) {
+	Log::err(__FUNCTION__, e.what());
+    }
+    return sch->NIL;
+}
+
+cell *scm_web_verbose(scheme *sch, cell *args)
 {
     try {
 	int i = arg_integer(sch, args);
@@ -290,7 +304,7 @@ pointer scm_web_verbose(scheme *sch, pointer args)
     return sch->NIL;
 }
 
-pointer scm_read_all(scheme *sch, pointer args)
+cell *scm_read_all(scheme *sch, cell *args)
 {
     if (args == sch->NIL) {
 	gRuntime.readAll();
@@ -301,7 +315,7 @@ pointer scm_read_all(scheme *sch, pointer args)
     return sch->NIL;
 }
 
-pointer scm_dump(scheme *sch, pointer args)
+cell *scm_dump(scheme *sch, cell *args)
 {
     if (args == sch->NIL) {
 	gRuntime.dump();
@@ -310,6 +324,20 @@ pointer scm_dump(scheme *sch, pointer args)
 	Log::err(__FUNCTION__, "extra argument");
     }
     return sch->NIL;
+}
+
+cell *scm_db_query(scheme *scm, cell *args)
+{
+    try {
+	char *s1 = arg_string(scm, args);
+
+	gRuntime.dbQuery(s1);
+    }
+    catch (TheException& e) {
+	Log::err(__FUNCTION__, e.what());
+    }
+    return scm->NIL;
+	
 }
 #endif
 
@@ -367,11 +395,13 @@ gboolean OnStdIn(GIOChannel *io, GIOCondition cond, gpointer data)
 //------------------------------------------------------------------------------
 void init_script()
 {
-#ifdef SCHEME
+#ifdef USE_SCHEME
     gRuntime.addFunc("web-load",    scm_web_load);
+    gRuntime.addFunc("web-get",     scm_web_get);
     gRuntime.addFunc("web-verbose", scm_web_verbose);
     gRuntime.addFunc("read-all",    scm_read_all);
     gRuntime.addFunc("dump",        scm_dump);
+    gRuntime.addFunc("db-query",    scm_db_query);
 #endif
 }
 
@@ -403,6 +433,7 @@ int main(int argc, char *argv[])
     gRuntime.add(&sun);
     
     gRuntime.webLoad(0, 24311);
+    gRuntime.webGet("https://www.iltalehti.fi");
     
     gRuntime.scr_init();
 

@@ -4,8 +4,49 @@
 #include "scmscript.h"
 #include "logger.h"
 #include "config.h"
+#include "common.h"
 #include <readline/readline.h>
 
+//------------------------------------------------------------------------------
+int arg_integer(scheme *sch, cell *arg)
+{
+    int retVal = 0;
+    
+    if (arg != sch->NIL) {
+	cell *car = pair_car(arg);
+	if (is_integer(car)) {
+	    retVal = ivalue(car);
+	}
+	else {
+	    throw TheException(TheException::EArgumentType);
+	}
+    }
+    else {
+	throw TheException(TheException::EMissingArgument);
+    }
+    return retVal;
+}
+
+char *arg_string(scheme *sch, cell *arg)
+{
+    char *retVal = NULL;
+    
+    if (arg != sch->NIL) {
+	cell *car = pair_car(arg);
+	if (is_string(car)) {
+	    retVal = string_value(car);
+	}
+	else {
+	    throw TheException(TheException::EArgumentType);
+	}
+    }
+    else {
+	throw TheException(TheException::EMissingArgument);
+    }
+    return retVal;
+}
+
+//------------------------------------------------------------------------------
 ScmScript::ScmScript()
 {
     Log::msg("scm", "init");

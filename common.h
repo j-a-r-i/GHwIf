@@ -2,7 +2,7 @@
 
 #include <exception>
 #include "infoitem.h"
-#ifdef SCHEME
+#ifdef USE_SCHEME
   #include "scmscript.h"
 #else
   #include "luascript.h"
@@ -24,6 +24,9 @@ public:
     enum Error {
 	EMissingArgument,
 	EArgumentType,
+	ETidyParseBuffer,
+	ETidyCleanNRepair,
+	ETidyRunDiagnostics
     };
     
     TheException(Error e) :
@@ -36,9 +39,3 @@ public:
 private:
     Error error;
 };
-
-
-//------------------------------------------------------------------------------
-#ifdef SCHEME
-extern int arg_integer(scheme *sch, pointer arg);
-#endif

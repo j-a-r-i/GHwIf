@@ -31,4 +31,8 @@ private:
     scheme scm;
 };
 
+extern int arg_integer(scheme *sch, cell *arg);
+extern char *arg_string(scheme *sch, cell *arg);
+
+
 typedef ScmScript Script;
