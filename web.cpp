@@ -4,6 +4,7 @@
 #include "web.h"
 #include "config.h"
 #include "xmlparsesimple.h"
+#include "htmlparse.h"
 #include "logger.h"
 #include <sstream>
 
@@ -42,14 +43,8 @@ Web::~Web()
 
 #define SEP "&"
 
-void Web::read()
+void Web::setSite(Site site, int siteArg)
 {
-    if (handle == NULL) {
-	Log::err("Web::read", "CURL not initialized");
-	return;
-    }
-
-    CURLcode result;
     std::ostringstream os;
 
     if (site == NASDAQ_HIST) {
@@ -106,6 +101,7 @@ void Web::read()
 
     else {
 	Log::err("web", "invalid site");
+	url = "http://none";
 	return;
     }
     
@@ -116,9 +112,28 @@ void Web::read()
        << "bar=" << 2 << SEP;
 #endif
 
-    //Log::msg("web", os.str().c_str());
+    url = os.str();
+}
+
+void Web::setSite(const char* site, const char *tag)
+{
+    url = site;
+    parser = new HtmlParse();
+}
+
+
+void Web::read()
+{
+    if (handle == NULL) {
+	Log::err("Web::read", "CURL not initialized");
+	return;
+    }
+
+    CURLcode result;
+
+    Log::msg("web", url.c_str());
     
-    curl_easy_setopt(handle, CURLOPT_URL, os.str().c_str()); //"http://www.iltalehti.fi/index.html");
+    curl_easy_setopt(handle, CURLOPT_URL, url.c_str()); //"http://www.iltalehti.fi/index.html");
     curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);
 
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_write);

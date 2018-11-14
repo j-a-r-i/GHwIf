@@ -15,18 +15,17 @@ public:
 	NASDAQ_LAST,
 	FMI,
 	STRAVA,
-	SUNRISE
+	SUNRISE,
+	CUSTOM
     };
     
     Web(bool verbose = false);
 
     virtual ~Web();
 
-    void setSite(Site s, int arg) {
-	site = s;
-	siteArg = arg;
-    }
-
+    void setSite(Site s, int arg);
+    void setSite(const char* site, const char *tag);
+    
     void setVerbose(bool val) {
 	verbose = val;
     }
@@ -36,14 +35,9 @@ public:
 
     void onData(const char* str);
 
-private:
-    Site site;
-    
-    /** Parameter to create site name. This is site dependent.
-     */
-    uint siteArg;
-    
+private:    
     CURL *handle;
     bool verbose;
     BaseParse *parser;
+    std::string url;
 };
