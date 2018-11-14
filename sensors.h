@@ -8,18 +8,11 @@
 #include <list>
 
 //------------------------------------------------------------------------------
-class SensorItem : public InfoItem
+class SensorItem : public InfoItemReal
 {
 public:
     SensorItem(const char *name, const char* chip, int feat);
     
-    void setValue(double v) {
-	value = v;
-    }
-    double getValue() const {
-	return value;
-    }
-
     const std::string& getChipName() const {
 	return chipName;
     }
@@ -31,8 +24,6 @@ public:
 private:
     std::string chipName;
     int subFeature;
-    
-    double value;
 };
 
 //------------------------------------------------------------------------------

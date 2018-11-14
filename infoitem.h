@@ -7,7 +7,7 @@
 #include <list>
 #include "logger.h"
 
-/** Store for informational element.
+/** Store for informational element, the base class.
  */
 class InfoItem
 {
@@ -25,6 +25,25 @@ public:
  
 private:
     std::string name;
+};
+
+/** Store double values
+ */
+class InfoItemReal : public InfoItem
+{
+public:
+    InfoItemReal(const char* n) : InfoItem(n) {
+    }
+    
+    void setValue(double v) {
+	value = v;
+    }
+    double getValue() const {
+	return value;
+    }
+
+private:
+    double value;
 };
 
 /** Reader for informational element. Can read one or several data items.

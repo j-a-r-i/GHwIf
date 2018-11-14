@@ -42,7 +42,7 @@ void each_sensor(Func fn)
 
 //------------------------------------------------------------------------------
 SensorItem::SensorItem(const char *name, const char* chip, int feat) :
-    InfoItem(name),
+    InfoItemReal(name),
     chipName(chip),
     subFeature(feat)
 {
