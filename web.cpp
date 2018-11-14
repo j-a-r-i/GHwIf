@@ -30,11 +30,16 @@ Web::Web(bool v) : InfoReader("web")
 
     handle = curl_easy_init();
 
+    parser = NULL;
+
     verbose = v;
 }
 
 Web::~Web()
 {
+    if (parser != NULL)
+	delete parser;
+    
     if (handle != NULL)
 	curl_easy_cleanup(handle);
     
@@ -128,14 +133,17 @@ void Web::read()
 	Log::err("Web::read", "CURL not initialized");
 	return;
     }
+    if (parser == NULL) {
+	Log::err("Web::read", "parser is not initialized");
+	return;
+    }
 
     CURLcode result;
 
     Log::msg("web", url.c_str());
     
-    curl_easy_setopt(handle, CURLOPT_URL, url.c_str()); //"http://www.iltalehti.fi/index.html");
+    curl_easy_setopt(handle, CURLOPT_URL, url.c_str());
     curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);
-
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, curl_write);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, this);
 

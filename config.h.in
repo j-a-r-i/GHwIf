@@ -24,6 +24,10 @@
 //#define SERIAL_PORT "/dev/ttyACM0"
 //#define SERIAL_PORT "/dev/ttyS0"
 
+#define PORT 8080
+#define NUM_CONNECTIONS 10
+
+
 enum CfgItem {
     CFG_FMI_API = 0,
     CFG_STRAVA_API,

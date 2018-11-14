@@ -1,7 +1,7 @@
 #include "serial.h"
 #include <stdio.h>
 #include <string.h>
-#ifdef USE_LINUX
+#ifdef HW_LINUX
   #include <unistd.h>
   #include <sys/ioctl.h>
   #include <linux/spi/spidev.h>
@@ -18,7 +18,7 @@
 
 void FileBase::open(const char* fname)
 {
-#ifdef USE_LINUX
+#ifdef HW_LINUX
 	_handle = ::open(fname, O_RDWR| O_NOCTTY | O_NDELAY);
     if (_handle < 0) {
 		std::cout << "ERROR opening " << fname << " (ret=" << _handle << ")" << std::endl;
@@ -29,7 +29,7 @@ void FileBase::open(const char* fname)
 int FileBase::ioc(int command, void *data)
 {
 	int stat=0;
-#ifdef USE_LINUX
+#ifdef HW_LINUX
     if (_handle < 0)
         return;
 
@@ -44,7 +44,7 @@ int FileBase::ioc(int command, void *data)
 void FileBase::write(char buffer[], int size)
 {
     if (_handle > 0) {
-#ifdef USE_LINUX
+#ifdef HW_LINUX
 		int stat;
 	
         stat = ::write(_handle, buffer, size);
@@ -60,7 +60,7 @@ int FileBase::read(char buffer[], int size)
     int stat = 0;
     
     if (_handle > 0) {
-#ifdef USE_LINUX
+#ifdef HW_LINUX
 		stat = ::read(_handle, buffer, size);
         if (stat < 0) {
             printf("Error reading (ret=%d)\n", stat);
@@ -75,7 +75,7 @@ int FileBase::read(char buffer[], int size)
 
 void FileBase::close()
 {
-#ifdef USE_LINUX
+#ifdef HW_LINUX
 	if (_handle > 0) {
         ::close(_handle);
         _handle = -1;
@@ -92,7 +92,7 @@ FileList::FileList()
 RS232::RS232(const char* filename, Measure *m) :
   measure(m)
 {
-#ifdef USE_LINUX
+#ifdef HW_LINUX
 	struct termios  cfg;
 
     open(filename);
@@ -160,7 +160,7 @@ void RS232::HandleSelect()
 //------------------------------------------------------------------------------
 SPI::SPI(const char* filename, int mode, int lsb, int bits, int speed)
 {
-#ifdef USE_LINUX
+#ifdef HW_LINUX
 	__u8 modeRead, bitsRead;
     //__u8 lsbRead;
     __u32 speedRead;
@@ -188,7 +188,7 @@ SPI::SPI(const char* filename, int mode, int lsb, int bits, int speed)
 
 void SPI::readWrite(unsigned char *buffer, int size)
 {
-#ifdef USE_LINUX
+#ifdef HW_LINUX
 	spi_ioc_transfer xfer;
 
     memset(&xfer, 0, sizeof(spi_ioc_transfer));
@@ -210,7 +210,7 @@ I2C::I2C(const char* filename, int addr)
     open(filename);
 
     if (_handle > 0) {
-#ifdef USE_LINUX
+#ifdef HW_LINUX
         int stat = ioctl(_handle, I2C_SLAVE, addr);
         if (stat < 0) {
             printf("error in ioctl I2C_SLAVE");

@@ -1,5 +1,7 @@
 #include <uv.h>
 
+//#pragma comment (lib, "libuv.lib")
+
 uv_loop_t *loop;
 uv_timer_t timer1;
 uv_tcp_t *client;

@@ -1,6 +1,6 @@
 #include <iostream>
 #include "config.h"
-#ifdef USE_LINUX
+#ifdef HW_LINUX
   #include <sys/socket.h>
 #else
   #include <winsock2.h>

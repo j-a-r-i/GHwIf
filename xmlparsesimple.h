@@ -7,6 +7,9 @@
 class BaseParse
 {
 public:
+    virtual ~BaseParse() {
+    }
+    
     virtual void begin() = 0;
     virtual void parse(const char* str) = 0;
     virtual void end() = 0;

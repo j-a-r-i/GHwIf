@@ -1,7 +1,7 @@
 #ifndef __SOCKET_H
 #define __SOCKET_H
 
-#ifdef USE_LINUX
+#ifdef HW_LINUX
   #include <netinet/in.h>
 #else
   #pragma comment(lib,"Ws2_32.lib")

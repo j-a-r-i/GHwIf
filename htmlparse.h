@@ -7,6 +7,9 @@
 class HtmlParse : public BaseParse
 {
 public:
+    virtual ~HtmlParse() {
+    }
+    
     void begin();
     void parse(const char* str);
     void end();
