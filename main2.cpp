@@ -13,19 +13,19 @@
 #include "web.h"
 #include "disk.h"
 #include "sun.h"
+#include "common.h"
+#include <glib.h>
+#include <gio/gio.h>
 #ifdef USE_SCHEME
   #include "scmscript.h"
 #else
   #include "luascript.h"
 #endif
-
-#include "common.h"
 #ifdef HW_RPI
   #include "rpi/main_rpi.h"
 #else
   #include "main_pc.h"
 #endif
-
 #ifdef USE_JSON
   #include "rapidjson/document.h"
   #include "rapidjson/writer.h"
@@ -37,20 +37,11 @@
 #ifdef USE_SENSORS
   #include "sensors.h"
 #endif
-
-#include <glib.h>
-#include <gio/gio.h>
-
 #ifdef USE_WS
   #define _WEBSOCKETPP_CPP11_THREAD_
   #include <websocketpp/config/core.hpp>
   #include <websocketpp/server.hpp>
 #endif
-
-//#pragma comment (lib, "libuv.lib")
-
-#define PORT 8080
-#define NUM_CONNECTIONS 10
 
 Measure  meas;
 RS232  serial(SERIAL_PORT, &meas);
@@ -204,9 +195,8 @@ public:
 	readers.push_back(reader);
     }
 
-    void scr_init() {
-	script.load(INIT_SCRIPT);
-        //script.mainLoop();
+    void scr_load(const char* filename) {
+	script.load(filename);
     }
 
     void scr_run(const char* func) {
@@ -422,9 +412,10 @@ int main(int argc, char *argv[])
     Sensors s;
     gRuntime.add(&s);
 #endif
-
-    Web w;
-    //gRuntime.add(&w);
+#ifdef USE_BLUETOOTH
+    Bluetooth b;
+    b.scan();
+#endif    
 
     Disk d;
     gRuntime.add(&d);
@@ -432,11 +423,31 @@ int main(int argc, char *argv[])
     Sun sun;
     gRuntime.add(&sun);
     
-    gRuntime.webLoad(0, 24311);
-    gRuntime.webGet("https://www.iltalehti.fi");
+    //gRuntime.webLoad(0, 24311);
+    //gRuntime.webGet("https://www.iltalehti.fi");
     
-    gRuntime.scr_init();
+    bool scriptLoaded = false;
+    int  opt;
+    while ((opt = getopt(argc, argv, "f:s:")) != -1) {
+	switch (opt) {
+	case 'f':
+	    gRuntime.scr_load(optarg);
+	    scriptLoaded = true;
+	    break;
+	case 's':
+	    Log::msg("set serial port", optarg);
+	    break;
+	default:
+	    Log::msg("usage", "hwif -f filename -s serial_port");
+	    exit(1);
+	}
 
+    }
+
+    if (!scriptLoaded) { // use the default script
+	gRuntime.scr_load(INIT_SCRIPT);
+    }
+    
     // mainloop and timer
     //
     gLoop = g_main_loop_new ( NULL , FALSE );
@@ -460,7 +471,7 @@ int main(int argc, char *argv[])
     int loop = 1;
     Measure meas;
 
-#ifndef USE_LINUX
+#ifndef HW_LINUX
 	WSADATA wsaData = { 0 };
 	int res = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (res != 0) {
@@ -468,23 +479,12 @@ int main(int argc, char *argv[])
 		return 1;
     }
 #endif
-
-#if 0
-    Sensors s;
-    s.scan();
-#endif
-
-#if 0
-    Bluetooth b;
-    b.scan();
-#endif    
-
     FileList  handles;
     SocketServer server(PORT, &handles);
 
     handles.add(&server);
 
-#ifdef USE_LINUX
+#ifdef HW_LINUX
     RS232  serial("/dev/ttyACM0", &meas);
 
     handles.add(&serial);
@@ -494,8 +494,6 @@ int main(int argc, char *argv[])
 		fd_set reads;
 		int maxFd = 0;
       
-		//std::cout << "looping..." << std::endl;
-
 		for (auto& i : handles._items) {
 			//std::cout << "\tH:" << i->_handle << std::endl;
 			FD_SET(i->_handle, &reads);
@@ -510,8 +508,7 @@ int main(int argc, char *argv[])
 				i->HandleSelect();
 			}
 		}
-    }
-    
+    }    
     return 0;
 }
 */
