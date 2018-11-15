@@ -3,6 +3,8 @@
  ******************************************************************************/
 #pragma once
 
+#ifdef USE_SCHEME
+
 #include "tinyscheme/scheme-private.h"
 #include "tinyscheme/scheme.h"
 
@@ -34,5 +36,9 @@ private:
 extern int arg_integer(scheme *sch, cell *arg);
 extern char *arg_string(scheme *sch, cell *arg);
 
+class BaseRuntime;
+void scm_func_init(BaseRuntime *rt);
 
 typedef ScmScript Script;
+
+#endif // USE_SCHEME

@@ -1,9 +1,7 @@
 /******************************************************************************
  * Copyright (C) 2018 Jari Ojanen
  ******************************************************************************/
-#include "scmscript.h"
 #include "logger.h"
-#include "config.h"
 #include "common.h"
 #include <readline/readline.h>
 

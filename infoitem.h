@@ -15,6 +15,8 @@ public:
     InfoItem(const char* n) : name(n) {
     }
 
+    /** Get the name of the informational item
+     */
     const std::string& getName() const {
 	return name;
     }
@@ -34,10 +36,15 @@ class InfoItemReal : public InfoItem
 public:
     InfoItemReal(const char* n) : InfoItem(n) {
     }
-    
+
+    /** Set new current value for info item
+     */
     void setValue(double v) {
 	value = v;
     }
+
+    /** Get current value
+     */
     double getValue() const {
 	return value;
     }
@@ -54,6 +61,8 @@ public:
     InfoReader(const char* n) : name(n) {
     }
 
+    /** Prints information about info reader
+     */
     void dump() {
 	Log::msg(":", name.c_str());
 	for (auto info : infos) {
@@ -68,9 +77,13 @@ public:
 
 protected:
     // does not own the infoitems
+    /** The infomational elements that this readers is generating
+     */
     std::list<InfoItem*> infos;
     
 private:
+    /** The name of info reader
+     */
     std::string name;
 };
 

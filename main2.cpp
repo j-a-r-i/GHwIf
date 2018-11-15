@@ -5,7 +5,7 @@
 #include <fstream>
 #include <list>
 #include <unistd.h>
-#include "config.h"
+#include "common.h"
 #include "logger.h"
 #include "Socket.h"
 #include "measures.h"
@@ -13,14 +13,8 @@
 #include "web.h"
 #include "disk.h"
 #include "sun.h"
-#include "common.h"
 #include <glib.h>
 #include <gio/gio.h>
-#ifdef USE_SCHEME
-  #include "scmscript.h"
-#else
-  #include "luascript.h"
-#endif
 #ifdef HW_RPI
   #include "rpi/main_rpi.h"
 #else
@@ -173,7 +167,8 @@ const char* errorString[] = {
     "argument type",
     "tidy: parse buffer",
     "tidy: clean and repair",
-    "tidy: run diagnostics"
+    "tidy: run diagnostics",
+    "missing runtime"
 };
 
 //------------------------------------------------------------------------------
@@ -251,95 +246,15 @@ private:
     Database db;
 };
 
-Runtime gRuntime;
-
-#ifdef USE_SCHEME
-cell *scm_web_load(scheme *sch, cell *args)
-{
-    try {
-	int i1 = arg_integer(sch, args);
-	int i2 = arg_integer(sch, pair_cdr(args));
-
-	gRuntime.webLoad(i1, i2);
-    }
-    catch (TheException& e) {
-	Log::err(__FUNCTION__, e.what());
-    }
-    return sch->NIL;
-}
-
-cell *scm_web_get(scheme *sch, cell *args)
-{
-    try {
-	char *s1 = arg_string(sch, args);
-
-	gRuntime.webGet(s1);
-    }
-    catch (TheException& e) {
-	Log::err(__FUNCTION__, e.what());
-    }
-    return sch->NIL;
-}
-
-cell *scm_web_verbose(scheme *sch, cell *args)
-{
-    try {
-	int i = arg_integer(sch, args);
-
-	gRuntime.webVerbose(i);
-    }
-    catch (TheException& e) {
-	Log::err(__FUNCTION__, e.what());
-    }
-    return sch->NIL;
-}
-
-cell *scm_read_all(scheme *sch, cell *args)
-{
-    if (args == sch->NIL) {
-	gRuntime.readAll();
-    }
-    else {
-	Log::err(__FUNCTION__, "extra argument");
-    }
-    return sch->NIL;
-}
-
-cell *scm_dump(scheme *sch, cell *args)
-{
-    if (args == sch->NIL) {
-	gRuntime.dump();
-    }
-    else {
-	Log::err(__FUNCTION__, "extra argument");
-    }
-    return sch->NIL;
-}
-
-cell *scm_db_query(scheme *scm, cell *args)
-{
-    try {
-	char *s1 = arg_string(scm, args);
-
-	gRuntime.dbQuery(s1);
-    }
-    catch (TheException& e) {
-	Log::err(__FUNCTION__, e.what());
-    }
-    return scm->NIL;
-	
-}
-#endif
-
 //------------------------------------------------------------------------------
 GMainLoop *gLoop;
-
+BaseRuntime *gRuntime;
 
 gboolean OnTimer(gpointer data)
 {
     //g_print("timer\n");
 
-    gRuntime.scr_run("timer");
+    gRuntime->scr_run("timer");
     return TRUE;
 }
 
@@ -364,7 +279,7 @@ gboolean OnStdIn(GIOChannel *io, GIOCondition cond, gpointer data)
 	break;
     case G_IO_STATUS_NORMAL:
 	g_print("stdin: %s\n", line);
-	gRuntime.scr_eval(line);
+	gRuntime->scr_eval(line);
 	g_free(line);
 	break;
     case G_IO_STATUS_EOF:
@@ -382,35 +297,28 @@ gboolean OnStdIn(GIOChannel *io, GIOCondition cond, gpointer data)
     return ret;
 }
 
-//------------------------------------------------------------------------------
-void init_script()
-{
-#ifdef USE_SCHEME
-    gRuntime.addFunc("web-load",    scm_web_load);
-    gRuntime.addFunc("web-get",     scm_web_get);
-    gRuntime.addFunc("web-verbose", scm_web_verbose);
-    gRuntime.addFunc("read-all",    scm_read_all);
-    gRuntime.addFunc("dump",        scm_dump);
-    gRuntime.addFunc("db-query",    scm_db_query);
-#endif
-}
 
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
+    Runtime rt;
     GError * err = NULL;
+
+    gRuntime = &rt;
     
 #ifdef HW_RPI
-    rpi_init(&gRuntime);
+    rpi_init(gRuntime);
 #else
-    pc_init(&gRuntime);
+    pc_init(gRuntime);
 #endif
 
-    init_script();
+#ifdef USE_SCHEME
+    scm_func_init(gRuntime);
+#endif
     
 #ifdef USE_SENSORS
     Sensors s;
-    gRuntime.add(&s);
+    gRuntime->add(&s);
 #endif
 #ifdef USE_BLUETOOTH
     Bluetooth b;
@@ -418,10 +326,10 @@ int main(int argc, char *argv[])
 #endif    
 
     Disk d;
-    gRuntime.add(&d);
+    gRuntime->add(&d);
 
     Sun sun;
-    gRuntime.add(&sun);
+    gRuntime->add(&sun);
     
     //gRuntime.webLoad(0, 24311);
     //gRuntime.webGet("https://www.iltalehti.fi");
@@ -431,7 +339,7 @@ int main(int argc, char *argv[])
     while ((opt = getopt(argc, argv, "f:s:")) != -1) {
 	switch (opt) {
 	case 'f':
-	    gRuntime.scr_load(optarg);
+	    rt.scr_load(optarg);
 	    scriptLoaded = true;
 	    break;
 	case 's':
@@ -445,7 +353,7 @@ int main(int argc, char *argv[])
     }
 
     if (!scriptLoaded) { // use the default script
-	gRuntime.scr_load(INIT_SCRIPT);
+	rt.scr_load(INIT_SCRIPT);
     }
     
     // mainloop and timer
