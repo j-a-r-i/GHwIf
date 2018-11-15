@@ -8,17 +8,14 @@ set(SQLITE_DB     "data.db"    CACHE STRING "sqlite database file")
 set(VERSION_MAJOR  0           CACHE INTEGER "version number1")
 set(VERSION_MINOR  4           CACHE INTEGER "version number2")
 
-option(HW_LINUX      "build for linux/windows" ON)
-option(HW_RPI        "build for raspberry pi"  OFF)
-option(USE_SCHEME    "use mini/tinyscheme" ON)
-option(USE_SENSORS   "use lmsensors"       ON)
-option(USE_BLUETOOTH "use bluetooth"       OFF)
-option(USE_WS        "use websocket"       OFF)
-option(USE_JSON      "use json"            OFF)
-
-
-#option(HW_RPI
-#       "Raspberry PI hardware" OFF)
+option(HW_LINUX      "build for linux/windows"  ON)
+option(HW_RPI        "build for raspberry pi"   OFF)
+option(USE_SCHEME    "use tinyscheme scripting" ON)
+option(USE_LUA       "use lua scripting"        OFF)
+option(USE_SENSORS   "use lmsensors"            ON)
+option(USE_BLUETOOTH "use bluetooth"            OFF)
+option(USE_WS        "use websocket"            OFF)
+option(USE_JSON      "use json"                 OFF)
 
 if (HW_RPI)
   set(CMAKE_SYSTEM_NAME    Linux)
@@ -55,36 +52,25 @@ configure_file(
     "${PROJECT_BINARY_DIR}/config.h"
 )
 
-include_directories("${PROJECT_BINARY_DIR}"
-#  ${CURL_INCLUDE_DIR}
-  ${EXPAT_INCLUDE_DIR}
-  ../drivers
-  /usr/include/glib-2.0
-  /usr/lib/x86_64-linux-gnu/glib-2.0/include
-#  /usr/include/lua5.3
-  rpi)
+set(EXTRA_LIBS ${EXTRA_LIBS})
+set(EXTRA_INCS ${EXTRA_INCS})
 
 if (HW_RPI)
-   set(EXTRA_LIBS ${EXTRA_LIBS} )
-   set(EXTRA_SRCS ${EXTRA_SRCS} rpi/main_rpi.cpp rpi/hal.cpp)
+  list(APPEND EXTRA_INCS ../drivers)
+  set(EXTRA_SRCS ${EXTRA_SRCS} rpi/main_rpi.cpp rpi/hal.cpp)
 else (HW_RPI)
-   set(EXTRA_LIBS ${EXTRA_LIBS} sensors)
-   set(EXTRA_SRCS ${EXTRA_SRCS} main_pc.cpp sensors.cpp)
+  set(EXTRA_SRCS ${EXTRA_SRCS} main_pc.cpp)
 endif (HW_RPI)
 
-add_executable(hwif main2.cpp
-		    serial.cpp
-		    Socket.cpp
-		    measures.cpp
-		    web.cpp
-		    disk.cpp
-		    db.cpp
-		    xmlparsesimple.cpp
-		    htmlparse.cpp
-		    logger.cpp
-		    config.cpp
-#[[
-		    luascript.cpp
+
+if (USE_SCHEME)
+  list(APPEND EXTRA_SRCS tinyscheme/scheme.c scmfunctions.cpp)
+endif (USE_SCHEME)
+
+if (USE_LUA)
+  #list(APPEND EXTRA_INCS /usr/include/lua5.3)
+  #list(APPEND EXTRA_LIBS lua5.3)
+  list(APPEND EXTRA_SRCS
 		    lua/src/lauxlib.c
 		    lua/src/lapi.c
 		    lua/src/lstate.c
@@ -106,20 +92,47 @@ add_executable(hwif main2.cpp
 		    lua/src/lzio.c
 		    lua/src/lopcodes.c
 		    lua/src/lundump.c
-		    #lua/src/linit.c
 		    lua/src/lbaselib.c
 		    lua/src/loadlib.c
 		    lua/src/ldblib.c
-		    #lua/src/lutf8lib.c
-		    #lua/src/lmathlib.c
 		    lua/src/lstrlib.c
-		    #lua/src/loslib.c
-		    #lua/src/liolib.c
 		    lua/src/ltablib.c
-		    lua/src/lcorolib.c
-]]		    
+		    lua/src/lcorolib.c)
+endif (USE_LUA)
+
+if (USE_BLUETOOTH)
+  list(APPEND EXTRA_SRCS btooth.cpp)
+  list(APPEND EXTRA_LIBS bluetooth)
+endif (USE_BLUETOOTH)
+
+if (USE_SENSORS)
+  list(APPEND EXTRA_SRCS sensors.cpp)
+  list(APPEND EXTRA_LIBS sensors)
+endif (USE_SENSORS)
+
+include_directories("${PROJECT_BINARY_DIR}"
+#  ${CURL_INCLUDE_DIR}
+  ${EXPAT_INCLUDE_DIR}
+  ../drivers
+  /usr/include/glib-2.0
+  /usr/lib/x86_64-linux-gnu/glib-2.0/include
+  rpi
+  ${EXTRA_INCS}
+  )
+
+add_executable(hwif main2.cpp
+		    serial.cpp
+		    Socket.cpp
+		    measures.cpp
+		    web.cpp
+		    disk.cpp
+		    db.cpp
+		    xmlparsesimple.cpp
+		    htmlparse.cpp
+		    logger.cpp
+		    config.cpp
+#		    luascript.cpp		    
 		    scmscript.cpp
-		    tinyscheme/scheme.c
 		    sun.cpp
 		    ${EXTRA_SRCS}
 )
@@ -132,7 +145,6 @@ target_link_libraries(hwif
   tidy
   sqlite3
   readline
-#  lua5.3
   gio-2.0
   gobject-2.0
   glib-2.0

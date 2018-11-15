@@ -9,6 +9,8 @@
 
 #define FMI_API       "@FMI_API@"
 #define STRAVA_API    "@STRAVA_API@"
+#define SERIAL_PORT   "@SERIAL_PORT@" 
+#define SQLITE_DB     "@SQLITE_DB@"
 
 #cmakedefine HW_RPI
 #cmakedefine HW_LINUX
@@ -18,8 +20,6 @@
 #cmakedefine USE_WS
 #cmakedefine USE_JSON 
 
-#cmakedefine SERIAL_PORT "@SERIAL_PORT@" 
-#cmakedefine SQLITE_DB   "@SQLITE_DB@"
 
 //#define SERIAL_PORT "/dev/ttyACM0"
 //#define SERIAL_PORT "/dev/ttyS0"

@@ -3,6 +3,8 @@
  ******************************************************************************/
 #pragma once
 
+#ifdef USE_LUA
+
 extern "C" {
 #include "lua/src/lua.h"
 #include "lua/src/lauxlib.h"
@@ -34,3 +36,5 @@ private:
 };
 
 typedef LuaScript Script;
+
+#endif // USE_LUA
