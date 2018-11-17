@@ -5,22 +5,41 @@
 #include <vector>
 #include "measures.h"
 
+#define HANDLE_ERROR -1
+
 //------------------------------------------------------------------------------
 class FileBase
 {
 public:
+    FileBase(const char* n) :
+    name(n)
+    {
+    }
+    
+    virtual ~FileBase() {
+    }
+    
     void open(const char* fname);
 
     /** Do ioctl command for the device.
      */
     int ioc(int command, void *data);
     void write(char buffer[], int size);
+
+    int  read(void *buffer, int size);
     int  read(char buffer[], int size);
+    int  read(uint64_t *val);
 
     void close();
 
-    int GetHandle() {
+    void dump();
+    
+    int getHandle() {
       return _handle;
+    }
+
+    const char *getName() {
+	return name.c_str();
     }
     
     virtual void HandleSelect() {
@@ -29,6 +48,8 @@ public:
 //protected:
 public:
     int _handle;
+protected:
+    std::string name;
 };
 
 //------------------------------------------------------------------------------
@@ -45,7 +66,7 @@ public:
 	_items.erase(std::remove_if(_items.begin(),
 				    _items.end(),
 				    [&item](FileBase *b){
-					return (b->GetHandle() == item->GetHandle());
+					return (b->getHandle() == item->getHandle());
 				    }
 			 ),
 		     _items.end());

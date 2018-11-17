@@ -12,7 +12,8 @@
 
 //------------------------------------------------------------------------------
 SocketServer::SocketServer(int port, FileList *handles) :
-  _handles(handles)
+    FileBase("SServer"),
+    _handles(handles)
 {
     int opt = TRUE;
     
@@ -58,7 +59,8 @@ void SocketServer::HandleSelect()
 
 //------------------------------------------------------------------------------
 Socket::Socket(int hndl, FileList *handles) :
-  _handles(handles)
+    FileBase("socket"),
+    _handles(handles)
 {
   _handle = hndl;
 }

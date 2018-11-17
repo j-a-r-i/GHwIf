@@ -17,6 +17,8 @@ option(USE_BLUETOOTH "use bluetooth"            OFF)
 option(USE_WS        "use websocket"            OFF)
 option(USE_JSON      "use json"                 OFF)
 
+set(USE_GLIB OFF)
+
 if (HW_RPI)
   set(CMAKE_SYSTEM_NAME    Linux)
   set(CMAKE_SYSTEM_VERSION 1)
@@ -110,18 +112,28 @@ if (USE_SENSORS)
   list(APPEND EXTRA_LIBS sensors)
 endif (USE_SENSORS)
 
+if (USE_GLIB)
+  list(APPEND EXTRA_INCS
+    /usr/include/glib-2.0
+    /usr/lib/x86_64-linux-gnu/glib-2.0/include)
+  
+  list(APPEND EXTRA_LIBS
+    gio-2.0
+    gobject-2.0
+    glib-2.0)
+endif (USE_GLIB)
+
 include_directories("${PROJECT_BINARY_DIR}"
 #  ${CURL_INCLUDE_DIR}
   ${EXPAT_INCLUDE_DIR}
   ../drivers
-  /usr/include/glib-2.0
-  /usr/lib/x86_64-linux-gnu/glib-2.0/include
   rpi
   ${EXTRA_INCS}
   )
 
 add_executable(hwif main2.cpp
-		    serial.cpp
+                    serial.cpp
+		    file.cpp
 		    Socket.cpp
 		    measures.cpp
 		    web.cpp
@@ -145,8 +157,5 @@ target_link_libraries(hwif
   tidy
   sqlite3
   readline
-  gio-2.0
-  gobject-2.0
-  glib-2.0
   ${EXTRA_LIBS}
 )

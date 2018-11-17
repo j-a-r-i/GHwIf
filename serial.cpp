@@ -1,7 +1,8 @@
+#include "common.h"
 #include "serial.h"
-#include <stdio.h>
 #include <string.h>
 #ifdef HW_LINUX
+  #include <fcntl.h>
   #include <unistd.h>
   #include <sys/ioctl.h>
   #include <linux/spi/spidev.h>
@@ -19,26 +20,28 @@
 void FileBase::open(const char* fname)
 {
 #ifdef HW_LINUX
-	_handle = ::open(fname, O_RDWR| O_NOCTTY | O_NDELAY);
+    _handle = ::open(fname, O_RDWR| O_NOCTTY | O_NDELAY);
     if (_handle < 0) {
-		std::cout << "ERROR opening " << fname << " (ret=" << _handle << ")" << std::endl;
+	Log::err("File open", fname);
+	_handle = HANDLE_ERROR;
     }
 #endif
 }
 
 int FileBase::ioc(int command, void *data)
 {
-	int stat=0;
+    int stat=0;
 #ifdef HW_LINUX
     if (_handle < 0)
-        return;
+        return 0;
 
     stat = ioctl(_handle, command, data);
     if (stat < 0) {
-        printf("error in ioctl %d\n", command);
+	Log::err("ioctl", command);
+	return 0;
     }
 #endif
-	return stat;
+    return stat;
 }
 
 void FileBase::write(char buffer[], int size)
@@ -55,32 +58,50 @@ void FileBase::write(char buffer[], int size)
     }
 }
 
-int FileBase::read(char buffer[], int size)
+int FileBase::read(void *buffer, int size)
 {
     int stat = 0;
     
-    if (_handle > 0) {
+    if (_handle >= 0) {
 #ifdef HW_LINUX
-		stat = ::read(_handle, buffer, size);
+	stat = ::read(_handle, buffer, size);
         if (stat < 0) {
             printf("Error reading (ret=%d)\n", stat);
         }
-		else {
-			buffer[stat] = 0;
-		}
 #endif
-	}
+    }
     return stat;
 }
+
+int FileBase::read(char buffer[], int size)
+{
+    int stat = read((void*)buffer, size);
+
+    if (stat > 0)
+	buffer[stat] = 0;
+
+    return stat;
+}
+
+int FileBase::read(uint64_t *val)
+{
+    return read((void*)val, sizeof(uint64_t));
+}
+
 
 void FileBase::close()
 {
 #ifdef HW_LINUX
-	if (_handle > 0) {
+    if (_handle > 0) {
         ::close(_handle);
         _handle = -1;
     }
 #endif
+}
+
+void FileBase::dump()
+{
+    std::cout << "\tH:" << name << " - " << _handle << std::endl;
 }
 
 //------------------------------------------------------------------------------
@@ -90,7 +111,8 @@ FileList::FileList()
 
 //------------------------------------------------------------------------------
 RS232::RS232(const char* filename, Measure *m) :
-  measure(m)
+    FileBase("rs232"),
+    measure(m)
 {
 #ifdef HW_LINUX
 	struct termios  cfg;
@@ -98,7 +120,7 @@ RS232::RS232(const char* filename, Measure *m) :
     open(filename);
     
     if (tcgetattr(_handle, &cfg) < 0) {
-        printf("Error tcgetattr\n");
+	Log::err("rs232::tcgetattr", errno);
     }
 
     /*if (cfsetispeed(&cfg, B9600) < 0) {
@@ -114,7 +136,7 @@ RS232::RS232(const char* filename, Measure *m) :
     cfg.c_lflag = ICANON;
 
     if (tcsetattr(_handle, TCSAFLUSH, &cfg) < 0) {
-        printf("Error tcsetattr\n");
+	Log::err("rs232::tcsetattr", errno);
     }
 #endif
 }
@@ -158,7 +180,8 @@ void RS232::HandleSelect()
 }
 
 //------------------------------------------------------------------------------
-SPI::SPI(const char* filename, int mode, int lsb, int bits, int speed)
+SPI::SPI(const char* filename, int mode, int lsb, int bits, int speed) :
+    FileBase("spi")
 {
 #ifdef HW_LINUX
 	__u8 modeRead, bitsRead;
@@ -205,7 +228,8 @@ void SPI::readWrite(unsigned char *buffer, int size)
 
 
 //------------------------------------------------------------------------------
-I2C::I2C(const char* filename, int addr)
+I2C::I2C(const char* filename, int addr) :
+    FileBase("i2c")
 {
     open(filename);
 

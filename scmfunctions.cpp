@@ -80,6 +80,18 @@ cell *scm_db_query(scheme *scm, cell *args)
 	
 }
 
+cell *scm_tst(scheme *scm, cell *args)
+{
+    try {
+	printf("%d\n", ((pair_car(args)->flag) & 0x1F));
+    }
+    catch (TheException& e) {
+	Log::err(__FUNCTION__, e.what());
+    }
+    return scm->NIL;
+	
+}
+
 //------------------------------------------------------------------------------
 void scm_func_init(BaseRuntime *rt)
 {
@@ -89,4 +101,5 @@ void scm_func_init(BaseRuntime *rt)
     rt->addFunc("read-all",    scm_read_all);
     rt->addFunc("dump",        scm_dump);
     rt->addFunc("db-query",    scm_db_query);
+    rt->addFunc("tst",         scm_tst);
 }

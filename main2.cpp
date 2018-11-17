@@ -9,12 +9,12 @@
 #include "logger.h"
 #include "Socket.h"
 #include "measures.h"
+#include "serial.h"
+#include "file.h"
 #include "db.h"
 #include "web.h"
 #include "disk.h"
 #include "sun.h"
-#include <glib.h>
-#include <gio/gio.h>
 #ifdef HW_RPI
   #include "rpi/main_rpi.h"
 #else
@@ -36,9 +36,6 @@
   #include <websocketpp/config/core.hpp>
   #include <websocketpp/server.hpp>
 #endif
-
-Measure  meas;
-RS232  serial(SERIAL_PORT, &meas);
 
 #ifdef USE_WS
 typedef websocketpp::server<websocketpp::config::core> server;
@@ -247,65 +244,28 @@ private:
 };
 
 //------------------------------------------------------------------------------
-GMainLoop *gLoop;
 BaseRuntime *gRuntime;
-
-gboolean OnTimer(gpointer data)
-{
-    //g_print("timer\n");
-
-    gRuntime->scr_run("timer");
-    return TRUE;
-}
-
-gboolean OnStdIn(GIOChannel *io, GIOCondition cond, gpointer data)
-{
-#define LINE_LENGTH 80
-    gsize line_length = LINE_LENGTH;
-    gsize terminator_pos;
-    gchar *line;
-    gboolean ret = TRUE;
-    GError *err = NULL;
-    GIOStatus stat = g_io_channel_read_line(io,
-					    &line,
-					    &line_length,
-					    &terminator_pos,
-					    &err);
- 
-    switch (stat) {
-    case G_IO_STATUS_ERROR:
-	g_print("stdin: ERROR\n");
-	ret = FALSE;
-	break;
-    case G_IO_STATUS_NORMAL:
-	g_print("stdin: %s\n", line);
-	gRuntime->scr_eval(line);
-	g_free(line);
-	break;
-    case G_IO_STATUS_EOF:
-	g_print("stdin: eof\n");
-	g_main_loop_quit(gLoop);
-	break;
-    case G_IO_STATUS_AGAIN:
-	g_print("stdin: again\n");
-	break;
-    default:
-	g_print("stdin: invalid value\n");
-	ret = FALSE;
-	break;
-    }
-    return ret;
-}
-
 
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
+    int loop = 5;
     Runtime rt;
-    GError * err = NULL;
+    Measure meas;
 
     gRuntime = &rt;
-    
+
+#ifndef HW_LINUX
+    WSADATA wsaData = { 0 };
+    int res = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (res != 0) {
+	std::cout << "WSAStartup failed: " << res << std::endl;
+	return 1;
+    }
+#endif
+
+    // init readers
+    //
 #ifdef HW_RPI
     rpi_init(gRuntime);
 #else
@@ -330,10 +290,10 @@ int main(int argc, char *argv[])
 
     Sun sun;
     gRuntime->add(&sun);
-    
-    //gRuntime.webLoad(0, 24311);
-    //gRuntime.webGet("https://www.iltalehti.fi");
-    
+    sun.read();
+
+    // parse arguments
+    //
     bool scriptLoaded = false;
     int  opt;
     while ((opt = getopt(argc, argv, "f:s:")) != -1) {
@@ -356,67 +316,54 @@ int main(int argc, char *argv[])
 	rt.scr_load(INIT_SCRIPT);
     }
     
-    // mainloop and timer
+    // Init 'file' handles
     //
-    gLoop = g_main_loop_new ( NULL , FALSE );
-
-    GIOChannel *io = g_io_channel_unix_new(STDIN_FILENO);
-    guint watchid =  g_io_add_watch(io, G_IO_IN, OnStdIn, NULL);
-
-    g_timeout_add (5000 , OnTimer , gLoop); 
-
-    g_main_loop_run (gLoop);
-
-    g_io_channel_unref(io);
-    g_main_loop_unref(gLoop);
-    
-    return 0;
-}
-
-//------------------------------------------------------------------------------
-/*int main(int argc, char *argv[])
-{
-    int loop = 1;
-    Measure meas;
-
-#ifndef HW_LINUX
-	WSADATA wsaData = { 0 };
-	int res = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (res != 0) {
-		std::cout << "WSAStartup failed: " << res << std::endl;
-		return 1;
-    }
-#endif
     FileList  handles;
     SocketServer server(PORT, &handles);
-
     handles.add(&server);
 
-#ifdef HW_LINUX
-    RS232  serial("/dev/ttyACM0", &meas);
+    FileStdin fstdin;
+    handles.add(&fstdin);
+    // add callback gRuntime->scr_eval(line);
 
-    handles.add(&serial);
-#endif
+    FileNotify fnotify(INIT_SCRIPT);
+    handles.add(&fnotify);
+
+    FileSignal fsignal;
+    handles.add(&fsignal);
     
-    while (loop) {
-		fd_set reads;
-		int maxFd = 0;
-      
-		for (auto& i : handles._items) {
-			//std::cout << "\tH:" << i->_handle << std::endl;
-			FD_SET(i->_handle, &reads);
-			if (i->_handle > maxFd)
-			maxFd = i->_handle;
-		}
-	
-		select(maxFd+1, &reads, NULL, NULL, NULL);
+    RS232  serial(SERIAL_PORT, &meas);
+    handles.add(&serial);
 
-		for (auto& i : handles._items) {
-			if (FD_ISSET(i->_handle, &reads)) {
-				i->HandleSelect();
-			}
-		}
+    FileTimer timer1(5);
+    handles.add(&timer1);
+    // add callback gRuntime->scr_run("timer");
+
+    
+    // main loop
+    //
+    while (loop) {
+	fd_set reads;
+	int maxFd = 0;
+
+	FD_ZERO(&reads);
+	for (auto& i : handles._items) {
+	    if (i->getHandle() == HANDLE_ERROR)
+		continue;
+	    i->dump();
+	    FD_SET(i->_handle, &reads);
+	    if (i->getHandle() > maxFd)
+		maxFd = i->_handle;
+	}
+	
+	select(maxFd+1, &reads, NULL, NULL, NULL);
+
+	for (auto& i : handles._items) {
+	    if (FD_ISSET(i->_handle, &reads)) {
+		i->HandleSelect();
+	    }
+	}
+	//loop--;
     }    
     return 0;
 }
-*/
