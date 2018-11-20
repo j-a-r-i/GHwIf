@@ -44,7 +44,11 @@ if (HW_RPI)
 endif (HW_RPI)
 
 
-find_package(EXPAT REQUIRED)
+if (HW_LINUX)
+  find_package(EXPAT REQUIRED)
+else (HW_LINUX)
+  set(EXPAT_INCLUDE_DIR C:/usr/Expat 2.2.6/Source/lib)
+endif (HW_LINUX)
 #find_package(CURL  REQUIRED)
 
 include(CTest)
@@ -136,6 +140,10 @@ if (USE_READLINE)
   list(APPEND EXTRA_LIBS  readline)
 endif (USE_READLINE)
 
+if (HW_LINUX)
+  list(APPEND EXTRA_SRCS disk.cpp)
+endif (HW_LINUX)
+
 include_directories("${PROJECT_BINARY_DIR}"
 #  ${CURL_INCLUDE_DIR}
   ${EXPAT_INCLUDE_DIR}
@@ -150,7 +158,6 @@ add_executable(hwif main2.cpp
 		    Socket.cpp
 		    measures.cpp
 		    web.cpp
-		    disk.cpp
 		    db.cpp
 		    xmlparsesimple.cpp
 		    htmlparse.cpp

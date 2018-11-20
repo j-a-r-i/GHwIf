@@ -1,11 +1,14 @@
+#ifdef HW_LINUX
 #include <sys/timerfd.h>
 #include <sys/signalfd.h>
 #include <sys/inotify.h>
-#include <signal.h>
 #include <unistd.h>
+#endif
+#include <signal.h>
 #include "file.h"
 #include "logger.h"
 
+#ifdef HW_LINUX
 //------------------------------------------------------------------------------
 FileTimer::FileTimer(unsigned int sec) :
     FileBase("Timer")
@@ -42,7 +45,7 @@ void FileTimer::HandleSelect()
 
     read(&res);
 }
-
+#endif
 //------------------------------------------------------------------------------
 FileStdin::FileStdin() :
     FileBase("stdin")
@@ -61,6 +64,7 @@ void FileStdin::HandleSelect()
 }
 
 //------------------------------------------------------------------------------
+#ifdef HW_LINUX
 FileNotify::FileNotify(const char *filename) :
     FileBase("notify")
 {
@@ -122,4 +126,4 @@ void FileSignal::HandleSelect()
 	
     Log::msg("signal", 1);
 }
-
+#endif

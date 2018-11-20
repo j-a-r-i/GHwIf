@@ -4,7 +4,9 @@
 #include <iostream>
 #include <fstream>
 #include <list>
+#ifdef HW_LINUX
 #include <unistd.h>
+#endif
 #include "common.h"
 #include "logger.h"
 #include "Socket.h"

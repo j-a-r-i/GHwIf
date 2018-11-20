@@ -3,6 +3,8 @@
  ******************************************************************************/
 #pragma once
 
+#ifdef SCM_GUILE
+
 #include "libguile.h"
 
 #define INIT_SCRIPT "guile.scm"
@@ -33,3 +35,5 @@ class BaseRuntime;
 void scm_func_init(BaseRuntime *rt);
 
 typedef GuileScript Script;
+
+#endif

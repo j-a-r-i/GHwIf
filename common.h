@@ -12,6 +12,9 @@
   typedef SCM (*foreign_func)(SCM a);
 #endif
 #ifdef SCR_SCHEME
+  #include "tinyscheme/scheme-private.h"
+  #include "tinyscheme/scheme.h"
+  typedef cell *(*foreign_func)(scheme *sc, cell *args);
 #endif
 #ifdef SCR_LUA
 #endif
@@ -27,7 +30,7 @@ public:
 };
 
 //------------------------------------------------------------------------------
-//#include "scmscript.h"
+#include "scmscript.h"
 #include "guilescript.h"
 //#include "luascript.h"
 
