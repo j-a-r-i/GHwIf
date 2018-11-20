@@ -3,42 +3,33 @@
  ******************************************************************************/
 #pragma once
 
-#ifdef SCR_SCHEME
+#include "libguile.h"
 
-#include "tinyscheme/scheme-private.h"
-#include "tinyscheme/scheme.h"
+#define INIT_SCRIPT "guile.scm"
 
-#define INIT_SCRIPT "test.scm"
+typedef SCM (*foreign_func)(SCM a);
 
-/** interface to tinyscheme
+/** interface to guile
  */
-class ScmScript
+class GuileScript : public IPluginScript
 {
 public:
-    
-    ScmScript();
-    virtual ~ScmScript();
+    GuileScript();
+    virtual ~GuileScript();
 
     void addFn(const char* name, foreign_func func);
 
     void eval(const char* code);
-    
+
     void exec(const char* func);
     
     void load(const char* filename);
 
-    void mainLoop();
-
 private:
-    scheme scm;
+    SCM *guile;
 };
-
-extern int arg_integer(scheme *sch, cell *arg);
-extern char *arg_string(scheme *sch, cell *arg);
 
 class BaseRuntime;
 void scm_func_init(BaseRuntime *rt);
 
-typedef ScmScript Script;
-
-#endif // SCR_SCHEME
+typedef GuileScript Script;

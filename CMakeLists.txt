@@ -8,16 +8,18 @@ set(SQLITE_DB     "data.db"    CACHE STRING "sqlite database file")
 set(VERSION_MAJOR  0           CACHE INTEGER "version number1")
 set(VERSION_MINOR  4           CACHE INTEGER "version number2")
 
-option(HW_LINUX      "build for linux/windows"  ON)
-option(HW_RPI        "build for raspberry pi"   OFF)
-option(USE_SCHEME    "use tinyscheme scripting" ON)
-option(USE_LUA       "use lua scripting"        OFF)
-option(USE_SENSORS   "use lmsensors"            ON)
-option(USE_BLUETOOTH "use bluetooth"            OFF)
-option(USE_WS        "use websocket"            OFF)
-option(USE_JSON      "use json"                 OFF)
+option(HW_LINUX      "build for linux/windows"   ON)
+option(HW_RPI        "build for raspberry pi"    OFF)
+option(SCR_GUILE     "scripting with guile"      ON)
+option(SCR_SCHEME    "scripting with tinyscheme" ON)
+option(SCR_LUA       "scripting with lua"        OFF)
+option(USE_SENSORS   "use lmsensors"             ON)
+option(USE_BLUETOOTH "use bluetooth"             OFF)
+option(USE_WS        "use websocket"             OFF)
+option(USE_JSON      "use json"                  OFF)
 
 set(USE_GLIB OFF)
+set(USE_READLINE OFF)
 
 if (HW_RPI)
   set(CMAKE_SYSTEM_NAME    Linux)
@@ -64,15 +66,22 @@ else (HW_RPI)
   set(EXTRA_SRCS ${EXTRA_SRCS} main_pc.cpp)
 endif (HW_RPI)
 
+if (SCR_GUILE)
+  list(APPEND EXTRA_INCS /usr/include/guile/2.0)
+  list(APPEND EXTRA_LIBS guile-2.0)
+  list(APPEND EXTRA_SRCS guilescript.cpp)
+endif (SCR_GUILE)
 
-if (USE_SCHEME)
-  list(APPEND EXTRA_SRCS tinyscheme/scheme.c scmfunctions.cpp)
-endif (USE_SCHEME)
+if (SCR_SCHEME)
+  list(APPEND EXTRA_SRCS tinyscheme/scheme.c)
+  list(APPEND EXTRA_SRCS scmfunctions.cpp scmscript.cpp)
+endif (SCR_SCHEME)
 
-if (USE_LUA)
+if (SCR_LUA)
   #list(APPEND EXTRA_INCS /usr/include/lua5.3)
   #list(APPEND EXTRA_LIBS lua5.3)
   list(APPEND EXTRA_SRCS
+                    luascript.cpp
 		    lua/src/lauxlib.c
 		    lua/src/lapi.c
 		    lua/src/lstate.c
@@ -100,7 +109,7 @@ if (USE_LUA)
 		    lua/src/lstrlib.c
 		    lua/src/ltablib.c
 		    lua/src/lcorolib.c)
-endif (USE_LUA)
+endif (SCR_LUA)
 
 if (USE_BLUETOOTH)
   list(APPEND EXTRA_SRCS btooth.cpp)
@@ -123,6 +132,10 @@ if (USE_GLIB)
     glib-2.0)
 endif (USE_GLIB)
 
+if (USE_READLINE)
+  list(APPEND EXTRA_LIBS  readline)
+endif (USE_READLINE)
+
 include_directories("${PROJECT_BINARY_DIR}"
 #  ${CURL_INCLUDE_DIR}
   ${EXPAT_INCLUDE_DIR}
@@ -143,8 +156,6 @@ add_executable(hwif main2.cpp
 		    htmlparse.cpp
 		    logger.cpp
 		    config.cpp
-#		    luascript.cpp		    
-		    scmscript.cpp
 		    sun.cpp
 		    ${EXTRA_SRCS}
 )
@@ -156,6 +167,5 @@ target_link_libraries(hwif
   curl
   tidy
   sqlite3
-  readline
   ${EXTRA_LIBS}
 )

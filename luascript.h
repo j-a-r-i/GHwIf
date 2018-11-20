@@ -3,7 +3,7 @@
  ******************************************************************************/
 #pragma once
 
-#ifdef USE_LUA
+#ifdef SCR_LUA
 
 extern "C" {
 #include "lua/src/lua.h"
@@ -27,7 +27,7 @@ public:
     
     void exec(const char *func);
     
-    double load(const char* filename);
+    void load(const char* filename);
 
     void mainLoop();
 
@@ -37,4 +37,4 @@ private:
 
 typedef LuaScript Script;
 
-#endif // USE_LUA
+#endif // SCR_LUA

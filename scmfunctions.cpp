@@ -83,7 +83,7 @@ cell *scm_db_query(scheme *scm, cell *args)
 cell *scm_tst(scheme *scm, cell *args)
 {
     try {
-	printf("%d\n", ((pair_car(args)->flag) & 0x1F));
+	printf("%d\n", ((pair_car(args)->_flag) & 0x1F));
     }
     catch (TheException& e) {
 	Log::err(__FUNCTION__, e.what());

@@ -3,7 +3,9 @@
  ******************************************************************************/
 #include "logger.h"
 #include "common.h"
-#include <readline/readline.h>
+#ifdef USE_READLINE
+  #include <readline/readline.h>
+#endif
 
 //------------------------------------------------------------------------------
 int arg_integer(scheme *sch, cell *arg)
@@ -100,6 +102,7 @@ void ScmScript::mainLoop()
 {
     //scheme_load_named_file(&scm, stdin, 0);
 
+#ifdef USE_READLINE
     while (1) {
 	char output[256];
 	char *line = readline("ha>");
@@ -114,4 +117,5 @@ void ScmScript::mainLoop()
 	
 	delete(line);
     }
+#endif
 }

@@ -178,25 +178,14 @@ const char* TheException::what() const throw () {
 class Runtime : public BaseRuntime
 {
 public:
-    Runtime() :
+    Runtime(IPluginScript &scr) :
+	BaseRuntime(scr),
 	db(Cfg::get(CFG_SQLITE_DB))
     {
     }
     
     void add(InfoReader* reader) {
 	readers.push_back(reader);
-    }
-
-    void scr_load(const char* filename) {
-	script.load(filename);
-    }
-
-    void scr_run(const char* func) {
-	script.exec(func);
-    }
-
-    void scr_eval(const char* line) {
-	script.eval(line);
     }
 
     void addFunc(const char* name, foreign_func func) {
@@ -237,7 +226,6 @@ public:
     }
     
 private:
-    Script script;
     std::list<InfoReader*> readers;
     Web web;
     Database db;
@@ -250,7 +238,8 @@ BaseRuntime *gRuntime;
 int main(int argc, char *argv[])
 {
     int loop = 5;
-    Runtime rt;
+    Script script;
+    Runtime rt(script);
     Measure meas;
 
     gRuntime = &rt;
@@ -272,7 +261,7 @@ int main(int argc, char *argv[])
     pc_init(gRuntime);
 #endif
 
-#ifdef USE_SCHEME
+#ifdef SCR_SCHEME
     scm_func_init(gRuntime);
 #endif
     
@@ -299,7 +288,7 @@ int main(int argc, char *argv[])
     while ((opt = getopt(argc, argv, "f:s:")) != -1) {
 	switch (opt) {
 	case 'f':
-	    rt.scr_load(optarg);
+	    rt.script.load(optarg);
 	    scriptLoaded = true;
 	    break;
 	case 's':
@@ -313,7 +302,7 @@ int main(int argc, char *argv[])
     }
 
     if (!scriptLoaded) { // use the default script
-	rt.scr_load(INIT_SCRIPT);
+	rt.script.load(INIT_SCRIPT);
     }
     
     // Init 'file' handles
@@ -350,7 +339,7 @@ int main(int argc, char *argv[])
 	for (auto& i : handles._items) {
 	    if (i->getHandle() == HANDLE_ERROR)
 		continue;
-	    i->dump();
+	    //i->dump();
 	    FD_SET(i->_handle, &reads);
 	    if (i->getHandle() > maxFd)
 		maxFd = i->_handle;

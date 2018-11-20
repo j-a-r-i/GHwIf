@@ -1,8 +1,8 @@
 /******************************************************************************
  * Copyright (C) 2018 Jari Ojanen
  ******************************************************************************/
-#include "luascript.h"
 #include "logger.h"
+#include "common.h"
 #include <string.h>
 
 /*
@@ -65,7 +65,7 @@ void LuaScript::exec(const char *fname)
     }	
 }
 
-double LuaScript::load(const char* fname)
+void LuaScript::load(const char* fname)
 {
     int error = luaL_dofile(lua, fname);
     double ret;
@@ -79,7 +79,7 @@ double LuaScript::load(const char* fname)
 
     //Log::value("return", ret);
 
-    return ret;
+    //return ret;
 }
 
 void LuaScript::mainLoop()

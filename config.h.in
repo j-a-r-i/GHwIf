@@ -14,7 +14,9 @@
 
 #cmakedefine HW_RPI
 #cmakedefine HW_LINUX
-#cmakedefine USE_SCHEME
+#cmakedefine SCR_GUILE
+#cmakedefine SCR_SCHEME
+#cmakedefine SCR_LUA
 #cmakedefine USE_SENSORS
 #cmakedefine USE_BLUETOOTH
 #cmakedefine USE_WS
