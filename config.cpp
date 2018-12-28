@@ -4,7 +4,7 @@
 #include "config.h"
 #include <string.h>
 
-#define MAX_STRING 80
+/*#define MAX_STRING 80
 
 typedef struct {
     char value[MAX_STRING];
@@ -22,6 +22,17 @@ configitem_t CfgData[] = {
     [CFG_LOCATION_LON]= { "24.655899",       false },
     [CFG_SQLITE_DB]   = { "data.db",         false },
     [CFG_MAX]         = { "",                true }
+};*/
+
+std::map<CfgItem, std::string> Cfg::items = {
+	{ CfgItem::FMI_API,       STR_FMI_API },
+	{ CfgItem::STRAVA_API,    STR_STRAVA_API },
+	{ CfgItem::SCHEME_INIT,   "lisp/init.scm" },
+	{ CfgItem::SCHEME_SYSTEM, "lisp/system.scm" },
+	{ CfgItem::SERIAL_PORT,   "/dev/ttyS0" },
+	{ CfgItem::LOCATION_LAT,  "60.205490" },
+	{ CfgItem::LOCATION_LON,  "24.655899" },
+	{ CfgItem::SQLITE_DB,     STR_SQLITE_DB }
 };
 
 
@@ -31,10 +42,10 @@ void Cfg::init()
 
 const char* Cfg::get(CfgItem item)
 {
-    return CfgData[item].value;
+	return items[item].c_str();
 }
 
 void Cfg::set(CfgItem item, const char* value)
 {
-    strcpy(CfgData[item].value, value);
+	items[item] = value;
 }

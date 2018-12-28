@@ -12,7 +12,7 @@
 
 /** interface to tinyscheme
  */
-class ScmScript
+class ScmScript : public IPluginScript
 {
 public:
     

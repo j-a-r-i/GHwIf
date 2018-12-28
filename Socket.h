@@ -15,7 +15,7 @@ class SocketServer : public FileBase
 public:
     SocketServer(int port, FileList *handles);
 
-    void HandleSelect();
+    void HandleSelect() override;
 
     sockaddr_in address;
 
@@ -29,7 +29,7 @@ class Socket : public FileBase
 public:
     Socket(int hndl, FileList *handles);
 
-    void HandleSelect();
+    void HandleSelect() override;
     
 private:
     FileList* _handles;

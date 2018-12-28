@@ -21,12 +21,13 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E91656D0-0948-4096-9870-1B3EF055AB2B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -63,7 +64,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)..\..\cpp\libuv\include;$(SolutionDir)external;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)win;$(SolutionDir)external;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Debug\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -72,17 +73,18 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>kernel32.lib;user32.lib;Psapi.lib;Userenv.lib;Iphlpapi.lib;gdi32.lib;Advapi32.lib;libuv.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;Psapi.lib;Userenv.lib;Iphlpapi.lib;gdi32.lib;Advapi32.lib</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -107,22 +109,63 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="config.cpp" />
     <ClCompile Include="db.cpp" />
     <ClCompile Include="external\sqlite3.c" />
+    <ClCompile Include="logger.cpp" />
     <ClCompile Include="main2.cpp" />
     <ClCompile Include="measures.cpp" />
     <ClCompile Include="serial.cpp" />
+    <ClCompile Include="site.cpp" />
     <ClCompile Include="Socket.cpp" />
+    <ClCompile Include="sun.cpp" />
+    <ClCompile Include="web.cpp" />
+    <ClCompile Include="xmlparsesimple.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="config.h" />
+    <ClInclude Include="common.h" />
     <ClInclude Include="db.h" />
     <ClInclude Include="external\sqlite3.h" />
+    <ClInclude Include="logger.h" />
     <ClInclude Include="measures.h" />
     <ClInclude Include="serial.h" />
+    <ClInclude Include="site.h" />
     <ClInclude Include="Socket.h" />
+    <ClInclude Include="web.h" />
+    <ClInclude Include="win\config.h" />
+    <ClInclude Include="xmlparsesimple.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\curl.redist.7.30.0.2\build\native\curl.redist.targets" Condition="Exists('packages\curl.redist.7.30.0.2\build\native\curl.redist.targets')" />
+    <Import Project="packages\libssh2.redist.1.4.3.3\build\native\libssh2.redist.targets" Condition="Exists('packages\libssh2.redist.1.4.3.3\build\native\libssh2.redist.targets')" />
+    <Import Project="packages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('packages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" />
+    <Import Project="packages\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x64.1.0.2.0\build\native\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x64.targets" Condition="Exists('packages\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x64.1.0.2.0\build\native\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x64.targets')" />
+    <Import Project="packages\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x86.1.0.2.0\build\native\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x86.targets" Condition="Exists('packages\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x86.1.0.2.0\build\native\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x86.targets')" />
+    <Import Project="packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets" Condition="Exists('packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" />
+    <Import Project="packages\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x64.1.0.2.0\build\native\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x64.targets" Condition="Exists('packages\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x64.1.0.2.0\build\native\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x64.targets')" />
+    <Import Project="packages\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x86.1.0.2.0\build\native\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x86.targets" Condition="Exists('packages\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x86.1.0.2.0\build\native\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x86.targets')" />
+    <Import Project="packages\libssh2.1.4.3.3\build\native\libssh2.targets" Condition="Exists('packages\libssh2.1.4.3.3\build\native\libssh2.targets')" />
+    <Import Project="packages\curl.7.30.0.2\build\native\curl.targets" Condition="Exists('packages\curl.7.30.0.2\build\native\curl.targets')" />
+    <Import Project="packages\expat.v141.2.2.6\build\native\expat.v141.targets" Condition="Exists('packages\expat.v141.2.2.6\build\native\expat.v141.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\curl.redist.7.30.0.2\build\native\curl.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\curl.redist.7.30.0.2\build\native\curl.redist.targets'))" />
+    <Error Condition="!Exists('packages\libssh2.redist.1.4.3.3\build\native\libssh2.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libssh2.redist.1.4.3.3\build\native\libssh2.redist.targets'))" />
+    <Error Condition="!Exists('packages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v120.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
+    <Error Condition="!Exists('packages\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x64.1.0.2.0\build\native\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x64.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x64.1.0.2.0\build\native\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x64.targets'))" />
+    <Error Condition="!Exists('packages\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x86.1.0.2.0\build\native\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x86.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x86.1.0.2.0\build\native\openssl.v120.windesktop.msvcstl.dyn.rt-dyn.x86.targets'))" />
+    <Error Condition="!Exists('packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.1.2.8.8\build\native\zlib.v140.windesktop.msvcstl.dyn.rt-dyn.targets'))" />
+    <Error Condition="!Exists('packages\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x64.1.0.2.0\build\native\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x64.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x64.1.0.2.0\build\native\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x64.targets'))" />
+    <Error Condition="!Exists('packages\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x86.1.0.2.0\build\native\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x86.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x86.1.0.2.0\build\native\openssl.v140.windesktop.msvcstl.dyn.rt-dyn.x86.targets'))" />
+    <Error Condition="!Exists('packages\libssh2.1.4.3.3\build\native\libssh2.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\libssh2.1.4.3.3\build\native\libssh2.targets'))" />
+    <Error Condition="!Exists('packages\curl.7.30.0.2\build\native\curl.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\curl.7.30.0.2\build\native\curl.targets'))" />
+    <Error Condition="!Exists('packages\expat.v141.2.2.6\build\native\expat.v141.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\expat.v141.2.2.6\build\native\expat.v141.targets'))" />
+  </Target>
 </Project>

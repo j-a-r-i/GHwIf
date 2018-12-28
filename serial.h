@@ -34,7 +34,7 @@ public:
 
     void dump();
     
-    int getHandle() {
+    int getHandle() const {
       return _handle;
     }
 
@@ -82,7 +82,7 @@ class RS232 : public FileBase
 public:
     RS232(const char* filename, Measure *m);
 
-    void HandleSelect();
+    void HandleSelect() override;
 
 private:
     Measure *measure;

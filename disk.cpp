@@ -44,7 +44,7 @@ Disk::Disk() : InfoReader("disk")
     items.push_back(new DiskItem("/"));
     items.push_back(new DiskItem("/mnt"));
 
-    for (auto disk : items) {
+    for (auto& disk : items) {
 	infos.push_back(disk);
     }
 }
@@ -55,14 +55,14 @@ Disk::~Disk()
 
 void Disk::print()
 {
-    for (auto item : items) {
+    for (auto& item : items) {
 	item->print();
     }
 }
 
 void Disk::read()
 {
-    for (auto item : items) {
+    for (auto& item : items) {
 	item->read();
     }
 }

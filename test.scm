@@ -25,7 +25,16 @@
 
 
 (display "load init...\n")
+
+
 ;(p (weekend? 'mon))
 ;(p (weekend? 'sun))
 ;(p (workday? 'mon))
 ;(p (workday? 'sun))
+
+
+(define (parseurl url)
+  (display url))
+
+
+(tst parseurl)

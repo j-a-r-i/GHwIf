@@ -182,7 +182,7 @@ class Runtime : public BaseRuntime
 public:
     Runtime(IPluginScript &scr) :
 	BaseRuntime(scr),
-	db(Cfg::get(CFG_SQLITE_DB))
+	db(Cfg::get(CfgItem::SQLITE_DB))
     {
     }
     
@@ -195,14 +195,14 @@ public:
     }
 
     void readAll() {
-	for (auto reader : readers) {
+	for (auto& reader : readers) {
 	    reader->read();
 	    reader->print();
 	}
     }
 
     void dump() {
-	for (auto reader : readers) {
+	for (auto& reader : readers) {
 	    reader->dump();
 	}
     }
@@ -285,6 +285,7 @@ int main(int argc, char *argv[])
 
     // parse arguments
     //
+#ifdef HW_LINUX
     bool scriptLoaded = false;
     int  opt;
     while ((opt = getopt(argc, argv, "f:s:")) != -1) {
@@ -300,13 +301,12 @@ int main(int argc, char *argv[])
 	    Log::msg("usage", "hwif -f filename -s serial_port");
 	    exit(1);
 	}
-
     }
 
     if (!scriptLoaded) { // use the default script
 	rt.script.load(INIT_SCRIPT);
     }
-    
+#endif  
     // Init 'file' handles
     //
     FileList  handles;
@@ -323,7 +323,7 @@ int main(int argc, char *argv[])
     FileSignal fsignal;
     handles.add(&fsignal);
     
-    RS232  serial(SERIAL_PORT, &meas);
+    RS232  serial(STR_SERIAL_PORT, &meas);
     handles.add(&serial);
 
     FileTimer timer1(5);

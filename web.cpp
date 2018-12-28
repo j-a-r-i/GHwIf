@@ -4,7 +4,9 @@
 #include "web.h"
 #include "config.h"
 #include "xmlparsesimple.h"
-#include "htmlparse.h"
+#ifdef HW_LINUX
+  #include "htmlparse.h"
+#endif
 #include "logger.h"
 #include <sstream>
 
@@ -76,7 +78,7 @@ void Web::setSite(Site site, int siteArg)
 
     else if (site == FMI) {
 	os << "http://" << SITE_FMI
-	   << "/fmi-apikey/"   << FMI_API << "/wfs?"
+	   << "/fmi-apikey/"   << Cfg::get(CfgItem::FMI_API) << "/wfs?"
 	   << "request="        << "getFeature" << SEP
 	   << "storedquery_id=" << "fmi::forecast::hirlam::surface::point::multipointcoverage" << SEP
 	   << "place="          << "oittaa" << SEP
@@ -89,7 +91,7 @@ void Web::setSite(Site site, int siteArg)
 	os << "https://" << SITE_STRAVA 
 	   << "/api/v3/athlete/activities?"
 	   << "page="   << 1 << SEP
-	   << "access_token=" << STRAVA_API << SEP;
+	   << "access_token=" << Cfg::get(CfgItem::STRAVA_API) << SEP;
 
 	parser = new DummyParse();
     }
@@ -97,8 +99,8 @@ void Web::setSite(Site site, int siteArg)
     else if (site == SUNRISE) {
 	os << "https://" << SITE_SUNRISE
 	   << "/json?"
-	   << "lat=" << Cfg::get(CFG_LOCATION_LAT) << SEP
-	   << "lng=" << Cfg::get(CFG_LOCATION_LON);
+	   << "lat=" << Cfg::get(CfgItem::LOCATION_LAT) << SEP
+	   << "lng=" << Cfg::get(CfgItem::LOCATION_LON);
 	    //<< "date=" << "today";
 
 	parser = new DummyParse();
@@ -123,7 +125,9 @@ void Web::setSite(Site site, int siteArg)
 void Web::setSite(const char* site, const char *tag)
 {
     url = site;
+#ifdef HW_LINUX
     parser = new HtmlParse();
+#endif
 }
 
 

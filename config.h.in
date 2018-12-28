@@ -7,10 +7,10 @@
 #define VERSION_MAJOR @VERSION_MAJOR@
 #define VERSINO_MINOR @VERSION_MINOR@
 
-#define FMI_API       "@FMI_API@"
-#define STRAVA_API    "@STRAVA_API@"
-#define SERIAL_PORT   "@SERIAL_PORT@" 
-#define SQLITE_DB     "@SQLITE_DB@"
+#define STR_FMI_API       "@FMI_API@"
+#define STR_STRAVA_API    "@STRAVA_API@"
+#define STR_SERIAL_PORT   "@SERIAL_PORT@" 
+#define STR_SQLITE_DB     "@SQLITE_DB@"
 
 #cmakedefine HW_RPI
 #cmakedefine HW_LINUX
@@ -30,16 +30,16 @@
 #define NUM_CONNECTIONS 10
 
 
-enum CfgItem {
-    CFG_FMI_API = 0,
-    CFG_STRAVA_API,
-    CFG_SCHEME_INIT,
-    CFG_SCHEME_SYSTEM,
-    CFG_SERIAL_PORT,
-    CFG_LOCATION_LAT,
-    CFG_LOCATION_LON,
-    CFG_SQLITE_DB,
-    CFG_MAX
+enum class CfgItem {
+    FMI_API = 0,
+    STRAVA_API,
+    SCHEME_INIT,
+    SCHEME_SYSTEM,
+    SERIAL_PORT,
+    LOCATION_LAT,
+    LOCATION_LON,
+    SQLITE_DB,
+    MAX
 };
 
 class Cfg
@@ -48,4 +48,7 @@ public:
     static void init();
     static const char* get(CfgItem item);
     static void set(CfgItem item, const char* value);
+
+private:
+    static std::map<CfgItem, std::string> items;
 };

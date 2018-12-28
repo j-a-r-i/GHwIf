@@ -78,10 +78,23 @@ void HtmlParse::printNode(TidyNode node, int level)
 	case TidyNode_StartEnd:
 	default:
 	    name = tidyNodeGetName( child );
+	    if (strcmp(name, "a") == 0) {
+		for (TidyAttr attr = tidyAttrFirst(child);
+		     attr;
+		     attr = tidyAttrNext(attr))
+		{
+		    ctmbstr aname = tidyAttrName(attr);
+
+		    if (strcmp(aname, "href") == 0) {
+			printf("%s = %s\n",
+			       tidyAttrName(attr),
+			       tidyAttrValue(attr));
+		    }
+		}
+	    }
 	    break;
 	}
 	assert( name != NULL );
-	printf( "\%*.*sNode: \%s\\n", (level*2), (level*2), " ", name );
 
 	printNode(child, level+1);	
     }
