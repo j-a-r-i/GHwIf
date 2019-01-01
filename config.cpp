@@ -3,6 +3,7 @@
  ******************************************************************************/
 #include "config.h"
 #include <string.h>
+#include <fstream>
 
 /*#define MAX_STRING 80
 
@@ -48,4 +49,19 @@ const char* Cfg::get(CfgItem item)
 void Cfg::set(CfgItem item, const char* value)
 {
 	items[item] = value;
+}
+
+void Cfg::load()
+{
+
+}
+
+void Cfg::save()
+{
+    std::ofstream file{ "config.txt" };
+
+    for (auto& [key,value] : items) {
+	 file << static_cast<int>(key) << " " << value.c_str() << std::endl;
+    }
+    file.close();
 }
