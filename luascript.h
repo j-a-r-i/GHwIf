@@ -15,7 +15,7 @@ extern "C" {
 
 typedef int (*foreign_func)(lua_State *l);
 
-class LuaScript
+class LuaScript : public IPluginScript
 {
 public:
     LuaScript();

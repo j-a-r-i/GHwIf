@@ -276,16 +276,16 @@ int main(int argc, char *argv[])
     b.scan();
 #endif    
 
-    Disk d;
-    gRuntime->add(&d);
-
     Sun sun;
     gRuntime->add(&sun);
     sun.read();
 
+#ifdef HW_LINUX
+    Disk d;
+    gRuntime->add(&d);
+
     // parse arguments
     //
-#ifdef HW_LINUX
     bool scriptLoaded = false;
     int  opt;
     while ((opt = getopt(argc, argv, "f:s:")) != -1) {
@@ -313,6 +313,7 @@ int main(int argc, char *argv[])
     SocketServer server(PORT, &handles);
     handles.add(&server);
 
+#ifdef HW_LINUX
     FileStdin fstdin;
     handles.add(&fstdin);
     // add callback gRuntime->scr_eval(line);
@@ -322,15 +323,15 @@ int main(int argc, char *argv[])
 
     FileSignal fsignal;
     handles.add(&fsignal);
-    
-    RS232  serial(STR_SERIAL_PORT, &meas);
-    handles.add(&serial);
 
     FileTimer timer1(5);
     handles.add(&timer1);
     // add callback gRuntime->scr_run("timer");
+#endif
 
-    
+    RS232  serial(STR_SERIAL_PORT, &meas);
+    handles.add(&serial);
+
     // main loop
     //
     while (loop) {

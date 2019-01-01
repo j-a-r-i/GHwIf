@@ -17,6 +17,12 @@
   typedef cell *(*foreign_func)(scheme *sc, cell *args);
 #endif
 #ifdef SCR_LUA
+  extern "C" {
+	#include "lua.h"
+	#include "lauxlib.h"
+	#include "lualib.h"
+  }
+  typedef int(*foreign_func)(lua_State *l);
 #endif
 
 //------------------------------------------------------------------------------
@@ -30,9 +36,15 @@ public:
 };
 
 //------------------------------------------------------------------------------
-#include "scmscript.h"
-#include "guilescript.h"
-//#include "luascript.h"
+#ifdef SCR_SCHEME
+  #include "scmscript.h"
+#endif
+#ifdef SCR_GUILE
+  #include "guilescript.h"
+#endif
+#ifdef SCR_LUA
+  #include "luascript.h"
+#endif
 
 //------------------------------------------------------------------------------
 class BaseRuntime

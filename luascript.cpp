@@ -3,6 +3,7 @@
  ******************************************************************************/
 #include "logger.h"
 #include "common.h"
+#include "luascript.h"
 #include <string.h>
 
 /*
