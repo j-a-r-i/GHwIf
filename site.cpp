@@ -1,3 +1,4 @@
+#include "config.h"
 #include "site.h"
 
 
@@ -7,23 +8,23 @@ SiteBase::SiteBase(const std::string u, const std::string p) :
 {
 }
 
-SiteBase::~SiteBase
+SiteBase::~SiteBase()
 {
 }
 
-const std::string SiteBase::getUrl()
+const std::string SiteBase::getUrl() const
 {
+    return url;
 }
 
 //------------------------------------------------------------------------------
 NasdaqSite::NasdaqSite() :
     SiteBase{"www.nasdaqomxnordic.com", "/webproxy/DataFeedProxy.aspx"}
 {
-    query = {{"Subsystem", "History"},
-	     {"Action",    "GetDataSeries"},
-	     {"Instrument","HEX1111"},
-	     {"FromDate",  "2018-12-01"}
-    };
+    query.insert(std::make_pair("Subsystem", "History"));
+    query.insert(std::make_pair("Action",    "GetDataSeries"));
+    query.insert(std::make_pair("Instrument","HEX1111"));
+    query.insert(std::make_pair("FromDate",  "2018-12-01"));
 }
 
 //------------------------------------------------------------------------------
@@ -50,8 +51,7 @@ StravaSite::StravaSite() :
 SunriseSite::SunriseSite() :
     SiteBase{"api.sunrise-sunset.org", "/json"}
 {
-    query = {{"lat", Cfg::get(CfgItem::LOCATION_LAT)},
-	     {"lng", Cfg::get(CfgItem::LOCATION_LON)}
-    };
+    query.insert(std::make_pair("lat", Cfg::get(CfgItem::LOCATION_LAT)));
+    query.insert(std::make_pair("lng", Cfg::get(CfgItem::LOCATION_LON)));
 }
 

@@ -25,6 +25,8 @@ configitem_t CfgData[] = {
     [CFG_MAX]         = { "",                true }
 };*/
 
+/* do not work with debian g++ compiler
+
 std::map<CfgItem, std::string> Cfg::items = {
 	{ CfgItem::FMI_API,       STR_FMI_API },
 	{ CfgItem::STRAVA_API,    STR_STRAVA_API },
@@ -35,10 +37,19 @@ std::map<CfgItem, std::string> Cfg::items = {
 	{ CfgItem::LOCATION_LON,  "24.655899" },
 	{ CfgItem::SQLITE_DB,     STR_SQLITE_DB }
 };
-
+*/
+std::map<CfgItem, std::string> Cfg::items;
 
 void Cfg::init()
 {
+    items.insert(std::make_pair(CfgItem::FMI_API,       STR_FMI_API));
+    items.insert(std::make_pair(CfgItem::STRAVA_API,    STR_STRAVA_API));
+    items.insert(std::make_pair(CfgItem::SCHEME_INIT,   "lisp/init.scm"));
+    items.insert(std::make_pair(CfgItem::SCHEME_SYSTEM, "lisp/system.scm"));
+    items.insert(std::make_pair(CfgItem::SERIAL_PORT,   "/dev/ttyS0"));
+    items.insert(std::make_pair(CfgItem::LOCATION_LAT,  "60.205490"));
+    items.insert(std::make_pair(CfgItem::LOCATION_LON,  "24.655899"));
+    items.insert(std::make_pair(CfgItem::SQLITE_DB,     STR_SQLITE_DB));
 }
 
 const char* Cfg::get(CfgItem item)
@@ -60,8 +71,11 @@ void Cfg::save()
 {
     std::ofstream file{ "config.txt" };
 
-    for (auto& [key,value] : items) {
-	 file << static_cast<int>(key) << " " << value.c_str() << std::endl;
+//    for (auto& [key,value] : items) {   <- do not work with debian g++
+
+    for (auto& value : items) {
+	//file << static_cast<int>(key) << " " << value.c_str() << std::endl;
+	file << static_cast<int>(value.first) << " " << value.second.c_str() << std::endl;
     }
     file.close();
 }

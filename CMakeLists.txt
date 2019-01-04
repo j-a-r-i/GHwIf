@@ -179,5 +179,6 @@ target_link_libraries(hwif
   curl
   tidy
   sqlite3
+  ssh
   ${EXTRA_LIBS}
 )
