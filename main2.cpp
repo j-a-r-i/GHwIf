@@ -4,10 +4,10 @@
 #include <iostream>
 #include <fstream>
 #include <list>
+#include "common.h"
 #ifdef HW_LINUX
 #include <unistd.h>
 #endif
-#include "common.h"
 #include "logger.h"
 #include "Socket.h"
 #include "measures.h"

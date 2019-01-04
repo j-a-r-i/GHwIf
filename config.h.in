@@ -3,6 +3,7 @@
  ******************************************************************************/
 #pragma once
 
+#include <map>
 
 #define VERSION_MAJOR @VERSION_MAJOR@
 #define VERSINO_MINOR @VERSION_MINOR@
@@ -48,6 +49,9 @@ public:
     static void init();
     static const char* get(CfgItem item);
     static void set(CfgItem item, const char* value);
+
+    static void load();
+    static void save();
 
 private:
     static std::map<CfgItem, std::string> items;

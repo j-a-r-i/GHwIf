@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 2.6)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_INSTALL_PREFIX "/opt")
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(SERIAL_PORT   "/dev/ttyS0" CACHE STRING "serial port that is used")
 set(SQLITE_DB     "data.db"    CACHE STRING "sqlite database file")
@@ -164,6 +167,8 @@ add_executable(hwif main2.cpp
 		    logger.cpp
 		    config.cpp
 		    sun.cpp
+		    site.cpp
+		    ssh.cpp
 		    ${EXTRA_SRCS}
 )
 

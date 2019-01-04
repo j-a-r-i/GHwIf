@@ -1,3 +1,4 @@
+#include "config.h"
 #ifdef HW_LINUX
 #include <sys/timerfd.h>
 #include <sys/signalfd.h>
