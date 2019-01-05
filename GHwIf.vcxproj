@@ -146,6 +146,11 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="lua\lua.vcxproj">
+      <Project>{3acc3c4b-c493-432a-ad70-ecf02ab467b6}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="packages\expat.v141.2.2.6\build\native\expat.v141.targets" Condition="Exists('packages\expat.v141.2.2.6\build\native\expat.v141.targets')" />
