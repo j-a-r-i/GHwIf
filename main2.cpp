@@ -17,6 +17,7 @@
 #include "web.h"
 #include "disk.h"
 #include "sun.h"
+#include "EventLoop.h"
 #ifdef HW_RPI
   #include "rpi/main_rpi.h"
 #else
@@ -238,6 +239,26 @@ BaseRuntime *gRuntime;
 
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
+{
+	UvEventLoop loop;
+	UvTimer timer1;
+
+#ifndef HW_LINUX
+	WSADATA wsaData = { 0 };
+	int res = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (res != 0) {
+		std::cout << "WSAStartup failed: " << res << std::endl;
+		return 1;
+	}
+#endif
+
+	loop.add(timer1, 5000);
+
+	loop.run();
+}
+
+//------------------------------------------------------------------------------
+int main_old(int argc, char *argv[])
 {
     int loop = 5;
     Script script;

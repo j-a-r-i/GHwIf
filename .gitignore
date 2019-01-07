@@ -20,3 +20,5 @@
 /test/Makefile
 /test/utest
 /test/rules.ninja
+/lua/*.c
+/lua/*.h
