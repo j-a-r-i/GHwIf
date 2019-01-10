@@ -240,19 +240,16 @@ BaseRuntime *gRuntime;
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
+	Script script;
+	Runtime rt(script);
 	UvEventLoop loop;
-	UvTimer timer1;
+	UvTimer timer1(5000);
+	UvStdin stdin1;
 
-#ifndef HW_LINUX
-	WSADATA wsaData = { 0 };
-	int res = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (res != 0) {
-		std::cout << "WSAStartup failed: " << res << std::endl;
-		return 1;
-	}
-#endif
+	pc_init(&rt);
 
-	loop.add(timer1, 5000);
+	loop.add(timer1);
+	loop.add(stdin1);
 
 	loop.run();
 }
@@ -266,15 +263,6 @@ int main_old(int argc, char *argv[])
     Measure meas;
 
     gRuntime = &rt;
-
-#ifndef HW_LINUX
-    WSADATA wsaData = { 0 };
-    int res = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (res != 0) {
-	std::cout << "WSAStartup failed: " << res << std::endl;
-	return 1;
-    }
-#endif
 
     // init readers
     //

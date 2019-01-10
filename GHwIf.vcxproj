@@ -161,9 +161,6 @@
     <Import Project="packages\expat.v141.2.2.6\build\native\expat.v141.targets" Condition="Exists('packages\expat.v141.2.2.6\build\native\expat.v141.targets')" />
     <Import Project="packages\openssl-vc141-static-x86_64.1.0.2\build\native\openssl-vc141-static-x86_64.targets" Condition="Exists('packages\openssl-vc141-static-x86_64.1.0.2\build\native\openssl-vc141-static-x86_64.targets')" />
     <Import Project="packages\curl-vc141-dynamic-x86_64.7.59.0\build\native\curl-vc141-dynamic-x86_64.targets" Condition="Exists('packages\curl-vc141-dynamic-x86_64.7.59.0\build\native\curl-vc141-dynamic-x86_64.targets')" />
-    <Import Project="packages\lua.redist.5.3.5\build\native\lua.redist.targets" Condition="Exists('packages\lua.redist.5.3.5\build\native\lua.redist.targets')" />
-    <Import Project="packages\lua.5.3.5\build\native\lua.targets" Condition="Exists('packages\lua.5.3.5\build\native\lua.targets')" />
-    <Import Project="packages\asio-cpp.1.10.2.0\build\native\asio-cpp.targets" Condition="Exists('packages\asio-cpp.1.10.2.0\build\native\asio-cpp.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -172,8 +169,5 @@
     <Error Condition="!Exists('packages\expat.v141.2.2.6\build\native\expat.v141.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\expat.v141.2.2.6\build\native\expat.v141.targets'))" />
     <Error Condition="!Exists('packages\openssl-vc141-static-x86_64.1.0.2\build\native\openssl-vc141-static-x86_64.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl-vc141-static-x86_64.1.0.2\build\native\openssl-vc141-static-x86_64.targets'))" />
     <Error Condition="!Exists('packages\curl-vc141-dynamic-x86_64.7.59.0\build\native\curl-vc141-dynamic-x86_64.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\curl-vc141-dynamic-x86_64.7.59.0\build\native\curl-vc141-dynamic-x86_64.targets'))" />
-    <Error Condition="!Exists('packages\lua.redist.5.3.5\build\native\lua.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\lua.redist.5.3.5\build\native\lua.redist.targets'))" />
-    <Error Condition="!Exists('packages\lua.5.3.5\build\native\lua.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\lua.5.3.5\build\native\lua.targets'))" />
-    <Error Condition="!Exists('packages\asio-cpp.1.10.2.0\build\native\asio-cpp.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\asio-cpp.1.10.2.0\build\native\asio-cpp.targets'))" />
   </Target>
 </Project>
