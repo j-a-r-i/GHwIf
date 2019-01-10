@@ -64,7 +64,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)libuv-v1.24.1\include;$(SolutionDir)win;$(SolutionDir)external;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)libuv-v1.24.1\include;$(SolutionDir)..\drivers;$(SolutionDir)win;$(SolutionDir)external;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Debug\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -126,6 +126,7 @@
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="sun.cpp" />
     <ClCompile Include="web.cpp" />
+    <ClCompile Include="win_hal.cpp" />
     <ClCompile Include="xmlparsesimple.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -133,6 +134,8 @@
     <ClInclude Include="db.h" />
     <ClInclude Include="EventLoop.h" />
     <ClInclude Include="external\sqlite3.h" />
+    <ClInclude Include="hal_pins.h" />
+    <ClInclude Include="hw.h" />
     <ClInclude Include="infoitem.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="luascript.h" />

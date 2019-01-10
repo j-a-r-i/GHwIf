@@ -5,7 +5,7 @@
 #include <vector>
 #include "measures.h"
 
-#define HANDLE_ERROR -1
+constexpr int HANDLE_ERROR = -1;
 
 //------------------------------------------------------------------------------
 class FileBase
