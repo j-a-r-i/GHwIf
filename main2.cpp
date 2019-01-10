@@ -10,7 +10,6 @@
 #endif
 #include "logger.h"
 #include "Socket.h"
-#include "measures.h"
 #include "serial.h"
 #include "file.h"
 #include "db.h"
@@ -260,7 +259,6 @@ int main_old(int argc, char *argv[])
     int loop = 5;
     Script script;
     Runtime rt(script);
-    Measure meas;
 
     gRuntime = &rt;
 
@@ -338,8 +336,10 @@ int main_old(int argc, char *argv[])
     // add callback gRuntime->scr_run("timer");
 #endif
 
-    RS232  serial(STR_SERIAL_PORT, &meas);
+    RS232  serial(STR_SERIAL_PORT);
     handles.add(&serial);
+
+    gRuntime->add(&serial);
 
     // main loop
     //

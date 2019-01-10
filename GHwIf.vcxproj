@@ -121,7 +121,6 @@
     <ClCompile Include="luascript.cpp" />
     <ClCompile Include="main2.cpp" />
     <ClCompile Include="main_pc.cpp" />
-    <ClCompile Include="measures.cpp" />
     <ClCompile Include="serial.cpp" />
     <ClCompile Include="site.cpp" />
     <ClCompile Include="Socket.cpp" />
@@ -142,7 +141,6 @@
     <ClInclude Include="logger.h" />
     <ClInclude Include="luascript.h" />
     <ClInclude Include="main_pc.h" />
-    <ClInclude Include="measures.h" />
     <ClInclude Include="serial.h" />
     <ClInclude Include="site.h" />
     <ClInclude Include="Socket.h" />

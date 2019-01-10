@@ -91,10 +91,17 @@ FileList::FileList()
 }
 
 //------------------------------------------------------------------------------
-RS232::RS232(const char* filename, Measure *m) :
-    FileBase("rs232"),
-    measure(m)
+RS232::RS232(const char* filename) :
+	FileBase("rs232"),
+	InfoReader("rs232"),
+	temp1("temp1"),
+	temp2("temp2"),
+	temp3("temp3")
 {
+	infos.push_back(&temp1);
+	infos.push_back(&temp2);
+	infos.push_back(&temp3);
+
 #ifdef HW_LINUX
 	struct termios  cfg;
 
@@ -129,34 +136,41 @@ void RS232::HandleSelect()
     int count;
     //std::cout << "HandleSelect3" << std::endl;
 
-    count = read(buffer, SIZE);
+    count = FileBase::read(buffer, SIZE);
     if (count == 0) {
 		//std::cout << "connection closed " << _handle << std::endl;
+		return;
     }
-    else {
-		if (count > 2) {
-			std::string line = buffer;
-			std::istringstream sstr(line);
+	if (count > 2) {
+		std::string line = buffer;
+		std::istringstream sstr(line);
 
-            #define MAX_TEMP 3
+		#define MAX_TEMP 3
             
-			char command;
-			int  counter;
+		char command;
+		int  counter;
 
-			sstr >> command >> std::hex >> counter;
+		sstr >> command >> std::hex >> counter;
 
-            for (int i=0; i<MAX_TEMP; i++) {
-                int   temp;
+		for (int i=0; i<MAX_TEMP; i++) {
+			int   temp;
 
-                sstr >> temp;
+			sstr >> temp;
                 
-                float t = temp / 16.0f;
+			float t = temp / 16.0f;
 
-                measure->set(i, t);
-            }
-	    
-			std::cout << measure->getJson() << std::endl;
+			switch (i) {
+			case 0:
+				temp1.setValue(t);
+				break;
+			case 1:
+				temp2.setValue(t);
+				break;
+			case 2:
+				temp3.setValue(t);
+				break;
+			}
 		}
-    }
+	}
 }
 

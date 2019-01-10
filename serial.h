@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <vector>
-#include "measures.h"
+#include "infoitem.h"
 
 constexpr int HANDLE_ERROR = -1;
 
@@ -72,13 +72,21 @@ public:
 };
 
 //------------------------------------------------------------------------------
-class RS232 : public FileBase
+class RS232 : public FileBase, public InfoReader
 {
 public:
-    RS232(const char* filename, Measure *m);
+    RS232(const char* filename);
 
     void HandleSelect() override;
 
+	// for InfoReader
+	void read() {
+	}
+	void print() {
+	}
+
 private:
-    Measure *measure;
+    InfoItemReal temp1;
+    InfoItemReal temp2;
+    InfoItemReal temp3;
 };
