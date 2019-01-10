@@ -5,9 +5,6 @@
   #include <fcntl.h>
   #include <unistd.h>
   #include <sys/ioctl.h>
-  #include <linux/spi/spidev.h>
-  #include <linux/i2c.h>
-  #include <linux/i2c-dev.h>
   #include <termios.h>
 #else
   #define O_NOCTTY 0
@@ -26,22 +23,6 @@ void FileBase::open(const char* fname)
 	_handle = HANDLE_ERROR;
     }
 #endif
-}
-
-int FileBase::ioc(int command, void *data)
-{
-    int stat=0;
-#ifdef HW_LINUX
-    if (_handle < 0)
-        return 0;
-
-    stat = ioctl(_handle, command, data);
-    if (stat < 0) {
-	Log::err("ioctl", command);
-	return 0;
-    }
-#endif
-    return stat;
 }
 
 void FileBase::write(char buffer[], int size)
@@ -176,70 +157,6 @@ void RS232::HandleSelect()
 	    
 			std::cout << measure->getJson() << std::endl;
 		}
-    }
-}
-
-//------------------------------------------------------------------------------
-SPI::SPI(const char* filename, int mode, int lsb, int bits, int speed) :
-    FileBase("spi")
-{
-#ifdef HW_LINUX
-	__u8 modeRead, bitsRead;
-    //__u8 lsbRead;
-    __u32 speedRead;
-
-    open(filename);
-    
-    ioc(SPI_IOC_WR_MODE, &mode);
-
-    ioc(SPI_IOC_RD_MODE, &modeRead);
-
-    ioc(SPI_IOC_WR_BITS_PER_WORD, &bits);
-
-    ioc(SPI_IOC_RD_BITS_PER_WORD, &bitsRead);
-
-    //ioc(SPI_IOC_WR_LSB_FIRST, &lsb);
-
-    //ioc(SPI_IOC_RD_LSB_FIRST, &lsbRead);  
-
-    ioc(SPI_IOC_WR_MAX_SPEED_HZ, &speed);
-
-    ioc(SPI_IOC_RD_MAX_SPEED_HZ, &speedRead);
-#endif
-}
-
-
-void SPI::readWrite(unsigned char *buffer, int size)
-{
-#ifdef HW_LINUX
-	spi_ioc_transfer xfer;
-
-    memset(&xfer, 0, sizeof(spi_ioc_transfer));
-    
-    xfer.tx_buf = (__u64)buffer;
-    xfer.rx_buf = (__u64)buffer;
-    xfer.len    = size;
-    xfer.cs_change = 1;
-    xfer.delay_usecs = 0;
-    
-    ioc(SPI_IOC_MESSAGE(1), &xfer);
-#endif
-}
-
-
-//------------------------------------------------------------------------------
-I2C::I2C(const char* filename, int addr) :
-    FileBase("i2c")
-{
-    open(filename);
-
-    if (_handle > 0) {
-#ifdef HW_LINUX
-        int stat = ioctl(_handle, I2C_SLAVE, addr);
-        if (stat < 0) {
-            printf("error in ioctl I2C_SLAVE");
-        }
-#endif
     }
 }
 

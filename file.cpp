@@ -1,9 +1,11 @@
 #include "config.h"
 #ifdef HW_LINUX
-#include <sys/timerfd.h>
-#include <sys/signalfd.h>
-#include <sys/inotify.h>
-#include <unistd.h>
+  #include <sys/timerfd.h>
+  #include <sys/signalfd.h>
+  #include <sys/inotify.h>
+  #include <unistd.h>
+#else
+  #define STDIN_FILENO 1
 #endif
 #include <signal.h>
 #include "file.h"

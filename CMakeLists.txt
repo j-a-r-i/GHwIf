@@ -148,7 +148,8 @@ if (HW_LINUX)
 endif (HW_LINUX)
 
 include_directories("${PROJECT_BINARY_DIR}"
-#  ${CURL_INCLUDE_DIR}
+  #  ${CURL_INCLUDE_DIR}
+  libuv-v1.24.1/include
   ${EXPAT_INCLUDE_DIR}
   ../drivers
   rpi
@@ -169,6 +170,7 @@ add_executable(hwif main2.cpp
 		    sun.cpp
 		    site.cpp
 		    ssh.cpp
+		    EventLoop.cpp
 		    ${EXTRA_SRCS}
 )
 

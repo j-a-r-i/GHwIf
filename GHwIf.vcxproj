@@ -116,6 +116,7 @@
     <ClCompile Include="db.cpp" />
     <ClCompile Include="EventLoop.cpp" />
     <ClCompile Include="external\sqlite3.c" />
+    <ClCompile Include="file.cpp" />
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="luascript.cpp" />
     <ClCompile Include="main2.cpp" />
@@ -134,6 +135,7 @@
     <ClInclude Include="db.h" />
     <ClInclude Include="EventLoop.h" />
     <ClInclude Include="external\sqlite3.h" />
+    <ClInclude Include="file.h" />
     <ClInclude Include="hal_pins.h" />
     <ClInclude Include="hw.h" />
     <ClInclude Include="infoitem.h" />

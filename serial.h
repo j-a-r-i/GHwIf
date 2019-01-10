@@ -1,5 +1,4 @@
-#ifndef __SERIAL_H
-#define __SERIAL_H
+#pragma once
 
 #include <algorithm>
 #include <vector>
@@ -21,11 +20,7 @@ public:
     
     void open(const char* fname);
 
-    /** Do ioctl command for the device.
-     */
-    int ioc(int command, void *data);
     void write(char buffer[], int size);
-
     int  read(void *buffer, int size);
     int  read(char buffer[], int size);
     int  read(uint64_t *val);
@@ -87,22 +82,3 @@ public:
 private:
     Measure *measure;
 };
-
-//------------------------------------------------------------------------------
-class SPI : public FileBase
-{
-public:
-    SPI(const char* filename, int mode, int lsb, int bits, int speed);
-
-    void readWrite(unsigned char *buffer, int size);
-};
-
-
-//------------------------------------------------------------------------------
-class I2C : public FileBase
-{
-public:
-    I2C(const char* filename, int addr);
-};
-
-#endif // __SERIAL_H

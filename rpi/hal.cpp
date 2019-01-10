@@ -7,6 +7,8 @@
 #include <sys/ioctl.h>
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
+#include <linux/i2c.h>
+#include <linux/i2c-dev.h>
 #include <string.h> // for memset
 #include "../logger.h"
 
@@ -17,7 +19,8 @@
 void *gpio_map;
 volatile unsigned *gpio;
 
-int fd_spi;
+int fd_spi;  ///@todo: use port parameter to access file descriptors.
+int fd_i2c;
 
 //------------------------------------------------------------------------------
 //<sample_copy>
@@ -125,6 +128,7 @@ void spi_init(uint8_t port)
     //uint8_t mode = SPI_LSB_FIRST | SPI_CPOL | SPI_3WIRE;
     uint8_t mode = SPI_MODE_3;
     uint8_t bits = 8;
+    uint32_t speed = 500000;
     int ret;
 	
     fd_spi = open("/dev/spidev0.0", O_RDWR);
@@ -144,6 +148,14 @@ void spi_init(uint8_t port)
 	Log::err(__FUNCTION__, "bits setting");
 	return;
     }
+
+    ret = ioctl(fd_spi, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
+    if (ret == -1) {
+	Log::err(__FUNCTION__, "set max speed");
+	return;
+    }
+
+    // SPI_IOC_WR_LSB_FIRST
 }
 
 //------------------------------------------------------------------------------
@@ -170,4 +182,24 @@ uint16_t spi_write(uint8_t port, uint16_t data)
     }
  
     return rval;
+}
+
+
+//------------------------------------------------------------------------------
+void i2c_init(uint8_t port)
+{
+    uint8_t addr = 10;
+    int ret;
+	
+    fd_i2c = open("/dev/i2c", O_RDWR);
+    if (fd_i2c <= 0) {
+	Log::err(__FUNCTION__, "open device");
+	return;
+    }
+
+    ret = ioctl(fd_i2c, I2C_SLAVE, &addr);
+    if (ret == -1) {
+	Log::err(__FUNCTION__, "set address");
+	return;
+    }
 }
