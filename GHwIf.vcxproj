@@ -115,15 +115,16 @@
     <ClCompile Include="config.cpp" />
     <ClCompile Include="db.cpp" />
     <ClCompile Include="EventLoop.cpp" />
+    <ClCompile Include="EventLoopSelect.cpp" />
+    <ClCompile Include="external\scheme.c" />
     <ClCompile Include="external\sqlite3.c" />
     <ClCompile Include="file.cpp" />
     <ClCompile Include="logger.cpp" />
-    <ClCompile Include="luascript.cpp" />
     <ClCompile Include="main2.cpp" />
     <ClCompile Include="main_pc.cpp" />
-    <ClCompile Include="serial.cpp" />
+    <ClCompile Include="scmfunctions.cpp" />
+    <ClCompile Include="scmscript.cpp" />
     <ClCompile Include="site.cpp" />
-    <ClCompile Include="Socket.cpp" />
     <ClCompile Include="sun.cpp" />
     <ClCompile Include="web.cpp" />
     <ClCompile Include="win_hal.cpp" />
@@ -133,17 +134,19 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="db.h" />
     <ClInclude Include="EventLoop.h" />
+    <ClInclude Include="EventLoopSelect.h" />
+    <ClInclude Include="external\opdefines.h" />
+    <ClInclude Include="external\scheme-private.h" />
+    <ClInclude Include="external\scheme.h" />
     <ClInclude Include="external\sqlite3.h" />
     <ClInclude Include="file.h" />
     <ClInclude Include="hal_pins.h" />
     <ClInclude Include="hw.h" />
     <ClInclude Include="infoitem.h" />
     <ClInclude Include="logger.h" />
-    <ClInclude Include="luascript.h" />
     <ClInclude Include="main_pc.h" />
-    <ClInclude Include="serial.h" />
+    <ClInclude Include="scmscript.h" />
     <ClInclude Include="site.h" />
-    <ClInclude Include="Socket.h" />
     <ClInclude Include="web.h" />
     <ClInclude Include="win\config.h" />
     <ClInclude Include="xmlparsesimple.h" />
@@ -154,9 +157,6 @@
   <ItemGroup>
     <ProjectReference Include="libuv-v1.24.1\uv\uv.vcxproj">
       <Project>{9e89bc08-3c05-4da9-ab2e-aaff02963d6e}</Project>
-    </ProjectReference>
-    <ProjectReference Include="lua\lua.vcxproj">
-      <Project>{3acc3c4b-c493-432a-ad70-ecf02ab467b6}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

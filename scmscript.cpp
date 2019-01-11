@@ -51,8 +51,8 @@ ScmScript::ScmScript()
 {
     Log::msg("scm", "init");
     if (!scheme_init(&scm)) {
-	Log::err("scheme", "init");
-	return;
+		Log::err("scheme", "init");
+		return;
     }
 
     load(Cfg::get(CfgItem::SCHEME_INIT));
@@ -91,8 +91,8 @@ void ScmScript::load(const char* filename)
     
     FILE *f = fopen(filename, "r");
     if (f == NULL) {
-	Log::err("scheme open", filename);
-	return;
+		Log::err("scheme open", filename);
+		return;
     }
     scheme_load_named_file(&scm, f, filename); 
     fclose(f);

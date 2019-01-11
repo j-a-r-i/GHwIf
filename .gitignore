@@ -22,3 +22,5 @@
 /test/rules.ninja
 /lua/*.c
 /lua/*.h
+/external/
+/libuv-v1.24.1/

@@ -1,7 +1,12 @@
 #include "common.h"
 #include "main_pc.h"
-#include "Socket.h"
 #include "logger.h"
+#ifdef HW_LINUX
+#  include <sys/socket.h>
+#else
+#  include <winsock2.h>
+#  include <WS2tcpip.h>
+#endif
 
 void pc_init(BaseRuntime *rt)
 {

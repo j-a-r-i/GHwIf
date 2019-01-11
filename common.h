@@ -12,8 +12,8 @@
   typedef SCM (*foreign_func)(SCM a);
 #endif
 #ifdef SCR_SCHEME
-  #include "tinyscheme/scheme-private.h"
-  #include "tinyscheme/scheme.h"
+  #include "external/scheme-private.h"
+  #include "external/scheme.h"
   typedef cell *(*foreign_func)(scheme *sc, cell *args);
 #endif
 #ifdef SCR_LUA

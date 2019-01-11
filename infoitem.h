@@ -40,13 +40,13 @@ public:
     /** Set new current value for info item
      */
     void setValue(double v) {
-	value = v;
+		value = v;
     }
 
     /** Get current value
      */
     double getValue() const {
-	return value;
+		return value;
     }
 
 private:

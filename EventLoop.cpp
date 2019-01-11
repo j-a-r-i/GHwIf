@@ -17,8 +17,8 @@ UvEventLoop::UvEventLoop()
 {
 	loop = uv_default_loop();
 
-	Log::msg("Mem free ", uv_get_free_memory() / (1024L * 1024L));
-	Log::msg("Mem total", uv_get_total_memory() / (1024L * 1024L));
+	Log::msg("Mem free ", (int)(uv_get_free_memory() / (1024L * 1024L)));
+	Log::msg("Mem total", (int)(uv_get_total_memory() / (1024L * 1024L)));
 }
 
 UvEventLoop::~UvEventLoop()

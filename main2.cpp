@@ -9,8 +9,7 @@
 #include <unistd.h>
 #endif
 #include "logger.h"
-#include "Socket.h"
-#include "serial.h"
+#include "EventLoopSelect.h"
 #include "file.h"
 #include "db.h"
 #include "web.h"
@@ -239,11 +238,14 @@ BaseRuntime *gRuntime;
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
+	Cfg::init();  // configuration paramerers must be initialized first
+
 	Script script;
 	Runtime rt(script);
 	UvEventLoop loop;
 	UvTimer timer1(5000);
 	UvStdin stdin1;
+
 
 	pc_init(&rt);
 
