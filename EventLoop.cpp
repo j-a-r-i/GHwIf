@@ -3,16 +3,6 @@
 #include "logger.h"
 
 //------------------------------------------------------------------------------
-EventLoop::EventLoop()
-{
-}
-
-
-EventLoop::~EventLoop()
-{
-}
-
-//------------------------------------------------------------------------------
 UvEventLoop::UvEventLoop()
 {
 	loop = uv_default_loop();
@@ -66,22 +56,24 @@ void read_stdin(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 }
 void UvEventLoop::add(UvStdin& sin)
 {
+	constexpr int STDIN_HANDLE = 0;
 	int err;
-	err = uv_pipe_init(loop, sin.getHandle(), 0);   // todo check 0 value!
+	err = uv_tty_init(loop, sin.getHandle(), STDIN_HANDLE, 0);   // todo check 0 value!
 	if (err != 0) {
-		Log::err("uv_pipe_init", err);
+		Log::err("uv_tty_init", err);
 		return;
 	}
 
+	/*
 	err = uv_pipe_open(sin.getHandle(), 0);
 	if (err != 0) {
 		Log::err("uv_pipe_open", err);
 		return;
-	}
+	}*/
 
 	err = uv_read_start((uv_stream_t*)sin.getHandle(), alloc_buffer, read_stdin);
 	if (err != 0) {
-		Log::err("uv_pipe_read", err);
+		Log::err("uv_tty_read", err);
 		return;
 	}
 }

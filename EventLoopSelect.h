@@ -14,11 +14,47 @@
 #endif
 
  //------------------------------------------------------------------------------
-class FileList
+/** fd based timer
+ */
+class FileTimer : public FileBase
 {
 public:
-	FileList() {
-	}
+	FileTimer(unsigned int sec);
+
+	void HandleSelect();
+};
+
+class EventLoopSelect;
+
+//------------------------------------------------------------------------------
+class SocketServer : public FileBase
+{
+public:
+	SocketServer(int port, EventLoopSelect *loop);
+
+	void HandleSelect() override;
+
+	sockaddr_in address;
+
+private:
+	EventLoopSelect* _loop;
+};
+
+//------------------------------------------------------------------------------
+class Socket : public FileBase
+{
+public:
+	Socket(int hndl);
+
+	void HandleSelect() override;
+};
+
+//------------------------------------------------------------------------------
+class EventLoopSelect
+{
+public:
+	EventLoopSelect();
+	~EventLoopSelect();
 
 	void add(FileBase* item) {
 		_items.push_back(item);
@@ -34,51 +70,8 @@ public:
 			_items.end());
 	}
 
-public:
+	void run();
+
+private:
 	std::vector<FileBase*> _items;
 };
-
-/** fd based timer
- */
-class FileTimer : public FileBase
-{
-public:
-	FileTimer(unsigned int sec);
-
-	void HandleSelect();
-};
-
-//------------------------------------------------------------------------------
-class SocketServer : public FileBase
-{
-public:
-	SocketServer(int port, FileList *handles);
-
-	void HandleSelect() override;
-
-	sockaddr_in address;
-
-private:
-	FileList* _handles;
-};
-
-//------------------------------------------------------------------------------
-class Socket : public FileBase
-{
-public:
-	Socket(int hndl, FileList *handles);
-
-	void HandleSelect() override;
-
-private:
-	FileList* _handles;
-};
-
-//------------------------------------------------------------------------------
-class EventLoopSelect
-{
-public:
-	EventLoopSelect();
-	~EventLoopSelect();
-};
-

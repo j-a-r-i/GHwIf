@@ -10,7 +10,8 @@ class FileBase
 {
 public:
 	FileBase(const char* n) :
-		name(n)
+		name(n),
+		deleted{false}
 	{
 	}
 
@@ -36,6 +37,10 @@ public:
 		return name.c_str();
 	}
 
+	bool isDeleted() {
+		return deleted;
+	}
+
 	virtual void HandleSelect() {
 	}
 
@@ -44,6 +49,7 @@ public:
 	int _handle;
 protected:
 	std::string name;
+	bool deleted;
 };
 
 

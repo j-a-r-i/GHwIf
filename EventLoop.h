@@ -10,9 +10,6 @@
 class EventLoop
 {
 public:
-	EventLoop();
-	~EventLoop();
-
 	virtual void run() = 0;
 };
 
@@ -44,7 +41,6 @@ private:
 
 //-----------------------------------------------------------------------------
 /** Read standard input asyncronously.
- *  Does not work in windows!
  */
 class UvStdin
 {
@@ -53,7 +49,7 @@ public:
 		uvHandle.data = this;
 	}
 
-	uv_pipe_t* getHandle() {
+	uv_tty_t* getHandle() {
 		return &uvHandle;
 	}
 
@@ -65,7 +61,7 @@ public:
 		Log::msg("stdin", "<EOF>");
 	}
 private:
-	uv_pipe_t uvHandle;
+	uv_tty_t uvHandle;
 };
 
 //-----------------------------------------------------------------------------

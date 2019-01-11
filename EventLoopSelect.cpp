@@ -49,9 +49,9 @@ void FileTimer::HandleSelect()
 
 
 //------------------------------------------------------------------------------
-SocketServer::SocketServer(int port, FileList *handles) :
+SocketServer::SocketServer(int port, EventLoopSelect *loop) :
 	FileBase("SServer"),
-	_handles(handles)
+	_loop(loop)
 {
 	int opt = TRUE;
 
@@ -92,15 +92,14 @@ void SocketServer::HandleSelect()
 		Log::err(__FUNCTION__, "accept");
 	}
 
-	Socket *s = new Socket(handle, _handles);
+	Socket *s = new Socket(handle);
 
-	_handles->add(s);
+	_loop->add(s);
 }
 
 //------------------------------------------------------------------------------
-Socket::Socket(int hndl, FileList *handles) :
-	FileBase("socket"),
-	_handles(handles)
+Socket::Socket(int hndl) :
+	FileBase("socket")
 {
 	_handle = hndl;
 }
@@ -110,12 +109,11 @@ void Socket::HandleSelect()
 	const int SIZE = 80;
 	char buffer[SIZE];
 	int count;
-	//std::cout << "HandleSelect2" << std::endl;
 
 	count = read(buffer, SIZE);
 	if (count == 0) {
-		Log::err(__FUNCTION__, "read : connection closed");
-		_handles->del(this);
+		Log::msg(__FUNCTION__, "socket: connection closed");
+		deleted = true;
 	}
 	else {
 		Log::msg("socket read", buffer);
@@ -132,4 +130,35 @@ EventLoopSelect::EventLoopSelect()
 //------------------------------------------------------------------------------
 EventLoopSelect::~EventLoopSelect()
 {
+}
+
+void EventLoopSelect::run()
+{
+	// main loop
+	//
+	int loopCount = 5;
+	while (loopCount) {
+		fd_set reads;
+		int maxFd = 0;
+
+		FD_ZERO(&reads);
+		for (auto& i : _items) {
+			if ((i->getHandle() == HANDLE_ERROR) ||
+				i->isDeleted())
+				continue;
+			//i->dump();
+			FD_SET(i->_handle, &reads);
+			if (i->getHandle() > maxFd)
+				maxFd = i->_handle;
+		}
+
+		select(maxFd + 1, &reads, NULL, NULL, NULL);
+
+		for (auto& i : _items) {
+			if (FD_ISSET(i->_handle, &reads)) {
+				i->HandleSelect();
+			}
+		}
+		//loopCount--;
+	}
 }

@@ -258,7 +258,6 @@ int main(int argc, char *argv[])
 //------------------------------------------------------------------------------
 int main_old(int argc, char *argv[])
 {
-    int loop = 5;
     Script script;
     Runtime rt(script);
 
@@ -318,55 +317,32 @@ int main_old(int argc, char *argv[])
 #endif  
     // Init 'file' handles
     //
-    FileList  handles;
-    SocketServer server(PORT, &handles);
-    handles.add(&server);
+	EventLoopSelect loop;
+    SocketServer server(PORT, &loop);
+    loop.add(&server);
 
 #ifdef HW_LINUX
     FileStdin fstdin;
-    handles.add(&fstdin);
+    loop.add(&fstdin);
     // add callback gRuntime->scr_eval(line);
 
     FileNotify fnotify(INIT_SCRIPT);
-    handles.add(&fnotify);
+    loop.add(&fnotify);
 
     FileSignal fsignal;
-    handles.add(&fsignal);
+    loop.add(&fsignal);
 
     FileTimer timer1(5);
-    handles.add(&timer1);
+    loop.add(&timer1);
     // add callback gRuntime->scr_run("timer");
 #endif
 
     RS232  serial(STR_SERIAL_PORT);
-    handles.add(&serial);
+    loop.add(&serial);
 
     gRuntime->add(&serial);
 
-    // main loop
-    //
-    while (loop) {
-	fd_set reads;
-	int maxFd = 0;
+	loop.run();
 
-	FD_ZERO(&reads);
-	for (auto& i : handles._items) {
-	    if (i->getHandle() == HANDLE_ERROR)
-		continue;
-	    //i->dump();
-	    FD_SET(i->_handle, &reads);
-	    if (i->getHandle() > maxFd)
-		maxFd = i->_handle;
-	}
-	
-	select(maxFd+1, &reads, NULL, NULL, NULL);
-
-	for (auto& i : handles._items) {
-	    if (FD_ISSET(i->_handle, &reads)) {
-		i->HandleSelect();
-	    }
-	}
-	//loop--;
-    }    
-    return 0;
+	return 0;
 }
