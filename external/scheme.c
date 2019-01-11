@@ -59,14 +59,14 @@
 #define BACKQUOTE '`'
 #define DELIMITERS  "()\";\f\t\v\n\r "
 
+#include <string.h>
+#include <stdlib.h>
+
 /*
  *  Basic memory allocation units
  */
 
 #define banner "TinyScheme 1.41"
-
-#include <string.h>
-#include <stdlib.h>
 
 #if USE_STRLWR
 static const char *strlwr(char *s) {
@@ -1346,7 +1346,7 @@ static port *port_rep_from_scratch(scheme *sc) {
   if(pt==0) {
     return 0;
   }
-  start=sc->malloc(BLOCK_SIZE);
+  start=(char*)sc->malloc(BLOCK_SIZE);
   if(start==0) {
     return 0;
   }
@@ -1439,7 +1439,7 @@ static int realloc_port_string(scheme *sc, port *p)
 {
   char *start=p->rep.string.start;
   size_t new_size=p->rep.string.past_the_end-start+1+BLOCK_SIZE;
-  char *str=sc->malloc(new_size);
+  char *str=(char*)sc->malloc(new_size);
   if(str) {
     memset(str,' ',new_size-1);
     str[new_size-1]='\0';
@@ -4383,32 +4383,7 @@ static struct scheme_interface vtbl ={
 };
 #endif
 
-scheme *scheme_init_new() {
-  scheme *sc=(scheme*)malloc(sizeof(scheme));
-  if(!scheme_init(sc)) {
-    free(sc);
-    return 0;
-  } else {
-    return sc;
-  }
-}
-
-scheme *scheme_init_new_custom_alloc(func_alloc malloc, func_dealloc free) {
-  scheme *sc=(scheme*)malloc(sizeof(scheme));
-  if(!scheme_init_custom_alloc(sc,malloc,free)) {
-    free(sc);
-    return 0;
-  } else {
-    return sc;
-  }
-}
-
-
 int scheme_init(scheme *sc) {
- return scheme_init_custom_alloc(sc,malloc,free);
-}
-
-int scheme_init_custom_alloc(scheme *sc, func_alloc malloc, func_dealloc free) {
   int i, n=sizeof(dispatch_table)/sizeof(dispatch_table[0]);
   pointer x;
 
@@ -4417,9 +4392,6 @@ int scheme_init_custom_alloc(scheme *sc, func_alloc malloc, func_dealloc free) {
   num_one.is_fixnum=1;
   num_one.value.ivalue=1;
 
-#if USE_INTERFACE
-  sc->vptr=&vtbl;
-#endif
   sc->gensym_cnt=0;
   sc->malloc=malloc;
   sc->free=free;
@@ -4574,9 +4546,6 @@ void scheme_deinit(scheme *sc) {
 #endif
 }
 
-void scheme_load_file(scheme *sc, FILE *fin)
-{ scheme_load_named_file(sc,fin,0); }
-
 void scheme_load_named_file(scheme *sc, FILE *fin, const char *filename) {
   dump_stack_reset(sc);
   sc->envir = sc->global_env;
@@ -4712,9 +4681,3 @@ pointer scheme_eval(scheme *sc, pointer obj)
 }
 
 #endif
-
-/*
-Local variables:
-c-file-style: "k&r"
-End:
-*/
