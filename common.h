@@ -30,7 +30,7 @@ class IPluginScript
 {
 public:
     virtual void exec(const char *func) = 0;
-    virtual void eval(const char *line) = 0;
+    virtual void eval(std::string& line) = 0;
     virtual void load(const char *filename) = 0;
     virtual void addFn(const char *name, foreign_func func) = 0;
 };
@@ -50,15 +50,7 @@ public:
 class BaseRuntime
 {
 public:
-    BaseRuntime(IPluginScript &scr) :
-        script(scr)
-    {
-    }
-
-    IPluginScript &script;
-    
     virtual void add(InfoReader* reader) = 0;
-    virtual void addFunc(const char* name, foreign_func func) = 0;
 
     virtual void readAll() = 0;
     virtual void dump() = 0;

@@ -3,6 +3,7 @@
 #include <uv.h>
 #include <string>
 #include "logger.h"
+#include "common.h"
 
 //-----------------------------------------------------------------------------
 /** Defines the interface for event loops. See @UvEventLoop
@@ -45,7 +46,9 @@ private:
 class UvStdin
 {
 public:
-	UvStdin() {
+	UvStdin(IPluginScript *scr) :
+		script{scr}
+	{
 		uvHandle.data = this;
 	}
 
@@ -53,8 +56,9 @@ public:
 		return &uvHandle;
 	}
 
-	void onData(std::string str) {
+	void onData(std::string& str) {
 		Log::msg("stdin", str.c_str());
+		script->eval(str);
 	}
 
 	void onEof() {
@@ -62,6 +66,7 @@ public:
 	}
 private:
 	uv_tty_t uvHandle;
+	IPluginScript *script;
 };
 
 //-----------------------------------------------------------------------------

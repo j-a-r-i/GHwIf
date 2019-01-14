@@ -179,18 +179,14 @@ const char* TheException::what() const throw () {
 class Runtime : public BaseRuntime
 {
 public:
-    Runtime(IPluginScript &scr) :
-	BaseRuntime(scr),
+    Runtime() :
+	BaseRuntime(),
 	db(Cfg::get(CfgItem::SQLITE_DB))
     {
     }
     
     void add(InfoReader* reader) {
 	readers.push_back(reader);
-    }
-
-    void addFunc(const char* name, foreign_func func) {
-	script.addFn(name, func);
     }
 
     void readAll() {
@@ -241,13 +237,13 @@ int main(int argc, char *argv[])
 	Cfg::init();  // configuration paramerers must be initialized first
 
 	Script script;
-	Runtime rt(script);
+	Runtime rt;
 	UvEventLoop loop;
 	UvTimer timer1(5000);
-	UvStdin stdin1;
+	UvStdin stdin1(&script);
 
 
-	pc_init(&rt);
+	pc_init(&script);
 
 	loop.add(timer1);
 	loop.add(stdin1);
@@ -259,7 +255,7 @@ int main(int argc, char *argv[])
 int main_old(int argc, char *argv[])
 {
     Script script;
-    Runtime rt(script);
+    Runtime rt;
 
     gRuntime = &rt;
 
@@ -268,11 +264,11 @@ int main_old(int argc, char *argv[])
 #ifdef HW_RPI
     rpi_init(gRuntime);
 #else
-    pc_init(gRuntime);
+    pc_init(&script);
 #endif
 
 #ifdef SCR_SCHEME
-    scm_func_init(gRuntime);
+    scm_func_init(&script);
 #endif
     
 #ifdef USE_SENSORS

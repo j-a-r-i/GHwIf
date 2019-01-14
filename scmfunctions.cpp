@@ -83,7 +83,7 @@ cell *scm_db_query(scheme *scm, cell *args)
 cell *scm_tst(scheme *scm, cell *args)
 {
     try {
-	printf("%d\n", ((pair_car(args)->_flag) & 0x1F));
+	printf("%d\n", ((pair_car(args)->flag) & 0x1F));
     }
     catch (TheException& e) {
 	Log::err(__FUNCTION__, e.what());
@@ -93,13 +93,13 @@ cell *scm_tst(scheme *scm, cell *args)
 }
 
 //------------------------------------------------------------------------------
-void scm_func_init(BaseRuntime *rt)
+void scm_func_init(IPluginScript *script)
 {
-    rt->addFunc("web-load",    scm_web_load);
-    rt->addFunc("web-get",     scm_web_get);
-    rt->addFunc("web-verbose", scm_web_verbose);
-    rt->addFunc("read-all",    scm_read_all);
-    rt->addFunc("dump",        scm_dump);
-    rt->addFunc("db-query",    scm_db_query);
-    rt->addFunc("tst",         scm_tst);
+    script->addFn("web-load",    scm_web_load);
+    script->addFn("web-get",     scm_web_get);
+    script->addFn("web-verbose", scm_web_verbose);
+    script->addFn("read-all",    scm_read_all);
+    script->addFn("dump",        scm_dump);
+    script->addFn("db-query",    scm_db_query);
+    script->addFn("tst",         scm_tst);
 }

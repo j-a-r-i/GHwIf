@@ -21,7 +21,7 @@ public:
 
     void addFn(const char* name, foreign_func func);
 
-    void eval(const char* code);
+    void eval(std::string& line);
     
     void exec(const char* func);
     
@@ -36,8 +36,7 @@ private:
 extern int arg_integer(scheme *sch, cell *arg);
 extern char *arg_string(scheme *sch, cell *arg);
 
-class BaseRuntime;
-void scm_func_init(BaseRuntime *rt);
+void scm_func_init(IPluginScript *script);
 
 typedef ScmScript Script;
 

@@ -8,4 +8,4 @@
 #  include <WinSock2.h>
 #endif
 */
-extern void pc_init(BaseRuntime *rt);
+extern void pc_init(IPluginScript *script);

@@ -46,7 +46,7 @@ void read_stdin(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 		}
 	}
 	else if (nread > 0) {
-		std::string buffer(buf->base, buf->len);
+		std::string buffer(buf->base, nread);
 		sin->onData(buffer);
 	}
 
@@ -108,5 +108,5 @@ void UvEventLoop::run()
 
 void UvTimer::onTimeout()
 {
-	Log::msg("timer", "timeout");
+	//Log::msg("timer", "timeout");
 }

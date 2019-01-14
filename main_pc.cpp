@@ -8,15 +8,18 @@
 #  include <WS2tcpip.h>
 #endif
 
-void pc_init(BaseRuntime *rt)
+/** initialize PC hardware.
+ */
+void pc_init(IPluginScript *script)
 {
-    Log::value("HW", "PC");
-
 #ifndef HW_LINUX
+	Log::value("HW", "PC Windows");
 	WSADATA wsaData = { 0 };
 	int res = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (res != 0) {
 		Log::err("WSAStartup failed", res);
 	}
+#else
+	Log::value("HW", "PC Linux");
 #endif
 }
