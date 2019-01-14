@@ -1,7 +1,5 @@
 /* SCHEME.H */
-
-#ifndef _SCHEME_H
-#define _SCHEME_H
+#pragma once
 
 #include <stdio.h>
 
@@ -32,7 +30,6 @@ extern "C" {
 #endif
 
 #if USE_NO_FEATURES
-# define USE_MATH 0
 # define USE_ERROR_HOOK 0
 # define USE_TRACING 0
 # define USE_COLON_HOOK 0
@@ -45,10 +42,6 @@ extern "C" {
  * Undefine it if you only care about faster speed and not strict Scheme compatibility.
  */
 #define USE_SCHEME_STACK
-
-#ifndef USE_MATH         /* If math support is needed */
-# define USE_MATH 1
-#endif
 
 #ifndef USE_TRACING
 # define USE_TRACING 1
@@ -77,10 +70,6 @@ extern "C" {
 
 #ifndef INLINE
 # define INLINE
-#endif
-
-#ifndef SHOW_ERROR_LINE   /* Show error line in file */
-# define SHOW_ERROR_LINE 1
 #endif
 
 typedef struct scheme scheme;
@@ -128,26 +117,13 @@ void putstr(scheme *sc, const char *s);
 int list_length(scheme *sc, pointer a);
 int eqv(pointer a, pointer b);
 
-#if !STANDALONE
-typedef struct scheme_registerable
-{
-  foreign_func  f;
-  const char *  name;
-}
-scheme_registerable;
-
-void scheme_register_foreign_func_list(scheme * sc,
-                                       scheme_registerable * list,
-                                       int n);
-
-#endif /* !STANDALONE */
+void scheme_register_foreign_func(scheme * sc,
+                                  const char *name,
+                                  foreign_func func);
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif
-
 
 /*
 Local variables:

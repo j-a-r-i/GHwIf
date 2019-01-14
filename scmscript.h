@@ -5,8 +5,8 @@
 
 #ifdef SCR_SCHEME
 
-#include "tinyscheme/scheme-private.h"
-#include "tinyscheme/scheme.h"
+#include "scheme-private.h"
+#include "scheme.h"
 
 #define INIT_SCRIPT "test.scm"
 

@@ -1,6 +1,5 @@
 #pragma once
 
-//#include "serial.h"
 #include "infoitem.h"
 
 constexpr int HANDLE_ERROR = -1;
