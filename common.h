@@ -47,7 +47,41 @@ public:
 #endif
 
 //------------------------------------------------------------------------------
-class BaseRuntime
+struct Time {
+	uint8_t weekday;
+	uint8_t hour;
+	uint8_t minute;
+};
+
+//------------------------------------------------------------------------------
+class ISchedulerEvent
+{
+public:
+	virtual void calcNext(const Time& t) = 0;
+
+protected:
+	/** counter to next time calcNext is called.
+	 */
+	uint16_t counter;
+};
+
+
+//------------------------------------------------------------------------------
+class IScheduler
+{
+public:
+	/** add new event to scheduler.
+	 */
+	virtual void add(ISchedulerEvent *event) = 0;
+
+	/** every minute this method is called by timer to check all the schedule
+	 *  handlers.
+     */
+	virtual void elapsed() = 0;
+};
+
+//------------------------------------------------------------------------------
+class IRuntime
 {
 public:
     virtual void add(InfoReader* reader) = 0;
@@ -60,7 +94,7 @@ public:
     virtual void dbQuery(const char* sql) = 0;
 };
 
-extern BaseRuntime *gRuntime;
+extern IRuntime *gRuntime;
 
 //------------------------------------------------------------------------------
 class TheException : public std::exception

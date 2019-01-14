@@ -2,4 +2,4 @@
 
 #include "../common.h"
 
-extern void rpi_init(BaseRuntime *rt);
+extern void rpi_init(IRuntime *rt);

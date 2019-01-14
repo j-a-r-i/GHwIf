@@ -176,11 +176,10 @@ const char* TheException::what() const throw () {
 
 
 //------------------------------------------------------------------------------
-class Runtime : public BaseRuntime
+class Runtime : public IRuntime
 {
 public:
     Runtime() :
-	BaseRuntime(),
 	db(Cfg::get(CfgItem::SQLITE_DB))
     {
     }
@@ -229,7 +228,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-BaseRuntime *gRuntime;
+IRuntime *gRuntime;
 
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
