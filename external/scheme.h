@@ -72,10 +72,6 @@ extern "C" {
 # define INLINE
 #endif
 
-#ifndef SHOW_ERROR_LINE   /* Show error line in file */
-# define SHOW_ERROR_LINE 1
-#endif
-
 typedef struct scheme scheme;
 typedef struct cell *pointer;
 

@@ -228,7 +228,6 @@ INTERFACE INLINE void setimmutable(pointer p) { p->flag |= T_IMMUTABLE; }
 #define cadddr(p)        car(cdr(cdr(cdr(p))))
 #define cddddr(p)        cdr(cdr(cdr(cdr(p))))
 
-static int file_push(scheme *sc, const char *fname);
 static void file_pop(scheme *sc);
 static int file_interactive(scheme *sc);
 static INLINE int is_one_of(char *s, int c);
@@ -1088,29 +1087,6 @@ static void finalize_cell(scheme *sc, pointer a) {
 
 /* ========== Routines for Reading ========== */
 
-static int file_push(scheme *sc, const char *fname) {
-  FILE *fin = NULL;
-
-  if (sc->file_i == MAXFIL-1)
-     return 0;
-  fin=fopen(fname,"r");
-  if(fin!=0) {
-    sc->file_i++;
-    sc->load_stack[sc->file_i].kind=port_file|port_input;
-    sc->load_stack[sc->file_i].rep.stdio.file=fin;
-    sc->load_stack[sc->file_i].rep.stdio.closeit=1;
-    sc->nesting_stack[sc->file_i]=0;
-    sc->loadport->_object._port=sc->load_stack+sc->file_i;
-
-#if SHOW_ERROR_LINE
-    sc->load_stack[sc->file_i].rep.stdio.curr_line = 0;
-    if(fname)
-      sc->load_stack[sc->file_i].rep.stdio.filename = store_string(sc, strlen(fname), fname, 0);
-#endif
-  }
-  return fin!=0;
-}
-
 static void file_pop(scheme *sc) {
  if(sc->file_i != 0) {
    sc->nesting=sc->nesting_stack[sc->file_i];
@@ -1143,12 +1119,6 @@ static port *port_rep_from_filename(scheme *sc, const char *fn, int prop) {
   pt=port_rep_from_file(sc,f,prop);
   pt->rep.stdio.closeit=1;
 
-#if SHOW_ERROR_LINE
-  if(fn)
-    pt->rep.stdio.filename = store_string(sc, strlen(fn), fn, 0);
-
-  pt->rep.stdio.curr_line = 0;
-#endif
   return pt;
 }
 
@@ -1242,15 +1212,6 @@ static void port_close(scheme *sc, pointer p, int flag) {
   pt->kind&=~flag;
   if((pt->kind & (port_input|port_output))==0) {
     if(pt->kind&port_file) {
-
-#if SHOW_ERROR_LINE
-      /* Cleanup is here so (close-*-port) functions could work too */
-      pt->rep.stdio.curr_line = 0;
-
-      if(pt->rep.stdio.filename)
-        sc->free(pt->rep.stdio.filename);
-#endif
-
       fclose(pt->rep.stdio.file);
     }
     pt->kind=port_free;
@@ -1507,22 +1468,13 @@ static INLINE int is_one_of(char *s, int c) {
 
 /* skip white characters */
 static INLINE int skipspace(scheme *sc) {
-     int c = 0, curr_line = 0;
+     int c = 0;
 
      do {
          c=inchar(sc);
-#if SHOW_ERROR_LINE
-         if(c=='\n')
-           curr_line++;
-#endif
      } while (isspace(c));
 
 /* record it */
-#if SHOW_ERROR_LINE
-     if (sc->load_stack[sc->file_i].kind & port_file)
-       sc->load_stack[sc->file_i].rep.stdio.curr_line += curr_line;
-#endif
-
      if(c!=EOF) {
           backchar(sc,c);
       return 1;
@@ -1557,12 +1509,6 @@ static int token(scheme *sc) {
      case ';':
            while ((c=inchar(sc)) != '\n' && c!=EOF)
              ;
-
-#if SHOW_ERROR_LINE
-           if(c == '\n' && sc->load_stack[sc->file_i].kind & port_file)
-             sc->load_stack[sc->file_i].rep.stdio.curr_line++;
-#endif
-
        if(c == EOF)
          { return (TOK_EOF); }
        else
@@ -1583,11 +1529,6 @@ static int token(scheme *sc) {
           if(c == '!') {
                while ((c=inchar(sc)) != '\n' && c!=EOF)
                    ;
-
-#if SHOW_ERROR_LINE
-           if(c == '\n' && sc->load_stack[sc->file_i].kind & port_file)
-             sc->load_stack[sc->file_i].rep.stdio.curr_line++;
-#endif
 
            if(c == EOF)
              { return (TOK_EOF); }
@@ -1948,26 +1889,6 @@ static pointer _Error_1(scheme *sc, const char *s, pointer a) {
      pointer hdl=sc->ERROR_HOOK;
 #endif
 
-#if SHOW_ERROR_LINE
-     char sbuf[STRBUFFSIZE];
-
-     /* make sure error is not in REPL */
-     if (sc->load_stack[sc->file_i].kind & port_file &&
-         sc->load_stack[sc->file_i].rep.stdio.file != stdin) {
-       int ln = sc->load_stack[sc->file_i].rep.stdio.curr_line;
-       const char *fname = sc->load_stack[sc->file_i].rep.stdio.filename;
-
-       /* should never happen */
-       if(!fname) fname = "<unknown>";
-
-       /* we started from 0 */
-       ln++;
-       snprintf(sbuf, STRBUFFSIZE, "(%s : %i) %s", fname, ln, s);
-
-       str = (const char*)sbuf;
-     }
-#endif
-
 #if USE_ERROR_HOOK
      x=find_slot_in_env(sc,sc->envir,hdl,1);
     if (x != sc->NIL) {
@@ -2137,20 +2058,6 @@ static pointer opexe_0(scheme *sc, enum scheme_opcodes op) {
      pointer x, y;
 
      switch (op) {
-     case OP_LOAD:       /* load */
-          if(file_interactive(sc)) {
-               fprintf(sc->outport->_object._port->rep.stdio.file,
-               "Loading %s\n", strvalue(car(sc->args)));
-          }
-          if (!file_push(sc,strvalue(car(sc->args)))) {
-               Error_1(sc,"unable to open", car(sc->args));
-          }
-      else
-        {
-          sc->args = mk_integer(sc,sc->file_i);
-          s_goto(sc,OP_T0LVL);
-        }
-
      case OP_T0LVL: /* top level */
        /* If we reached the end of file, this loop is done. */
        if(sc->loadport->_object._port->kind & port_saw_EOF)
@@ -3219,6 +3126,7 @@ static pointer opexe_4(scheme *sc, enum scheme_opcodes op) {
           if(op==OP_WRITE) {
                sc->print_flag = 1;
           } else {
+
                sc->print_flag = 0;
           }
           s_goto(sc,OP_P0LIST);
@@ -3312,12 +3220,6 @@ static pointer opexe_4(scheme *sc, enum scheme_opcodes op) {
 
      case OP_OBLIST: /* oblist */
           s_return(sc, oblist_all_symbols(sc));
-
-     case OP_CURR_INPORT: /* current-input-port */
-          s_return(sc,sc->inport);
-
-     case OP_CURR_OUTPORT: /* current-output-port */
-          s_return(sc,sc->outport);
 
      case OP_OPEN_INFILE: /* open-input-file */
      case OP_OPEN_OUTFILE: /* open-output-file */
@@ -3510,10 +3412,6 @@ static pointer opexe_5(scheme *sc, enum scheme_opcodes op) {
                int c = inchar(sc);
                if (c != '\n')
                  backchar(sc,c);
-#if SHOW_ERROR_LINE
-               else if (sc->load_stack[sc->file_i].kind & port_file)
-                  sc->load_stack[sc->file_i].rep.stdio.curr_line++;
-#endif
                sc->nesting_stack[sc->file_i]--;
                s_return(sc,reverse_in_place(sc, sc->NIL, sc->args));
           } else if (sc->tok == TOK_DOT) {
@@ -3986,10 +3884,6 @@ void scheme_set_external_data(scheme *sc, void *p) {
 void scheme_deinit(scheme *sc) {
   int i;
 
-#if SHOW_ERROR_LINE
-  char *fname;
-#endif
-
   sc->oblist=sc->NIL;
   sc->global_env=sc->NIL;
   dump_stack_free(sc);
@@ -4016,16 +3910,6 @@ void scheme_deinit(scheme *sc) {
   for(i=0; i<=sc->last_cell_seg; i++) {
     sc->free(sc->alloc_seg[i]);
   }
-
-#if SHOW_ERROR_LINE
-  for(i=0; i<=sc->file_i; i++) {
-    if (sc->load_stack[i].kind & port_file) {
-      fname = sc->load_stack[i].rep.stdio.filename;
-      if(fname)
-        sc->free(fname);
-    }
-  }
-#endif
 }
 
 void scheme_load_named_file(scheme *sc, FILE *fin, const char *filename) {
@@ -4039,12 +3923,6 @@ void scheme_load_named_file(scheme *sc, FILE *fin, const char *filename) {
   if(fin==stdin) {
     sc->interactive_repl=1;
   }
-
-#if SHOW_ERROR_LINE
-  sc->load_stack[0].rep.stdio.curr_line = 0;
-  if(fin!=stdin && filename)
-    sc->load_stack[0].rep.stdio.filename = store_string(sc, strlen(filename), filename, 0);
-#endif
 
   sc->inport=sc->loadport;
   sc->args = mk_integer(sc,sc->file_i);
