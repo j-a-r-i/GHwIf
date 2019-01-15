@@ -24,7 +24,11 @@ public:
     void dump() {
 	Log::msg(": - ", name.c_str());
     }
- 
+
+protected:
+	/* container for all the info items (if needed) */
+	//static std::list<InfoItem*> infos;
+
 private:
     std::string name;
 };
@@ -52,39 +56,3 @@ public:
 private:
     double value;
 };
-
-/** Reader for informational element. Can read one or several data items.
- */
-class InfoReader
-{
-public:
-    InfoReader(const char* n) : name(n) {
-    }
-
-    /** Prints information about info reader
-     */
-    void dump() {
-	Log::msg(":", name.c_str());
-	for (auto info : infos) {
-	    info->dump();
-	}
-    }
-    
-    //virtual ~InfoReader() = 0;
-
-    virtual void read() = 0;
-    virtual void print() = 0;
-
-protected:
-    // does not own the infoitems
-    /** The infomational elements that this readers is generating
-     */
-    std::list<InfoItem*> infos;
-    
-private:
-    /** The name of info reader
-     */
-    std::string name;
-};
-
-

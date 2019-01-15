@@ -3,17 +3,16 @@
  ******************************************************************************/
 #pragma once
 
-#include "infoitem.h"
+#include "common.h"
 
 /** Calculate sun rise and set. Based on 
  */
-class Sun : public InfoReader
+class Sun : public ISchedulerEvent
 {
 public:
     Sun();
     
-    void read();
-    void print();
+    void operator()() override;
 
 private:
     InfoItem sunrise;

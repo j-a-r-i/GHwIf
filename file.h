@@ -85,18 +85,12 @@ public:
 };
 
 //------------------------------------------------------------------------------
-class RS232 : public FileBase, public InfoReader
+class RS232 : public FileBase
 {
 public:
 	RS232(const char* filename);
 
 	void HandleSelect() override;
-
-	// for InfoReader
-	void read() {
-	}
-	void print() {
-	}
 
 private:
 	InfoItemReal temp1;

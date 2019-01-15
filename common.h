@@ -57,12 +57,14 @@ struct Time {
 class ISchedulerEvent
 {
 public:
-	virtual void calcNext(const Time& t) = 0;
+	virtual void operator()() = 0;
+
+	//virtual void calcNext(const Time& t) = 0;
 
 protected:
 	/** counter to next time calcNext is called.
 	 */
-	uint16_t counter;
+	//uint16_t counter;
 };
 
 
@@ -84,10 +86,6 @@ public:
 class IRuntime
 {
 public:
-    virtual void add(InfoReader* reader) = 0;
-
-    virtual void readAll() = 0;
-    virtual void dump() = 0;
     virtual void webLoad(int i, int arg) = 0;
     virtual void webGet(const char* url) = 0;
     virtual void webVerbose(bool value) = 0;

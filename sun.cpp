@@ -9,17 +9,14 @@
 
 
 Sun::Sun() :
-    InfoReader("sun"),
     sunrise("sunrise"),
     sunset("sunset")
 {
-    infos.push_back(&sunrise);
-    infos.push_back(&sunset);
 }
 
 /** based on http://edwilliams.org/sunrise_sunset_algorithm.htm
  */
-void Sun::read()
+void Sun::operator()()
 {
 #define LATITUDE  60.205490
 #define LONGITUDE 24.655899
@@ -75,8 +72,4 @@ void Sun::read()
     Log::value("n2", N);
     Log::value("L",  L);
     Log::value("RA", RA);
-}
-
-void Sun::print()
-{
 }

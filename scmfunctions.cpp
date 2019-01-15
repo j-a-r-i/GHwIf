@@ -47,21 +47,10 @@ cell *scm_web_verbose(scheme *sch, cell *args)
 cell *scm_read_all(scheme *sch, cell *args)
 {
     if (args == sch->NIL) {
-	gRuntime->readAll();
+		//gRuntime->readAll();
     }
     else {
-	Log::err(__FUNCTION__, "extra argument");
-    }
-    return sch->NIL;
-}
-
-cell *scm_dump(scheme *sch, cell *args)
-{
-    if (args == sch->NIL) {
-	gRuntime->dump();
-    }
-    else {
-	Log::err(__FUNCTION__, "extra argument");
+		Log::err(__FUNCTION__, "extra argument");
     }
     return sch->NIL;
 }
@@ -99,7 +88,6 @@ void scm_func_init(IPluginScript *script)
     script->addFn("web-get",     scm_web_get);
     script->addFn("web-verbose", scm_web_verbose);
     script->addFn("read-all",    scm_read_all);
-    script->addFn("dump",        scm_dump);
     script->addFn("db-query",    scm_db_query);
     script->addFn("tst",         scm_tst);
 }

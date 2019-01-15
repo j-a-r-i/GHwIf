@@ -30,14 +30,13 @@ private:
 //------------------------------------------------------------------------------
 /** Reads free space in all the partitions.
  */
-class Disk : public InfoReader
+class Disk : public ISchedulerEvent
 {
 public:
     Disk();  ///@todo clean up items vector in destructor
     ~Disk();
     
-    void read();
-    void print();
+    void operator()() override;
 
 private:
     std::vector<DiskItem*> items;

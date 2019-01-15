@@ -184,31 +184,14 @@ public:
     {
     }
     
-    void add(InfoReader* reader) {
-	readers.push_back(reader);
-    }
-
-    void readAll() {
-	for (auto& reader : readers) {
-	    reader->read();
-	    reader->print();
-	}
-    }
-
-    void dump() {
-	for (auto& reader : readers) {
-	    reader->dump();
-	}
-    }
-    
     void webLoad(int i, int arg) {
 	web.setSite((Web::Site)i, arg);
-	web.read();
+	web();
     }
 
     void webGet(const char* url) {
 	web.setSite(url, "a");
-	web.read();
+	web();
     }
 
     void webVerbose(bool value) {
@@ -222,7 +205,6 @@ public:
     }
     
 private:
-    std::list<InfoReader*> readers;
     Web web;
     Database db;
 };
@@ -280,8 +262,8 @@ int main_old(int argc, char *argv[])
 #endif    
 
     Sun sun;
-    gRuntime->add(&sun);
-    sun.read();
+    //gRuntime->add(&sun);
+    sun();
 
 #ifdef HW_LINUX
     Disk d;
@@ -335,7 +317,7 @@ int main_old(int argc, char *argv[])
     RS232  serial(STR_SERIAL_PORT);
     loop.add(&serial);
 
-    gRuntime->add(&serial);
+    //gRuntime->add(&serial);
 
 	loop.run();
 

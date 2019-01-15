@@ -58,7 +58,6 @@ ScmScript::ScmScript()
     load(Cfg::get(CfgItem::SCHEME_INIT));
     load(Cfg::get(CfgItem::SCHEME_SYSTEM));
 
-    scheme_set_input_port_file(&scm, stdin);
     scheme_set_output_port_file(&scm, stdout);
 }
 

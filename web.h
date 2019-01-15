@@ -7,7 +7,7 @@
 #include "infoitem.h"
 #include "xmlparsesimple.h"
 
-class Web : public InfoReader
+class Web
 {
 public:
     enum Site {
@@ -30,8 +30,7 @@ public:
 	verbose = val;
     }
     
-    void read();
-    void print();
+    void operator()();
 
     void onData(const char* str);
 

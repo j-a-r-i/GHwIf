@@ -181,15 +181,10 @@ void FileSignal::HandleSelect()
 //------------------------------------------------------------------------------
 RS232::RS232(const char* filename) :
 	FileBase("rs232"),
-	InfoReader("rs232"),
 	temp1("temp1"),
 	temp2("temp2"),
 	temp3("temp3")
 {
-	infos.push_back(&temp1);
-	infos.push_back(&temp2);
-	infos.push_back(&temp3);
-
 #ifdef HW_LINUX
 	struct termios  cfg;
 

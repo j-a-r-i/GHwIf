@@ -26,7 +26,7 @@ size_t curl_write(void *buffer, size_t size, size_t nmemb, void *user_data)
     return size * nmemb;
 }
 
-Web::Web(bool v) : InfoReader("web")
+Web::Web(bool v) 
 {
     curl_global_init(CURL_GLOBAL_ALL);
 
@@ -131,7 +131,7 @@ void Web::setSite(const char* site, const char *tag)
 }
 
 
-void Web::read()
+void Web::operator()()
 {
     if (handle == NULL) {
 	Log::err("Web::read", "CURL not initialized");
@@ -169,8 +169,4 @@ void Web::onData(const char* str)
 
     if (verbose)
 	Log::msg("Web::onData", str);
-}
-
-void Web::print()
-{
 }
