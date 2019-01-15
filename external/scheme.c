@@ -228,8 +228,6 @@ INTERFACE INLINE void setimmutable(pointer p) { p->flag |= T_IMMUTABLE; }
 #define cadddr(p)        car(cdr(cdr(cdr(p))))
 #define cddddr(p)        cdr(cdr(cdr(cdr(p))))
 
-static void file_pop(scheme *sc);
-static int file_interactive(scheme *sc);
 static INLINE int is_one_of(char *s, int c);
 static int alloc_cellseg(scheme *sc, int n);
 static long binary_decode(const char *s);
@@ -246,12 +244,8 @@ static char *store_string(scheme *sc, int len, const char *str, char fill);
 static pointer mk_atom(scheme *sc, char *q);
 static pointer mk_sharp_const(scheme *sc, char *name);
 static pointer mk_port(scheme *sc, port *p);
-static pointer port_from_filename(scheme *sc, const char *fn, int prop);
 static pointer port_from_file(scheme *sc, FILE *, int prop);
 static pointer port_from_string(scheme *sc, char *start, char *past_the_end, int prop);
-static port *port_rep_from_filename(scheme *sc, const char *fn, int prop);
-static port *port_rep_from_file(scheme *sc, FILE *, int prop);
-static port *port_rep_from_string(scheme *sc, char *start, char *past_the_end, int prop);
 static void port_close(scheme *sc, pointer p, int flag);
 static void mark(pointer a);
 static void gc(scheme *sc, pointer a, pointer b);
@@ -1087,70 +1081,16 @@ static void finalize_cell(scheme *sc, pointer a) {
 
 /* ========== Routines for Reading ========== */
 
-static void file_pop(scheme *sc) {
- if(sc->file_i != 0) {
-   sc->nesting=sc->nesting_stack[sc->file_i];
-   port_close(sc,sc->loadport,port_input);
-   sc->file_i--;
-   sc->loadport->_object._port=sc->load_stack+sc->file_i;
- }
-}
-
-static int file_interactive(scheme *sc) {
- return sc->file_i==0 && sc->load_stack[0].rep.stdio.file==stdin
-     && sc->inport->_object._port->kind&port_file;
-}
-
-static port *port_rep_from_filename(scheme *sc, const char *fn, int prop) {
-  FILE *f;
-  char *rw;
-  port *pt;
-  if(prop==(port_input|port_output)) {
-    rw="a+";
-  } else if(prop==port_output) {
-    rw="w";
-  } else {
-    rw="r";
-  }
-  f=fopen(fn,rw);
-  if(f==0) {
-    return 0;
-  }
-  pt=port_rep_from_file(sc,f,prop);
-  pt->rep.stdio.closeit=1;
-
-  return pt;
-}
-
-static pointer port_from_filename(scheme *sc, const char *fn, int prop) {
-  port *pt;
-  pt=port_rep_from_filename(sc,fn,prop);
-  if(pt==0) {
-    return sc->NIL;
-  }
-  return mk_port(sc,pt);
-}
-
-static port *port_rep_from_file(scheme *sc, FILE *f, int prop)
-{
-    port *pt;
-
-    pt = (port *)sc->malloc(sizeof *pt);
-    if (pt == NULL) {
-        return NULL;
-    }
-    pt->kind = port_file | prop;
-    pt->rep.stdio.file = f;
-    pt->rep.stdio.closeit = 0;
-    return pt;
-}
-
 static pointer port_from_file(scheme *sc, FILE *f, int prop) {
   port *pt;
-  pt=port_rep_from_file(sc,f,prop);
-  if(pt==0) {
-    return sc->NIL;
+  pt = (port *)sc->malloc(sizeof *pt);
+  if (pt == NULL) {
+	  return sc->NIL;
   }
+  pt->kind = port_file | prop;
+  pt->rep.stdio.file = f;
+  pt->rep.stdio.closeit = 0;
+
   return mk_port(sc,pt);
 }
 
@@ -1169,43 +1109,20 @@ static port *port_rep_from_string(scheme *sc, char *start, char *past_the_end, i
 
 static pointer port_from_string(scheme *sc, char *start, char *past_the_end, int prop) {
   port *pt;
-  pt=port_rep_from_string(sc,start,past_the_end,prop);
-  if(pt==0) {
-    return sc->NIL;
+  pt = (port*)sc->malloc(sizeof(port));
+  if (pt == 0) {
+	  return sc->NIL;
   }
+  pt->kind = port_string | prop;
+  pt->rep.string.start = start;
+  pt->rep.string.curr = start;
+  pt->rep.string.past_the_end = past_the_end;
+
   return mk_port(sc,pt);
 }
 
 #define BLOCK_SIZE 256
 
-static port *port_rep_from_scratch(scheme *sc) {
-  port *pt;
-  char *start;
-  pt=(port*)sc->malloc(sizeof(port));
-  if(pt==0) {
-    return 0;
-  }
-  start=(char*)sc->malloc(BLOCK_SIZE);
-  if(start==0) {
-    return 0;
-  }
-  memset(start,' ',BLOCK_SIZE-1);
-  start[BLOCK_SIZE-1]='\0';
-  pt->kind=port_string|port_output|port_srfi6;
-  pt->rep.string.start=start;
-  pt->rep.string.curr=start;
-  pt->rep.string.past_the_end=start+BLOCK_SIZE-1;
-  return pt;
-}
-
-static pointer port_from_scratch(scheme *sc) {
-  port *pt;
-  pt=port_rep_from_scratch(sc);
-  if(pt==0) {
-    return sc->NIL;
-  }
-  return mk_port(sc,pt);
-}
 
 static void port_close(scheme *sc, pointer p, int flag) {
   port *pt=p->_object._port;
@@ -2062,26 +1979,9 @@ static pointer opexe_0(scheme *sc, enum scheme_opcodes op) {
        /* If we reached the end of file, this loop is done. */
        if(sc->loadport->_object._port->kind & port_saw_EOF)
      {
-       if(sc->file_i == 0)
-         {
            sc->args=sc->NIL;
            s_goto(sc,OP_QUIT);
-         }
-       else
-         {
-           file_pop(sc);
-           s_return(sc,sc->value);
-         }
        /* NOTREACHED */
-     }
-
-       /* If interactive, be nice to user. */
-       if(file_interactive(sc))
-     {
-       sc->envir = sc->global_env;
-       dump_stack_reset(sc);
-       putstr(sc,"\n");
-       putstr(sc,prompt);
      }
 
        /* Set up another iteration of REPL */
@@ -2114,11 +2014,12 @@ static pointer opexe_0(scheme *sc, enum scheme_opcodes op) {
        if(sc->tracing) {
          putstr(sc,"\nGives: ");
        }
-       if(file_interactive(sc)) {
+       /*if(file_interactive(sc)) {
          sc->print_flag = 1;
          sc->args = sc->value;
          s_goto(sc,OP_P0LIST);
-       } else {
+       } else */
+	   {
          s_return(sc,sc->value);
        }
 
@@ -3221,23 +3122,6 @@ static pointer opexe_4(scheme *sc, enum scheme_opcodes op) {
      case OP_OBLIST: /* oblist */
           s_return(sc, oblist_all_symbols(sc));
 
-     case OP_OPEN_INFILE: /* open-input-file */
-     case OP_OPEN_OUTFILE: /* open-output-file */
-     case OP_OPEN_INOUTFILE: /* open-input-output-file */ {
-          int prop=0;
-          pointer p;
-          switch(op) {
-               case OP_OPEN_INFILE:     prop=port_input; break;
-               case OP_OPEN_OUTFILE:    prop=port_output; break;
-               case OP_OPEN_INOUTFILE: prop=port_input|port_output; break;
-          }
-          p=port_from_filename(sc,strvalue(car(sc->args)),prop);
-          if(p==sc->NIL) {
-               s_return(sc,sc->F);
-          }
-          s_return(sc,p);
-     }
-
      case OP_CLOSE_INPORT: /* close-input-port */
           port_close(sc,car(sc->args),port_input);
           s_return(sc,sc->T);
@@ -3346,7 +3230,7 @@ static pointer opexe_5(scheme *sc, enum scheme_opcodes op) {
                } else if (sc->tok == TOK_DOT) {
                     Error_0(sc,"syntax error: illegal dot expression");
                } else {
-                    sc->nesting_stack[sc->file_i]++;
+                    sc->nesting_stack++;
                     s_save(sc,OP_RDLIST, sc->NIL, sc->NIL);
                     s_goto(sc,OP_RDSEXPR);
                }
@@ -3412,7 +3296,7 @@ static pointer opexe_5(scheme *sc, enum scheme_opcodes op) {
                int c = inchar(sc);
                if (c != '\n')
                  backchar(sc,c);
-               sc->nesting_stack[sc->file_i]--;
+               sc->nesting_stack--;
                s_return(sc,reverse_in_place(sc, sc->NIL, sc->args));
           } else if (sc->tok == TOK_DOT) {
                s_save(sc,OP_RDDOT, sc->args, sc->NIL);
@@ -3428,7 +3312,7 @@ static pointer opexe_5(scheme *sc, enum scheme_opcodes op) {
           if (token(sc) != TOK_RPAREN) {
                Error_0(sc,"syntax error: illegal dot expression");
           } else {
-               sc->nesting_stack[sc->file_i]--;
+               sc->nesting_stack--;
                s_return(sc,reverse_in_place(sc, sc->value, sc->args));
           }
 
@@ -3915,7 +3799,6 @@ void scheme_deinit(scheme *sc) {
 void scheme_load_named_file(scheme *sc, FILE *fin, const char *filename) {
   dump_stack_reset(sc);
   sc->envir = sc->global_env;
-  sc->file_i=0;
   sc->load_stack[0].kind=port_input|port_file;
   sc->load_stack[0].rep.stdio.file=fin;
   sc->loadport=mk_port(sc,sc->load_stack);
@@ -3925,7 +3808,7 @@ void scheme_load_named_file(scheme *sc, FILE *fin, const char *filename) {
   }
 
   sc->inport=sc->loadport;
-  sc->args = mk_integer(sc,sc->file_i);
+  sc->args = mk_integer(sc, 0); // file_i
   Eval_Cycle(sc, OP_T0LVL);
   sc->loadport->flag = T_ATOM;
   if(sc->retcode==0) {
@@ -3936,7 +3819,6 @@ void scheme_load_named_file(scheme *sc, FILE *fin, const char *filename) {
 void scheme_load_string(scheme *sc, const char *cmd) {
   dump_stack_reset(sc);
   sc->envir = sc->global_env;
-  sc->file_i=0;
   sc->load_stack[0].kind=port_input|port_string;
   sc->load_stack[0].rep.string.start=(char*)cmd; /* This func respects const */
   sc->load_stack[0].rep.string.past_the_end=(char*)cmd+strlen(cmd);
@@ -3945,7 +3827,7 @@ void scheme_load_string(scheme *sc, const char *cmd) {
   sc->retcode=0;
   sc->interactive_repl=0;
   sc->inport=sc->loadport;
-  sc->args = mk_integer(sc,sc->file_i);
+  sc->args = mk_integer(sc, 0); //file_i
   Eval_Cycle(sc, OP_T0LVL);
   sc->loadport->flag = T_ATOM;
   if(sc->retcode==0) {
