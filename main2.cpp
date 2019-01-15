@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
 	UvTimer timer1(5000);
 	UvStdin stdin1(&script);
 
-
+	scm_func_init(&script);
 	pc_init(&script);
 
 	loop.add(timer1);

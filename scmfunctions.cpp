@@ -1,69 +1,82 @@
 #include "common.h"
 
-#define CHECK_RUNTIME() if (gRuntime == NULL) throw TheException(TheException::EMissingRuntime)
-
-cell *scm_web_load(scheme *sch, cell *args)
+IRuntime *get_runtime(scheme* scm)
 {
-    try {
-	CHECK_RUNTIME();
-	
-	int i1 = arg_integer(sch, args);
-	int i2 = arg_integer(sch, pair_cdr(args));
+	IRuntime *rt = static_cast<IRuntime*>(scm->ext_data);
+	if (rt == NULL)
+		throw TheException(TheException::EMissingRuntime);
 
-	gRuntime->webLoad(i1, i2);
-    }
-    catch (TheException& e) {
-	Log::err(__FUNCTION__, e.what());
-    }
-    return sch->NIL;
+	return rt;
 }
 
-cell *scm_web_get(scheme *sch, cell *args)
+cell *scm_web_load(scheme *scm, cell *args)
 {
     try {
-	char *s1 = arg_string(sch, args);
+		IRuntime *rt = get_runtime(scm);
+		int i1 = arg_integer(scm, args);
+		int i2 = arg_integer(scm, pair_cdr(args));
 
-	gRuntime->webGet(s1);
+		rt->webLoad(i1, i2);
     }
     catch (TheException& e) {
-	Log::err(__FUNCTION__, e.what());
+		Log::err(__FUNCTION__, e.what());
     }
-    return sch->NIL;
+    return scm->NIL;
 }
 
-cell *scm_web_verbose(scheme *sch, cell *args)
+cell *scm_web_get(scheme *scm, cell *args)
 {
     try {
-	int i = arg_integer(sch, args);
+		IRuntime *rt = get_runtime(scm);
+		char *s1 = arg_string(scm, args);
 
-	gRuntime->webVerbose(i);
+		rt->webGet(s1);
     }
     catch (TheException& e) {
-	Log::err(__FUNCTION__, e.what());
+		Log::err(__FUNCTION__, e.what());
     }
-    return sch->NIL;
+    return scm->NIL;
 }
 
-cell *scm_read_all(scheme *sch, cell *args)
+cell *scm_web_verbose(scheme *scm, cell *args)
 {
-    if (args == sch->NIL) {
-		//gRuntime->readAll();
+    try {
+		IRuntime *rt = get_runtime(scm);
+		int i = arg_integer(scm, args);
+
+		rt->webVerbose(i);
+    }
+    catch (TheException& e) {
+		Log::err(__FUNCTION__, e.what());
+    }
+    return scm->NIL;
+}
+
+cell *scm_read_all(scheme *scm, cell *args)
+{
+    if (args == scm->NIL) {
+		IRuntime *rt = get_runtime(scm);
+		//rt->readAll();
     }
     else {
 		Log::err(__FUNCTION__, "extra argument");
     }
-    return sch->NIL;
+    return scm->NIL;
 }
 
 cell *scm_db_query(scheme *scm, cell *args)
 {
     try {
-	char *s1 = arg_string(scm, args);
+		IRuntime *rt = static_cast<IRuntime*>(scm->ext_data);
+		if (rt == NULL)
+			throw TheException(TheException::EMissingRuntime);
 
-	gRuntime->dbQuery(s1);
+		char *s1 = arg_string(scm, args);
+
+		rt->dbQuery(s1);
     }
     catch (TheException& e) {
-	Log::err(__FUNCTION__, e.what());
+		Log::err(__FUNCTION__, e.what());
     }
     return scm->NIL;
 	
@@ -72,10 +85,10 @@ cell *scm_db_query(scheme *scm, cell *args)
 cell *scm_tst(scheme *scm, cell *args)
 {
     try {
-	printf("%d\n", ((pair_car(args)->flag) & 0x1F));
+		printf("%d\n", ((pair_car(args)->flag) & 0x1F));
     }
     catch (TheException& e) {
-	Log::err(__FUNCTION__, e.what());
+		Log::err(__FUNCTION__, e.what());
     }
     return scm->NIL;
 	
