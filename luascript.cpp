@@ -33,7 +33,7 @@ LuaScript::LuaScript()
     }
 }
 
-void LuaScript::addFn(const char* name, foreign_func func)
+void LuaScript::add(const char* name, foreign_func func)
 {
     lua_pushcfunction(lua, func);
     lua_setglobal(lua, name);

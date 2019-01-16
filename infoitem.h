@@ -33,13 +33,15 @@ private:
     std::string name;
 };
 
+class IPluginScript;
+struct cell;
+
 /** Store double values
  */
 class InfoItemReal : public InfoItem
 {
 public:
-    InfoItemReal(const char* n) : InfoItem(n) {
-    }
+	InfoItemReal(IPluginScript& scm, const char* n);
 
     /** Set new current value for info item
      */
@@ -55,4 +57,5 @@ public:
 
 private:
     double value;
+	cell *scmValue;
 };

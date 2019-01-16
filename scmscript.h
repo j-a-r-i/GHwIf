@@ -19,7 +19,8 @@ public:
     ScmScript();
     virtual ~ScmScript();
 
-    void addFn(const char* name, foreign_func func);
+    void add(const char* name, foreign_func func) override;
+	pointer add(const char* name, double value) override;
 
     void eval(std::string& line);
     

@@ -32,7 +32,8 @@ public:
     virtual void exec(const char *func) = 0;
     virtual void eval(std::string& line) = 0;
     virtual void load(const char *filename) = 0;
-    virtual void addFn(const char *name, foreign_func func) = 0;
+    virtual void add(const char *name, foreign_func func) = 0;
+	virtual pointer add(const char *name, double value) = 0;
 };
 
 //------------------------------------------------------------------------------

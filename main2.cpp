@@ -314,7 +314,7 @@ int main_old(int argc, char *argv[])
     // add callback gRuntime->scr_run("timer");
 #endif
 
-    RS232  serial(STR_SERIAL_PORT);
+    RS232  serial(script, STR_SERIAL_PORT);
     loop.add(&serial);
 
     //gRuntime->add(&serial);

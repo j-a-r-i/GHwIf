@@ -179,11 +179,11 @@ void FileSignal::HandleSelect()
 #endif
 
 //------------------------------------------------------------------------------
-RS232::RS232(const char* filename) :
+RS232::RS232(IPluginScript &scm, const char* filename) :
 	FileBase("rs232"),
-	temp1("temp1"),
-	temp2("temp2"),
-	temp3("temp3")
+	temp1(scm, "temp1"),
+	temp2(scm, "temp2"),
+	temp3(scm, "temp3")
 {
 #ifdef HW_LINUX
 	struct termios  cfg;

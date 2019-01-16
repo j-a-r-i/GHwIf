@@ -67,11 +67,22 @@ ScmScript::~ScmScript()
     scheme_deinit(&scm);
 }
 
-void ScmScript::addFn(const char* name, foreign_func func)
+void ScmScript::add(const char* name, foreign_func func)
 {
     scheme_define(&scm, scm.global_env,
 		  mk_symbol(&scm,      name),
 		  mk_foreign_func(&scm,func)); 
+}
+
+pointer ScmScript::add(const char* name, double value) 
+{
+	pointer val = mk_real(&scm, value);
+
+	scheme_define(&scm, scm.global_env,
+		mk_symbol(&scm, name),
+		val);
+
+	return val;
 }
 
 void ScmScript::eval(std::string& line)
