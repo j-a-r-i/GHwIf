@@ -93,8 +93,6 @@ public:
     virtual void dbQuery(const char* sql) = 0;
 };
 
-extern IRuntime *gRuntime;
-
 //------------------------------------------------------------------------------
 class TheException : public std::exception
 {
