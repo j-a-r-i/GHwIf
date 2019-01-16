@@ -210,15 +210,11 @@ private:
 };
 
 //------------------------------------------------------------------------------
-IRuntime *gRuntime;
-
-//------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
 	Cfg::init();  // configuration paramerers must be initialized first
-
-	Script script;
 	Runtime rt;
+	Script script(&rt);
 	UvEventLoop loop;
 	UvTimer timer1(5000);
 	UvStdin stdin1(&script);
@@ -235,15 +231,14 @@ int main(int argc, char *argv[])
 //------------------------------------------------------------------------------
 int main_old(int argc, char *argv[])
 {
-    Script script;
-    Runtime rt;
-
-    gRuntime = &rt;
+	Cfg::init();  // configuration paramerers must be initialized first
+	Runtime rt;
+	Script script(&rt);
 
     // init readers
     //
 #ifdef HW_RPI
-    rpi_init(gRuntime);
+    rpi_init(&rt);
 #else
     pc_init(&script);
 #endif
@@ -254,7 +249,7 @@ int main_old(int argc, char *argv[])
     
 #ifdef USE_SENSORS
     Sensors s;
-    gRuntime->add(&s);
+    rt.add(&s);
 #endif
 #ifdef USE_BLUETOOTH
     Bluetooth b;
@@ -262,12 +257,12 @@ int main_old(int argc, char *argv[])
 #endif    
 
     Sun sun;
-    //gRuntime->add(&sun);
+    //rt.add(&sun);
     sun();
 
 #ifdef HW_LINUX
     Disk d;
-    gRuntime->add(&d);
+    rt.add(&d);
 
     // parse arguments
     //
@@ -301,7 +296,7 @@ int main_old(int argc, char *argv[])
 #ifdef HW_LINUX
     FileStdin fstdin;
     loop.add(&fstdin);
-    // add callback gRuntime->scr_eval(line);
+    // add callback rt.scr_eval(line);
 
     FileNotify fnotify(INIT_SCRIPT);
     loop.add(&fnotify);
@@ -311,13 +306,13 @@ int main_old(int argc, char *argv[])
 
     FileTimer timer1(5);
     loop.add(&timer1);
-    // add callback gRuntime->scr_run("timer");
+    // add callback rt.scr_run("timer");
 #endif
 
     RS232  serial(script, STR_SERIAL_PORT);
     loop.add(&serial);
 
-    //gRuntime->add(&serial);
+    //rt.add(&serial);
 
 	loop.run();
 

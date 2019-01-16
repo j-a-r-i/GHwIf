@@ -16,7 +16,7 @@ class ScmScript : public IPluginScript
 {
 public:
     
-    ScmScript();
+    ScmScript(IRuntime *rt);
     virtual ~ScmScript();
 
     void add(const char* name, foreign_func func) override;

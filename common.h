@@ -37,6 +37,16 @@ public:
 };
 
 //------------------------------------------------------------------------------
+class IRuntime
+{
+public:
+	virtual void webLoad(int i, int arg) = 0;
+	virtual void webGet(const char* url) = 0;
+	virtual void webVerbose(bool value) = 0;
+	virtual void dbQuery(const char* sql) = 0;
+};
+
+//------------------------------------------------------------------------------
 #ifdef SCR_SCHEME
   #include "scmscript.h"
 #endif
@@ -81,16 +91,6 @@ public:
 	 *  handlers.
      */
 	virtual void elapsed() = 0;
-};
-
-//------------------------------------------------------------------------------
-class IRuntime
-{
-public:
-    virtual void webLoad(int i, int arg) = 0;
-    virtual void webGet(const char* url) = 0;
-    virtual void webVerbose(bool value) = 0;
-    virtual void dbQuery(const char* sql) = 0;
 };
 
 //------------------------------------------------------------------------------

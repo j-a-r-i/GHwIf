@@ -47,13 +47,15 @@ char *arg_string(scheme *sch, cell *arg)
 }
 
 //------------------------------------------------------------------------------
-ScmScript::ScmScript()
+ScmScript::ScmScript(IRuntime *rt)
 {
     Log::msg("scm", "init");
     if (!scheme_init(&scm)) {
 		Log::err("scheme", "init");
 		return;
     }
+
+	scheme_set_external_data(&scm, rt);
 
     load(Cfg::get(CfgItem::SCHEME_INIT));
     load(Cfg::get(CfgItem::SCHEME_SYSTEM));
