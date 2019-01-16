@@ -84,10 +84,10 @@ cell *scm_tst(scheme *scm, cell *args)
 //------------------------------------------------------------------------------
 void scm_func_init(IPluginScript *script)
 {
-    script->addFn("web-load",    scm_web_load);
-    script->addFn("web-get",     scm_web_get);
-    script->addFn("web-verbose", scm_web_verbose);
-    script->addFn("read-all",    scm_read_all);
-    script->addFn("db-query",    scm_db_query);
-    script->addFn("tst",         scm_tst);
+    script->add("web-load",    scm_web_load);
+    script->add("web-get",     scm_web_get);
+    script->add("web-verbose", scm_web_verbose);
+    script->add("read-all",    scm_read_all);
+    script->add("db-query",    scm_db_query);
+    script->add("tst",         scm_tst);
 }
