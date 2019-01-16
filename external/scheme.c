@@ -38,7 +38,23 @@
 /* Used for documentation purposes, to signal functions in 'interface' */
 #define INTERFACE
 
-#define TOK_EOF     (-1)
+enum Token {
+	TOK_EOF = -1,
+	TOK_LPAREN = 0,
+	TOK_RPAREN = 1,
+	TOK_DOT = 2,
+	TOK_ATOM = 3,
+	TOK_QUOTE = 4,
+	TOK_COMMENT = 5,
+	TOK_DQUOTE = 6,
+	TOK_BQUOTE = 7,
+	TOK_COMMA =  8,
+	TOK_ATMARK = 9,
+	TOK_SHARP =  10,
+	TOK_SHARP_CONST = 11
+};
+
+/*#define TOK_EOF     (-1)
 #define TOK_LPAREN  0
 #define TOK_RPAREN  1
 #define TOK_DOT     2
@@ -50,7 +66,7 @@
 #define TOK_COMMA   8
 #define TOK_ATMARK  9
 #define TOK_SHARP   10
-#define TOK_SHARP_CONST 11
+#define TOK_SHARP_CONST 11*/
 
 #define BACKQUOTE '`'
 #define DELIMITERS  "()\";\f\t\v\n\r "
@@ -255,7 +271,7 @@ static void backchar(scheme *sc, int c);
 static char   *readstr_upto(scheme *sc, char *delim);
 static pointer readstrexp(scheme *sc);
 static INLINE int skipspace(scheme *sc);
-static int token(scheme *sc);
+static enum Token token(scheme *sc);
 static void printslashstring(scheme *sc, char *s, int len);
 static void atom2str(scheme *sc, pointer l, int f, char **pp, int *plen);
 static void printatom(scheme *sc, pointer l, int f);
@@ -1401,7 +1417,7 @@ static INLINE int skipspace(scheme *sc) {
 }
 
 /* get token */
-static int token(scheme *sc) {
+static enum Token token(scheme *sc) {
      int c;
      c = skipspace(sc);
      if(c == EOF) { return (TOK_EOF); }
@@ -2737,32 +2753,6 @@ static pointer opexe_2(scheme *sc, enum scheme_opcodes op) {
           setimmutable(x);
           s_return(sc,x);
 
-     case OP_ATOM2STR: /* atom->string */ {
-          long pf = 0;
-          x=car(sc->args);
-          if(cdr(sc->args)!=sc->NIL) {
-            /* we know cadr(sc->args) is a natural number */
-            /* see if it is 2, 8, 10, or 16, or error */
-            pf = ivalue_unchecked(cadr(sc->args));
-            if(is_number(x) && (pf == 16 || pf == 10 || pf == 8 || pf == 2)) {
-              /* base is OK */
-            }
-            else {
-              pf = -1;
-            }
-          }
-          if (pf < 0) {
-            Error_1(sc, "atom->string: bad base:", cadr(sc->args));
-          } else if(is_number(x) || is_character(x) || is_string(x) || is_symbol(x)) {
-            char *p;
-            int len;
-            atom2str(sc,x,(int )pf,&p,&len);
-            s_return(sc,mk_counted_string(sc,p,len));
-          } else {
-            Error_1(sc, "atom->string: not an atom:", x);
-          }
-        }
-
      case OP_MKSTRING: { /* make-string */
           int fill=' ';
           int len;
@@ -3130,7 +3120,7 @@ static pointer opexe_4(scheme *sc, enum scheme_opcodes op) {
           port_close(sc,car(sc->args),port_output);
           s_return(sc,sc->T);
 
-     case OP_INT_ENV: /* interaction-environment */
+			 case OP_INT_ENV: /* interaction-environment */
           s_return(sc,sc->global_env);
 
      case OP_CURR_ENV: /* current-environment */
