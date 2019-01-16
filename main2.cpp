@@ -3,7 +3,8 @@
  ******************************************************************************/
 #include <iostream>
 #include <fstream>
-#include <list>
+#include <vector>
+#include <memory>
 #include "common.h"
 #ifdef HW_LINUX
 #include <unistd.h>
@@ -174,6 +175,19 @@ const char* TheException::what() const throw () {
     return errorString[error];
 }
 
+//------------------------------------------------------------------------------
+class MyScheduler : public IScheduler
+{
+public:
+	void add(ISchedulerEvent *event) {
+		items.push_back(std::unique_ptr<ISchedulerEvent>(event));
+	}
+	void elapsed() {
+	}
+
+private:
+	std::vector<std::unique_ptr<ISchedulerEvent>> items;
+};
 
 //------------------------------------------------------------------------------
 class Runtime : public IRuntime
@@ -232,10 +246,11 @@ int main(int argc, char *argv[])
 int main_old(int argc, char *argv[])
 {
 	Cfg::init();  // configuration paramerers must be initialized first
+	MyScheduler scheduler;
 	Runtime rt;
 	Script script(&rt);
 
-    // init readers
+    // init system
     //
 #ifdef HW_RPI
     rpi_init(&rt);
@@ -248,21 +263,17 @@ int main_old(int argc, char *argv[])
 #endif
     
 #ifdef USE_SENSORS
-    Sensors s;
-    rt.add(&s);
+	scheduler.add(new Sensors());
 #endif
 #ifdef USE_BLUETOOTH
     Bluetooth b;
     b.scan();
 #endif    
 
-    Sun sun;
-    //rt.add(&sun);
-    sun();
+	scheduler.add(new Sun());
 
 #ifdef HW_LINUX
-    Disk d;
-    rt.add(&d);
+	scheduler.add(new Disk(script));
 
     // parse arguments
     //
@@ -271,7 +282,7 @@ int main_old(int argc, char *argv[])
     while ((opt = getopt(argc, argv, "f:s:")) != -1) {
 	switch (opt) {
 	case 'f':
-	    rt.script.load(optarg);
+	    script.load(optarg);
 	    scriptLoaded = true;
 	    break;
 	case 's':
@@ -284,7 +295,7 @@ int main_old(int argc, char *argv[])
     }
 
     if (!scriptLoaded) { // use the default script
-	rt.script.load(INIT_SCRIPT);
+		script.load(INIT_SCRIPT);
     }
 #endif  
     // Init 'file' handles

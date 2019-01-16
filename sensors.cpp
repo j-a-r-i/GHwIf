@@ -50,14 +50,16 @@ SensorItem::SensorItem(const char *name, const char* chip, int feat) :
     
 
 //------------------------------------------------------------------------------
-Sensors::Sensors() : InfoReader("sensors")
+Sensors::Sensors(IPluginScript *scm) :
+	temp1{scm, "sensor-t1"},
+	temp2{scm, "sensor-t2"}
 {
     sensors_init(NULL);
 
     each_sensor([this](const char* chip, const char* name, int subFeature) {
 	    SensorItem *item = new SensorItem(name, chip, subFeature);
 	    
-	    infos.push_back(item);
+	    sensors.push_back(std::unique_ptr<SensorItem>(item));
 	});
 }
 
@@ -72,7 +74,7 @@ void Sensors::read()
     int c = 0;
     
     while ((cn = sensors_get_detected_chips(0, &c)) != 0) {
-	for (auto item : infos) {
+	for (const SensorItem* item : sensors) {
 	    SensorItem *sensor = static_cast<SensorItem*>(item);
 
 	    if (sensor->getChipName() == cn->prefix) {
@@ -87,10 +89,6 @@ void Sensors::read()
 	    }
 	}
     }
-}
-
-void Sensors::print()
-{
 }
 
 

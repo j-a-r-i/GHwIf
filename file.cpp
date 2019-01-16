@@ -2,7 +2,10 @@
 #ifdef HW_LINUX
   #include <sys/signalfd.h>
   #include <sys/inotify.h>
+  #include <fcntl.h>
   #include <unistd.h>
+  #include <sys/ioctl.h>
+  #include <termios.h>
 #else
   #define STDIN_FILENO 1
 #endif
@@ -15,7 +18,6 @@
 #include "common.h"
 #include <string.h>
 #ifdef HW_LINUX
-  #include <fcntl.h>
   #include <unistd.h>
   #include <sys/ioctl.h>
   #include <termios.h>

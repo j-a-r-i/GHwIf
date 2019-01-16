@@ -153,14 +153,12 @@ include_directories("${PROJECT_BINARY_DIR}"
   ${EXPAT_INCLUDE_DIR}
   ../drivers
   rpi
+  external
   ${EXTRA_INCS}
   )
 
 add_executable(hwif main2.cpp
-                    serial.cpp
 		    file.cpp
-		    Socket.cpp
-		    measures.cpp
 		    web.cpp
 		    db.cpp
 		    xmlparsesimple.cpp

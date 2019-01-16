@@ -3,9 +3,10 @@
  ******************************************************************************/
 #pragma once
 
-#include "infoitem.h"
+#include "common.h"
 #include <string>
 #include <list>
+#include <memory>
 
 //------------------------------------------------------------------------------
 class SensorItem : public InfoItemReal
@@ -14,11 +15,11 @@ public:
     SensorItem(const char *name, const char* chip, int feat);
     
     const std::string& getChipName() const {
-	return chipName;
+		return chipName;
     }
 
     int getFeature() const {
-	return subFeature;
+		return subFeature;
     }
     
 private:
@@ -27,13 +28,18 @@ private:
 };
 
 //------------------------------------------------------------------------------
-class Sensors : public InfoReader
+class Sensors : public ISchedulerEvent
 {
 public:
-    Sensors();
+    Sensors(IPluginScript* scm);
 
     virtual ~Sensors();
 
     void read();
-    void print();
+
+private:
+	InfoItemReal temp1;
+	InfoItemReal temp2;
+
+	std::list<std::unique_ptr<SensorItem>> sensors;
 };

@@ -33,11 +33,14 @@ private:
 class Disk : public ISchedulerEvent
 {
 public:
-    Disk();  ///@todo clean up items vector in destructor
+    Disk(IPluginScript& scm);
     ~Disk();
     
     void operator()() override;
 
 private:
-    std::vector<DiskItem*> items;
+	double free(const char* mountPoint);
+
+	InfoItemReal diskRoot;
+	InfoItemReal diskMnt;
 };
