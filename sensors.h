@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2016-8 Jari Ojanen
+ * Copyright (C) 2016-9 Jari Ojanen
  ******************************************************************************/
 #pragma once
 
@@ -12,14 +12,14 @@
 class SensorItem : public InfoItemReal
 {
 public:
-    SensorItem(const char *name, const char* chip, int feat);
+    SensorItem(IPluginScript& scm, const char *name, const char* chip, int feat);
     
     const std::string& getChipName() const {
-		return chipName;
+	return chipName;
     }
 
     int getFeature() const {
-		return subFeature;
+	return subFeature;
     }
     
 private:
@@ -31,15 +31,12 @@ private:
 class Sensors : public ISchedulerEvent
 {
 public:
-    Sensors(IPluginScript* scm);
+    Sensors(IPluginScript& scm);
 
     virtual ~Sensors();
 
-    void read();
+    void operator()();
 
 private:
-	InfoItemReal temp1;
-	InfoItemReal temp2;
-
-	std::list<std::unique_ptr<SensorItem>> sensors;
+    std::list<std::unique_ptr<SensorItem>> sensors;
 };

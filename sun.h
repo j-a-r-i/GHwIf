@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2018 Jari Ojanen
+ * Copyright (C) 2018-9 Jari Ojanen
  ******************************************************************************/
 #pragma once
 
@@ -10,11 +10,11 @@
 class Sun : public ISchedulerEvent
 {
 public:
-    Sun();
+    Sun(IPluginScript& scm);
     
     void operator()() override;
 
 private:
-    InfoItem sunrise;
-    InfoItem sunset;
+    InfoItemReal sunrise;
+    InfoItemReal sunset;
 };

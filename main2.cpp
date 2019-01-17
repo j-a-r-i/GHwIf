@@ -263,14 +263,14 @@ int main_old(int argc, char *argv[])
 #endif
     
 #ifdef USE_SENSORS
-	scheduler.add(new Sensors());
+	scheduler.add(new Sensors(script));
 #endif
 #ifdef USE_BLUETOOTH
     Bluetooth b;
     b.scan();
 #endif    
 
-	scheduler.add(new Sun());
+	scheduler.add(new Sun(script));
 
 #ifdef HW_LINUX
 	scheduler.add(new Disk(script));

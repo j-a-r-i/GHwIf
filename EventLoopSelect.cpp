@@ -1,8 +1,10 @@
+#include "common.h"
 #include "EventLoopSelect.h"
 #include "logger.h"
 #ifdef HW_LINUX
 #  include <sys/socket.h>
 #  include <sys/timerfd.h>
+#  define TRUE 1
 #else
 #  include <winsock2.h>
 #  include <WS2tcpip.h>

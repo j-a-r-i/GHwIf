@@ -13,15 +13,11 @@ void each_sensor(Func fn)
 
     while ((cn = sensors_get_detected_chips(0, &c)) != 0)
     {
-        //std::cout << "-----------------" << cn->prefix << " " << cn->path << std::endl;
-
         sensors_feature const *feat;
         int f = 0;
 
         while ((feat = sensors_get_features(cn, &f)) != 0)
         {
-            //std::cout << feat->name << std::endl;
-
             sensors_subfeature const *subf;
             int s = 0;
 
@@ -41,8 +37,8 @@ void each_sensor(Func fn)
 }
 
 //------------------------------------------------------------------------------
-SensorItem::SensorItem(const char *name, const char* chip, int feat) :
-    InfoItemReal(name),
+SensorItem::SensorItem(IPluginScript& scm, const char *name, const char* chip, int feat) :
+    InfoItemReal(scm, name),
     chipName(chip),
     subFeature(feat)
 {
@@ -50,14 +46,12 @@ SensorItem::SensorItem(const char *name, const char* chip, int feat) :
     
 
 //------------------------------------------------------------------------------
-Sensors::Sensors(IPluginScript *scm) :
-	temp1{scm, "sensor-t1"},
-	temp2{scm, "sensor-t2"}
+Sensors::Sensors(IPluginScript& scm)
 {
     sensors_init(NULL);
 
-    each_sensor([this](const char* chip, const char* name, int subFeature) {
-	    SensorItem *item = new SensorItem(name, chip, subFeature);
+    each_sensor([this,&scm](const char* chip, const char* name, int subFeature) {
+	    SensorItem *item = new SensorItem(scm, name, chip, subFeature);
 	    
 	    sensors.push_back(std::unique_ptr<SensorItem>(item));
 	});
@@ -68,23 +62,23 @@ Sensors::~Sensors()
     sensors_cleanup();
 }
 
-void Sensors::read()
+void Sensors::operator()()
 {
     sensors_chip_name const * cn;
     int c = 0;
     
     while ((cn = sensors_get_detected_chips(0, &c)) != 0) {
-	for (const SensorItem* item : sensors) {
-	    SensorItem *sensor = static_cast<SensorItem*>(item);
+	for (auto const& item : sensors) {
+	    const SensorItem &sensor = *item; //static_cast<SensorItem*>(item);
 
-	    if (sensor->getChipName() == cn->prefix) {
+	    if (sensor.getChipName() == cn->prefix) {
 		double val = 0.0;
-		int err = sensors_get_value(cn, sensor->getFeature(), &val);
+		int err = sensors_get_value(cn, sensor.getFeature(), &val);
 		if (err < 0) {
 		    Log::err(__FUNCTION__, "sensor_get_value");
 		}
 		else {
-		    Log::value(sensor->getName().c_str(), val);
+		    Log::value(sensor.getName().c_str(), val);
 		}
 	    }
 	}

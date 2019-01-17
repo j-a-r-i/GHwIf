@@ -3,7 +3,7 @@
  ******************************************************************************/
 #pragma once
 
-#include "infoitem.h"
+#include "common.h"
 #include <string>
 #include <vector>
 

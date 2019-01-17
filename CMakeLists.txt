@@ -13,13 +13,14 @@ set(VERSION_MINOR  4           CACHE INTEGER "version number2")
 
 option(HW_LINUX      "build for linux/windows"   ON)
 option(HW_RPI        "build for raspberry pi"    OFF)
-option(SCR_GUILE     "scripting with guile"      ON)
+option(SCR_GUILE     "scripting with guile"      OFF)
 option(SCR_SCHEME    "scripting with tinyscheme" ON)
 option(SCR_LUA       "scripting with lua"        OFF)
 option(USE_SENSORS   "use lmsensors"             ON)
 option(USE_BLUETOOTH "use bluetooth"             OFF)
 option(USE_WS        "use websocket"             OFF)
 option(USE_JSON      "use json"                  OFF)
+option(USE_LIBUV     "use libuv"                 ON)
 
 set(USE_GLIB OFF)
 set(USE_READLINE OFF)
@@ -118,6 +119,31 @@ if (SCR_LUA)
 		    lua/src/lcorolib.c)
 endif (SCR_LUA)
 
+if (USE_LIBUV)
+  list(APPEND EXTRA_SRCS
+    libuv-v1.24.1/src/uv-common.c
+    libuv-v1.24.1/src/strscpy.c
+    libuv-v1.24.1/src/timer.c
+    libuv-v1.24.1/src/inet.c
+    libuv-v1.24.1/src/unix/core.c
+    libuv-v1.24.1/src/unix/linux-core.c
+    libuv-v1.24.1/src/unix/internal.c
+    libuv-v1.24.1/src/unix/loop.c
+    libuv-v1.24.1/src/unix/udp.c
+    libuv-v1.24.1/src/unix/tcp.c
+    libuv-v1.24.1/src/unix/thread.c
+    libuv-v1.24.1/src/unix/poll.c
+    libuv-v1.24.1/src/unix/tty.c
+    libuv-v1.24.1/src/unix/pipe.c
+    libuv-v1.24.1/src/unix/stream.c
+    libuv-v1.24.1/src/unix/sysinfo-memory.c
+    )
+  list(APPEND EXTRA_INCS
+    libuv-v1.24.1/src)
+  list(APPEND EXTRA_LIBS
+    pthread)
+endif (USE_LIBUV)
+
 if (USE_BLUETOOTH)
   list(APPEND EXTRA_SRCS btooth.cpp)
   list(APPEND EXTRA_LIBS bluetooth)
@@ -169,6 +195,8 @@ add_executable(hwif main2.cpp
 		    site.cpp
 		    ssh.cpp
 		    EventLoop.cpp
+		    EventLoopSelect.cpp
+		    infoitem.cpp
 		    ${EXTRA_SRCS}
 )
 

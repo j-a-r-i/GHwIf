@@ -119,6 +119,7 @@
     <ClCompile Include="external\scheme.c" />
     <ClCompile Include="external\sqlite3.c" />
     <ClCompile Include="file.cpp" />
+    <ClCompile Include="infoitem.cpp" />
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="main2.cpp" />
     <ClCompile Include="main_pc.cpp" />

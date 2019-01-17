@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (C) 2018 Jari Ojanen
+ * Copyright (C) 2018-9 Jari Ojanen
  ******************************************************************************/
 #include "sun.h"
 #include "common.h"
@@ -8,9 +8,9 @@
 #include <math.h>
 
 
-Sun::Sun() :
-    sunrise("sunrise"),
-    sunset("sunset")
+Sun::Sun(IPluginScript& scm) :
+    sunrise{scm, "sunrise"},
+    sunset {scm, "sunset"}
 {
 }
 
