@@ -223,6 +223,25 @@ private:
     Database db;
 };
 
+
+//------------------------------------------------------------------------------
+// initialize the system
+//
+void init(Script* script)
+{
+#ifdef SCR_SCHEME
+    scm_func_init(script);
+#endif
+
+#ifdef HW_RPI
+    rpi_init(script);
+#else
+    pc_init(script);
+#endif
+
+    script->load(INIT_SCRIPT);
+}
+
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
@@ -233,8 +252,7 @@ int main(int argc, char *argv[])
 	UvTimer timer1(5000);
 	UvStdin stdin1(&script);
 
-	scm_func_init(&script);
-	pc_init(&script);
+	init(&script);
 
 	loop.add(timer1);
 	loop.add(stdin1);
@@ -250,17 +268,7 @@ int main_old(int argc, char *argv[])
 	Runtime rt;
 	Script script(&rt);
 
-    // init system
-    //
-#ifdef HW_RPI
-    rpi_init(&rt);
-#else
-    pc_init(&script);
-#endif
-
-#ifdef SCR_SCHEME
-    scm_func_init(&script);
-#endif
+       init(&script);
     
 #ifdef USE_SENSORS
 	scheduler.add(new Sensors(script));

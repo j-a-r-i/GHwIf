@@ -77,7 +77,7 @@ cell *scm_delay(scheme *sch, cell *args)
     return sch->NIL;
 }
 
-void rpi_init(BaseRuntime *rt)
+void rpi_init(Script *script)
 {
     Log::value("HW", "RPI");
 
@@ -85,9 +85,9 @@ void rpi_init(BaseRuntime *rt)
 
     spi_init(SPI_PORT);
 
-    rt->addFunc("io-set",   scm_io_set);
-    rt->addFunc("io-clear", scm_io_clear);
-    rt->addFunc("io-read",  scm_io_read);
-    rt->addFunc("spi",      scm_spi);
-    rt->addFunc("delay",    scm_delay);
+    script->addFunc("io-set",   scm_io_set);
+    script->addFunc("io-clear", scm_io_clear);
+    script->addFunc("io-read",  scm_io_read);
+    script->addFunc("spi",      scm_spi);
+    script->addFunc("delay",    scm_delay);
 }

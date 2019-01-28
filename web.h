@@ -4,7 +4,6 @@
 #pragma once
 
 #include <curl/curl.h>
-#include "infoitem.h"
 #include "xmlparsesimple.h"
 
 class Web

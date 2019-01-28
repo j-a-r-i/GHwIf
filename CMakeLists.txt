@@ -13,8 +13,8 @@ set(VERSION_MINOR  4           CACHE INTEGER "version number2")
 
 option(HW_LINUX      "build for linux/windows"   ON)
 option(HW_RPI        "build for raspberry pi"    OFF)
-option(SCR_GUILE     "scripting with guile"      OFF)
-option(SCR_SCHEME    "scripting with tinyscheme" ON)
+option(SCR_PYTHON    "scripting with python"     ON)
+option(SCR_SCHEME    "scripting with tinyscheme" OFF)
 option(SCR_LUA       "scripting with lua"        OFF)
 option(USE_SENSORS   "use lmsensors"             ON)
 option(USE_BLUETOOTH "use bluetooth"             OFF)
@@ -74,12 +74,6 @@ else (HW_RPI)
   set(EXTRA_SRCS ${EXTRA_SRCS} main_pc.cpp)
 endif (HW_RPI)
 
-if (SCR_GUILE)
-  list(APPEND EXTRA_INCS /usr/include/guile/2.0)
-  list(APPEND EXTRA_LIBS guile-2.0)
-  list(APPEND EXTRA_SRCS guilescript.cpp)
-endif (SCR_GUILE)
-
 if (SCR_SCHEME)
   list(APPEND EXTRA_SRCS tinyscheme/scheme.c)
   list(APPEND EXTRA_SRCS scmfunctions.cpp scmscript.cpp)
@@ -119,30 +113,51 @@ if (SCR_LUA)
 		    lua/src/lcorolib.c)
 endif (SCR_LUA)
 
-if (USE_LIBUV)
+if (SCR_PYTHON)
+  list(APPEND EXTRA_INCS
+    /usr/include/python2.7)
+  list(APPEND EXTRA_SRCS
+    pyscript.cpp)
+  list(APPEND EXTRA_LIBS
+    python2.7)
+endif (SCR_PYTHON)
+
+if (USE_LIBUV_SOURCES)
   list(APPEND EXTRA_SRCS
     libuv-v1.24.1/src/uv-common.c
     libuv-v1.24.1/src/strscpy.c
     libuv-v1.24.1/src/timer.c
     libuv-v1.24.1/src/inet.c
+    libuv-v1.24.1/src/threadpool.c
     libuv-v1.24.1/src/unix/core.c
+    libuv-v1.24.1/src/unix/async.c
     libuv-v1.24.1/src/unix/linux-core.c
-    libuv-v1.24.1/src/unix/internal.c
     libuv-v1.24.1/src/unix/loop.c
     libuv-v1.24.1/src/unix/udp.c
     libuv-v1.24.1/src/unix/tcp.c
     libuv-v1.24.1/src/unix/thread.c
     libuv-v1.24.1/src/unix/poll.c
+    libuv-v1.24.1/src/unix/signal.c
+    libuv-v1.24.1/src/unix/process.c
     libuv-v1.24.1/src/unix/tty.c
     libuv-v1.24.1/src/unix/pipe.c
     libuv-v1.24.1/src/unix/stream.c
+    libuv-v1.24.1/src/unix/linux-syscalls.c
+    libuv-v1.24.1/src/unix/linux-inotify.c
     libuv-v1.24.1/src/unix/sysinfo-memory.c
     )
   list(APPEND EXTRA_INCS
+    libuv-v1.24.1/include
     libuv-v1.24.1/src)
   list(APPEND EXTRA_LIBS
     pthread)
-endif (USE_LIBUV)
+endif (USE_LIBUV_SOURCES)
+
+if (USE_LIBUV)
+  list(APPEND EXTRA_LIBS
+    uv
+    pthread)
+endif (USE_LIBUV)  
 
 if (USE_BLUETOOTH)
   list(APPEND EXTRA_SRCS btooth.cpp)
@@ -175,7 +190,6 @@ endif (HW_LINUX)
 
 include_directories("${PROJECT_BINARY_DIR}"
   #  ${CURL_INCLUDE_DIR}
-  libuv-v1.24.1/include
   ${EXPAT_INCLUDE_DIR}
   ../drivers
   rpi
@@ -197,6 +211,7 @@ add_executable(hwif main2.cpp
 		    EventLoop.cpp
 		    EventLoopSelect.cpp
 		    infoitem.cpp
+		    external/sqlite3.c
 		    ${EXTRA_SRCS}
 )
 
@@ -206,7 +221,7 @@ target_link_libraries(hwif
   ${EXPAT_LIBRARIES}
   curl
   tidy
-  sqlite3
   ssh
+  dl  # for sqlite3
   ${EXTRA_LIBS}
 )

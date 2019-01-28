@@ -15,7 +15,8 @@
 
 #cmakedefine HW_RPI
 #cmakedefine HW_LINUX
-#cmakedefine SCR_GUILE
+//#cmakedefine SCR_GUILE
+#cmakedefine SCR_PYTHON
 #cmakedefine SCR_SCHEME
 #cmakedefine SCR_LUA
 #cmakedefine USE_SENSORS

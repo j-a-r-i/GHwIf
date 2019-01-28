@@ -57,5 +57,5 @@ public:
 
 private:
     double value;
-	cell *scmValue;
+	pointer scmValue;
 };

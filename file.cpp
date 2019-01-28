@@ -1,4 +1,4 @@
-#include "config.h"
+#include "common.h"
 #ifdef HW_LINUX
   #include <sys/signalfd.h>
   #include <sys/inotify.h>

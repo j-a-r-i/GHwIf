@@ -5,7 +5,6 @@
 
 #include <config.h>
 #include <exception>
-#include "infoitem.h"
 
 #ifdef SCR_GUILE
   #include "libguile.h"
@@ -24,6 +23,13 @@
   }
   typedef int(*foreign_func)(lua_State *l);
 #endif
+#ifdef SCR_PYTHON
+  #include <Python.h>
+  typedef PyObject *(*foreign_func)(PyObject *clss, PyObject *args);
+  typedef PyObject* pointer;
+#endif
+
+#include "infoitem.h"
 
 //------------------------------------------------------------------------------
 class IPluginScript
@@ -33,7 +39,7 @@ public:
     virtual void eval(std::string& line) = 0;
     virtual void load(const char *filename) = 0;
     virtual void add(const char *name, foreign_func func) = 0;
-	virtual pointer add(const char *name, double value) = 0;
+    virtual pointer add(const char *name, double value) = 0;
 };
 
 //------------------------------------------------------------------------------
@@ -50,11 +56,14 @@ public:
 #ifdef SCR_SCHEME
   #include "scmscript.h"
 #endif
-#ifdef SCR_GUILE
+/*#ifdef SCR_GUILE
   #include "guilescript.h"
-#endif
+#endif*/
 #ifdef SCR_LUA
   #include "luascript.h"
+#endif
+#ifdef SCR_PYTHON
+  #include "pyscript.h"
 #endif
 
 //------------------------------------------------------------------------------

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "infoitem.h"
-
 constexpr int HANDLE_ERROR = -1;
 
 //------------------------------------------------------------------------------

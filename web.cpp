@@ -1,8 +1,8 @@
 /******************************************************************************
  * Copyright (C) 2018 Jari Ojanen
  ******************************************************************************/
+#include "common.h"
 #include "web.h"
-#include "config.h"
 #include "xmlparsesimple.h"
 #ifdef HW_LINUX
   #include "htmlparse.h"
