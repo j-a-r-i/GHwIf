@@ -30,27 +30,20 @@ void io_init()
 	std::cout << "io_init" << std::endl;
 }
 
-void io_pin_init(pin_t pin, uint8_t mode)
-{
-	std::cout << "io_pin_init: " << pin << ", " << mode << std::endl;
-}
-
-void io_mode(pin_t, uint8_t mode)
+void pinMode(pin_t, uint8_t mode)
 {
 	std::cout << "io_mode: " << mode << std::endl;
 }
 
-void io_set(pin_t pin)
+void digitalWrite(pin_t pin, uint8_t value)
 {
+    if (value)
 	std::cout << "io_set: " << pin << std::endl;
-}
-
-void io_clear(pin_t pin)
-{
+    else
 	std::cout << "io_clear: " << pin << std::endl;
 }
 
-uint8_t io_read(pin_t pin)
+uint8_t digitaRead(pin_t pin)
 {
 	std::cout << "io_read: " << pin << std::endl;
 	return 0;

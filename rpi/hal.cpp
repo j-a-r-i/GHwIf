@@ -95,7 +95,7 @@ void io_init()
 }
 
 //------------------------------------------------------------------------------
-void io_mode(pin_t pin, uint8_t mode)
+void pinMode(pin_t pin, uint8_t mode)
 {
     INP_GPIO(PINMAP[pin].pin);
     if (mode == IO_MODE_OUTPUT)
@@ -103,19 +103,16 @@ void io_mode(pin_t pin, uint8_t mode)
 }
 
 //------------------------------------------------------------------------------
-void io_set(pin_t pin)
+void digitalWrite(pin_t pin, uint8_t value)
 {
-    GPIO_SET = 1 << (PINMAP[pin].pin);
+    if (value)
+	GPIO_SET = 1 << (PINMAP[pin].pin);
+    else
+	GPIO_CLR = 1 << (PINMAP[pin].pin);
 }
 
 //------------------------------------------------------------------------------
-void io_clear(pin_t pin)
-{
-    GPIO_CLR = 1 << (PINMAP[pin].pin);
-}
-
-//------------------------------------------------------------------------------
-uint8_t io_read(pin_t pin)
+uint8_t digitalRead(pin_t pin)
 {
     if (GET_GPIO(PINMAP[pin].pin))
 	return 1;
