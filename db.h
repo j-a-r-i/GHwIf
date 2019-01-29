@@ -9,7 +9,12 @@ public:
     Database(const char* fname);
     virtual ~Database();
    
-	sqlite3_stmt *Prepare(const char* sql);
+    sqlite3_stmt *Prepare(const char* sql);
+
+    /** prints sqlite version used.
+     */
+    void version();
+    
 private:
     sqlite3 *_db;
 };

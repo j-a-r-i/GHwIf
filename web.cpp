@@ -170,3 +170,8 @@ void Web::onData(const char* str)
     if (verbose)
 	Log::msg("Web::onData", str);
 }
+
+void Web::version()
+{
+    Log::msg("version curl  ", LIBCURL_VERSION);
+}

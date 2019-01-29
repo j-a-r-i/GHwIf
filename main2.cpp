@@ -217,7 +217,11 @@ public:
 
 	query.Handle();
     }
-    
+
+    void version() {
+	web.version();
+	db.version();
+    }
 private:
     Web web;
     Database db;
@@ -239,7 +243,7 @@ void init(Script* script)
     pc_init(script);
 #endif
 
-    script->load(INIT_SCRIPT);
+    script->load(Cfg::get(CfgItem::SCRIPT_FILE));
 }
 
 //------------------------------------------------------------------------------
@@ -253,6 +257,8 @@ int main(int argc, char *argv[])
 	UvStdin stdin1(&script);
 
 	init(&script);
+	rt.version();
+	script.version();
 
 	loop.add(timer1);
 	loop.add(stdin1);
@@ -282,30 +288,8 @@ int main_old(int argc, char *argv[])
 
 #ifdef HW_LINUX
 	scheduler.add(new Disk(script));
-
-    // parse arguments
-    //
-    bool scriptLoaded = false;
-    int  opt;
-    while ((opt = getopt(argc, argv, "f:s:")) != -1) {
-	switch (opt) {
-	case 'f':
-	    script.load(optarg);
-	    scriptLoaded = true;
-	    break;
-	case 's':
-	    Log::msg("set serial port", optarg);
-	    break;
-	default:
-	    Log::msg("usage", "hwif -f filename -s serial_port");
-	    exit(1);
-	}
-    }
-
-    if (!scriptLoaded) { // use the default script
-		script.load(INIT_SCRIPT);
-    }
-#endif  
+#endif
+ 
     // Init 'file' handles
     //
 	EventLoopSelect loop;
@@ -317,8 +301,8 @@ int main_old(int argc, char *argv[])
     loop.add(&fstdin);
     // add callback rt.scr_eval(line);
 
-    FileNotify fnotify(INIT_SCRIPT);
-    loop.add(&fnotify);
+//    FileNotify fnotify(INIT_SCRIPT);
+//    loop.add(&fnotify);
 
     FileSignal fsignal;
     loop.add(&fsignal);

@@ -35,6 +35,12 @@ sqlite3_stmt *Database::Prepare(const char* sql)
     return stmt;
 }
 
+void Database::version()
+{
+    Log::msg("version sqlite", SQLITE_VERSION);
+}
+
+
 Query::Query(Database *db, const char* sql)
 {
     _statement = db->Prepare(sql);

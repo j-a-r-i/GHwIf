@@ -35,8 +35,7 @@
 enum class CfgItem {
     FMI_API = 0,
     STRAVA_API,
-    SCHEME_INIT,
-    SCHEME_SYSTEM,
+    SCRIPT_FILE,
     SERIAL_PORT,
     LOCATION_LAT,
     LOCATION_LON,

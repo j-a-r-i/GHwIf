@@ -33,6 +33,10 @@ public:
 
     void onData(const char* str);
 
+    /** prints curl version used.
+     */
+    void version();
+    
 private:    
     CURL *handle;
     bool verbose;

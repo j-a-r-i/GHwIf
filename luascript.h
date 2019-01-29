@@ -11,8 +11,6 @@ extern "C" {
 #include "lua/lualib.h"
 }
 
-#define INIT_SCRIPT "init.lua"
-
 typedef int (*foreign_func)(lua_State *l);
 
 class LuaScript : public IPluginScript

@@ -44,8 +44,15 @@ void Cfg::init()
 {
     items.insert(std::make_pair(CfgItem::FMI_API,       STR_FMI_API));
     items.insert(std::make_pair(CfgItem::STRAVA_API,    STR_STRAVA_API));
-    items.insert(std::make_pair(CfgItem::SCHEME_INIT,   "lisp/init.scm"));
-    items.insert(std::make_pair(CfgItem::SCHEME_SYSTEM, "lisp/system.scm"));
+#ifdef SCR_SCHEME
+    items.insert(std::make_pair(CfgItem::SCRIPT_FILE,   "lisp/init.scm"));
+#endif
+#ifdef SCR_PYTHON
+    items.insert(std::make_pair(CfgItem::SCRIPT_FILE,   "init.py"));
+#endif
+#ifdef SCR_LUA
+    items.insert(std::make_pair(CfgItem::SCRIPT_FILE,   "init.lua"));
+#endif
     items.insert(std::make_pair(CfgItem::SERIAL_PORT,   "/dev/ttyS0"));
     items.insert(std::make_pair(CfgItem::LOCATION_LAT,  "60.205490"));
     items.insert(std::make_pair(CfgItem::LOCATION_LON,  "24.655899"));
