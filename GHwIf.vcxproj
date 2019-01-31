@@ -32,7 +32,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -65,7 +65,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)libuv-v1.24.1\include;$(SolutionDir)external\Python-2.7.15\Include;$(SolutionDir)external\Python-2.7.15\PC;$(SolutionDir)..\drivers;$(SolutionDir)win;$(SolutionDir)external;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Debug\lib;$(SolutionDir)external\Python-2.7.15\PCbuild;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)Debug;$(SolutionDir)external\Python-2.7.15\PCbuild;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
