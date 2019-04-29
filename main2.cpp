@@ -260,6 +260,8 @@ int main(int argc, char *argv[])
 	rt.version();
 	script.version();
 
+	script.exec("OnTimer");
+
 	loop.add(timer1);
 	loop.add(stdin1);
 

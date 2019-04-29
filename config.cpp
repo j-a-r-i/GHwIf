@@ -48,7 +48,7 @@ void Cfg::init()
     items.insert(std::make_pair(CfgItem::SCRIPT_FILE,   "lisp/init.scm"));
 #endif
 #ifdef SCR_PYTHON
-    items.insert(std::make_pair(CfgItem::SCRIPT_FILE,   "init.py"));
+    items.insert(std::make_pair(CfgItem::SCRIPT_FILE,   "app"));
 #endif
 #ifdef SCR_LUA
     items.insert(std::make_pair(CfgItem::SCRIPT_FILE,   "init.lua"));

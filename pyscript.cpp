@@ -5,6 +5,8 @@ PyScript::PyScript(IRuntime *rt) :
 	module{NULL}
 {
 	//PySys_SetPath("Z:\\work\\GHwIf\\Debug\\Lib");
+	Py_VerboseFlag++;
+	Py_NoSiteFlag++;
 
 	Log::msg("PyPath  ", Py_GetPath());
 	Log::msg("PyScript", "initialize");
@@ -29,10 +31,26 @@ pointer PyScript::add(const char * name, double value)
 
 void PyScript::eval(std::string & line)
 {
+	PyRun_SimpleStringFlags(line.c_str(), NULL);
 }
 
 void PyScript::exec(const char * func)
 {
+	PyObject *fn = PyObject_GetAttrString(module, func);
+
+	if (fn && PyCallable_Check(fn)) {
+		PyObject *value = PyObject_CallObject(fn, NULL);
+		if (value != NULL) {
+			Log::msg("pycall", "return value");
+			Py_DECREF(value);
+		}
+		Py_DECREF(fn);
+	}
+	else {
+		if (PyErr_Occurred())
+			PyErr_Print();
+		Log::err("can not find python function", func);
+	}
 }
 
 void PyScript::load(const char * filename)
