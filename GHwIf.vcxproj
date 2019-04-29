@@ -27,7 +27,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -112,6 +112,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\drivers\hal.cpp" />
     <ClCompile Include="config.cpp" />
     <ClCompile Include="db.cpp" />
     <ClCompile Include="EventLoop.cpp" />
@@ -130,11 +131,11 @@
     <ClCompile Include="xmlparsesimple.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\drivers\hal.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="db.h" />
     <ClInclude Include="EventLoop.h" />
     <ClInclude Include="EventLoopSelect.h" />
-    <ClInclude Include="external\opdefines.h" />
     <ClInclude Include="external\sqlite3.h" />
     <ClInclude Include="file.h" />
     <ClInclude Include="hal_pins.h" />
@@ -146,6 +147,7 @@
     <ClInclude Include="site.h" />
     <ClInclude Include="web.h" />
     <ClInclude Include="win\config.h" />
+    <ClInclude Include="win_hal.h" />
     <ClInclude Include="xmlparsesimple.h" />
   </ItemGroup>
   <ItemGroup>
