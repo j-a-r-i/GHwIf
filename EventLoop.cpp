@@ -101,6 +101,62 @@ void UvEventLoop::add(UvSerial & handler)
 }
 
 //------------------------------------------------------------------------------
+void onConnection(uv_stream_t* server, int status)
+{
+	int res;
+
+	Log::msg("socket", "connection");
+	if (status < 0) {
+		Log::err("socket connection", status);
+		uv_close((uv_handle_t*)client, onClose);
+		return;
+	}
+
+	client = (uv_tcp_t*)malloc(sizeof(uv_tcp_t));
+
+	uv_tcp_init(loop, client);
+
+	res = uv_accept(server, (uv_stream_t*)client);
+	if (res == 0) {
+		uv_read_start((uv_stream_t*)client, alloc_buffer, onRead);
+	}
+	else {
+		uv_close((uv_handle_t*)client, onClose);
+	}
+}
+
+//------------------------------------------------------------------------------
+void UvEventLoop::add(UvTcpServer& server, const char* host, int port)
+{
+	int err;
+	sockaddr_in addr;
+	uv_tcp_t* uv_server = server.getUvHandle();
+
+	err = uv_tcp_init(loop, server.getUvHandle());
+	if (err) {
+		Log::err("uv_tcp_init", err);
+		return;
+	}
+	err = uv_ip4_addr("0.0.0.0", PORT, &addr);
+	if (err) {
+		Log::err("uv_ip4_addr", err);
+		return;
+	}
+
+	err = uv_tcp_bind(&uv_server, (const struct sockaddr*) & addr, 0);
+	if (err) {
+		Log::err("uv_tcp_bind", err);
+		return;
+	}
+
+	err = uv_listen((uv_stream_t*)& uv_server, NUM_CONNECTIONS, onConnection);
+	if (err) {
+		Log::err("uv_tcp_bind", err);
+		return;
+	}
+}
+
+//------------------------------------------------------------------------------
 void UvEventLoop::run()
 {
 	uv_run(loop, UV_RUN_DEFAULT);

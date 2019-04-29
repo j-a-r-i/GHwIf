@@ -75,8 +75,9 @@ private:
 class UvSerial
 {
 public:
-	UvSerial(const char* port) {
-
+	UvSerial(const char* port) :
+		fd{0}
+	{
 	}
 
 	int getHandle() {
@@ -92,6 +93,21 @@ private:
 };
 
 //-----------------------------------------------------------------------------
+class UvTcpServer
+{
+public:
+	UvTcpServer() {
+	}
+
+	uv_tcp_t* getUvHandle() {
+		return &socket;
+	}
+
+private:
+	uv_tcp_t socket;
+};
+
+//-----------------------------------------------------------------------------
 /** libuv based event loop. See https://libuv.org/
  */
 class UvEventLoop : public EventLoop
@@ -103,9 +119,11 @@ public:
 	void add(UvTimer& timer);
 	void add(UvStdin& pstdin);
 	void add(UvSerial& handler);
+	void add(UvTcpServer& server, const char* host, int port);
 
 	void run() override;
 private:
 	uv_loop_t *loop;
 	uv_timer_t timer1;
 };
+
