@@ -119,8 +119,10 @@ uint8_t digitalRead(pin_t pin)
     return 0;
 }
 
+
 //------------------------------------------------------------------------------
-void spi_init(uint8_t port)
+//------------------------------------------------------------------------------
+void RpiSpi::beginTransaction(const SPISettings set)
 {
     //uint8_t mode = SPI_LSB_FIRST | SPI_CPOL | SPI_3WIRE;
     uint8_t mode = SPI_MODE_3;
@@ -128,25 +130,25 @@ void spi_init(uint8_t port)
     uint32_t speed = 500000;
     int ret;
 	
-    fd_spi = open("/dev/spidev0.0", O_RDWR);
-    if (fd_spi <= 0) {
+    fd = open("/dev/spidev0.0", O_RDWR);
+    if (fd <= 0) {
 	Log::err(__FUNCTION__, "open device");
 	return;
     }
 
-    ret = ioctl(fd_spi, SPI_IOC_WR_MODE, &mode);
+    ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
     if (ret == -1) {
 	Log::err(__FUNCTION__, "mode setting");
 	return;
     }
 
-    ret = ioctl(fd_spi, SPI_IOC_WR_BITS_PER_WORD, &bits);
+    ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
     if (ret == -1) {
 	Log::err(__FUNCTION__, "bits setting");
 	return;
     }
 
-    ret = ioctl(fd_spi, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
+    ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
     if (ret == -1) {
 	Log::err(__FUNCTION__, "set max speed");
 	return;
@@ -155,8 +157,11 @@ void spi_init(uint8_t port)
     // SPI_IOC_WR_LSB_FIRST
 }
 
-//------------------------------------------------------------------------------
-uint16_t spi_write(uint8_t port, uint16_t data)
+uint8_t RpiSpi::transfer(uint8_t byte)
+{
+}
+
+uint16_t RpiSpi::transfer16(uint16_t word)
 {
     int ret;
     uint16_t rval = 0;
@@ -172,13 +177,18 @@ uint16_t spi_write(uint8_t port, uint16_t data)
     trans.speed_hz = 500000;
     trans.bits_per_word = 8;
 
-    ret = ioctl(fd_spi, SPI_IOC_MESSAGE(1), &trans);
+    ret = ioctl(fd, SPI_IOC_MESSAGE(1), &trans);
     if (ret == -1) {
 	Log::err(__FUNCTION__, "transfer");
 	return 0;
     }
  
     return rval;
+}
+
+void RpiSpi::endTransaction()
+{
+    close(fd);
 }
 
 

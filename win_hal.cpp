@@ -1,10 +1,8 @@
 // windows implementation of drivers hal layer (see drivers repository)
 //
-#include "hw.h"
-#include "hal.h"
+#include "win_hal.h"
 #include "logger.h"
 #include <iostream>
-#include <Windows.h>
 
 typedef struct uartport
 {
@@ -49,13 +47,19 @@ uint8_t digitaRead(pin_t pin)
 	return 0;
 }
 
-void uart_init(uint8_t port)
+void timer2_init()
 {
-	HANDLE hnd;
+	std::cout << "timer2_init" << std::endl;
+}
+
+// Serial port
+//
+void WinSerial::begin(uint16_t rate)
+{
 	DCB params = { 0 };
 
-	std::cout << "uart_init: " << port << std::endl;
-	hnd = CreateFile(uart[port].port_device,
+	std::cout << "Serial::begin: " << name << std::endl;
+	hnd = CreateFile(name.c_str(),
 		GENERIC_READ | GENERIC_WRITE,
 		0,  // we do not want to share it
 		NULL, // no security
@@ -66,13 +70,13 @@ void uart_init(uint8_t port)
 		return;
 	}
 
-	if (uart[port].realSerial) {
+	if (realSerial) {
 		params.DCBlength = sizeof(params);
 		if (GetCommState(hnd, &params) == 0) {
 			Log::err(__FUNCTION__, "GetCommState");
 			return;
 		}
-		params.BaudRate = CBR_115200;
+		params.BaudRate = rate;
 		params.ByteSize = 8;
 		params.Parity = NOPARITY;
 		params.StopBits = ONESTOPBIT;
@@ -85,14 +89,15 @@ void uart_init(uint8_t port)
 	else {
 		// do something for pipe
 	}
-	uart[port].handle = hnd;
 }
-static void uart_internal_write(uint8_t port, buffer_t *buf)
+
+void WinSerial::write(uint8_t ch)
 {
 	DWORD bytesWritten = 0;
-	if (WriteFile(uart[port].handle,
-		buf->data,
-		buf->size,
+
+	if (WriteFile(hnd,
+		&ch,
+		1,
 		&bytesWritten,
 		NULL) == 0)
 	{
@@ -100,75 +105,15 @@ static void uart_internal_write(uint8_t port, buffer_t *buf)
 		return;
 	}
 
-	if (bytesWritten != buf->size) {
-		Log::err("uart.WriteFile incomplete", (buf->size - bytesWritten));
+	if (bytesWritten != 1) {
+		Log::err("uart.WriteFile incomplete", name.c_str());
 		return;
 	}
 }
-void uart_print(uint8_t port, buffer_t *buf)  // async send command
+
+void WinSerial::end()
 {
-	std::cout << "uart_print: " << port << ", " << buf << std::endl;
-
-	uart_internal_write(port, buf);
-}
-
-void uart_sync(uint8_t port, buffer_t *buf)
-{
-	std::cout << "uart_sync: " << port << ", " << buf << std::endl;
-
-	uart_internal_write(port, buf);
-}
-
-void uart_send(uint8_t port, char ch)    // old version use uart_print
-{
-	std::cout << "uart_send: " << port << ", " << ch << std::endl;
-
-	buffer_t buf;
-
-	buf.data[0] = ch;
-	buf.data[1] = 0;
-	buf.size = 1;
-
-	uart_internal_write(port, &buf);
-}
-
-void uart_sends(uint8_t port, char *buf)
-{
-	std::cout << "uart_sends: " << port << ", " << buf << std::endl;
-
-	buffer_t b;
-
-	strcpy((char*)b.data, buf);
-	b.size = static_cast<uint8_t>(strlen(buf));
-
-	uart_internal_write(port, &b);
-}
-
-void uart_send_nl(uint8_t port)
-{
-	std::cout << "uart_send_nl: " << port << std::endl;
-	buffer_t buf;
-
-	buf.data[0] = '\r';
-	buf.data[1] = '\n';
-	buf.data[2] = 0;
-	buf.size = 2;
-
-	uart_internal_write(port, &buf);
-}
-
-void timer2_init()
-{
-	std::cout << "timer2_init" << std::endl;
-}
-
-void spi_init(uint8_t port)
-{
-	std::cout << "spi_init: " << port << std::endl;
-}
-
-uint16_t spi_write(uint8_t port, uint16_t data)
-{
-	std::cout << "spi_write: " << port << ", " << data << std::endl;
-	return 0;
+	if (CloseHandle(hnd)) {
+		Log::err("uart::Close", name.c_str());
+	}
 }
