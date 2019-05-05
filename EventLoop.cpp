@@ -103,15 +103,16 @@ void UvEventLoop::add(UvSerial & handler)
 //------------------------------------------------------------------------------
 void onConnection(uv_stream_t* server, int status)
 {
-	int res;
-
 	Log::msg("socket", "connection");
 	if (status < 0) {
 		Log::err("socket connection", status);
-		uv_close((uv_handle_t*)client, onClose);
+		///uv_close((uv_handle_t*)client, onClose);
 		return;
 	}
 
+	UvTcpServer* uvSrv = static_cast<UvTcpServer*>(server->data);
+	uvSrv->onConnection();
+	/*
 	client = (uv_tcp_t*)malloc(sizeof(uv_tcp_t));
 
 	uv_tcp_init(loop, client);
@@ -123,6 +124,89 @@ void onConnection(uv_stream_t* server, int status)
 	else {
 		uv_close((uv_handle_t*)client, onClose);
 	}
+	*/
+}
+
+//------------------------------------------------------------------------------
+void onRead(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
+{
+	if (nread < 0) {
+		Log::err("onRead", nread);
+		return;
+	}
+	buf->base[nread] = 0;
+
+	Log::msg("onRead", buf->base);
+
+	UvTcpServer* uvSrv = static_cast<UvTcpServer*>(stream->data);
+	uvSrv->onRead();
+
+	free(buf->base);
+}
+
+void onClose(uv_handle_t* handle)
+{
+	Log::msg("socket", "close");
+
+	//free(client);
+}
+
+void onWrite(uv_write_t* req, int status) 
+{
+	Log::msg("onWrite", status);
+
+	uv_close((uv_handle_t*)req->handle, onClose);
+}
+//------------------------------------------------------------------------------
+const char* RESPONSE =
+"HTTP/1.1 200 OK\r\n" \
+"Content-Type: text/plain\r\n" \
+"Content-Length: 12\r\n" \
+"\r\n" \
+"hello world\n";
+
+
+
+void UvTcpServer::onConnection()
+{
+	int err;
+
+	if (clientConnected) {
+		Log::err("UvTcpServer", "only one client allowed!");
+		return;
+	}
+
+	clientConnected = true;
+
+	err = uv_tcp_init(socket.loop, &client);
+	if (err) {
+		Log::err("uv_tcp_init (client)", err);
+		return;
+	}
+	client.data = this;
+
+	err = uv_accept((uv_stream_t*)&socket, (uv_stream_t*)&client);
+	if (err == 0) {
+		uv_read_start((uv_stream_t*)&client, alloc_buffer, ::onRead);
+	}
+	else {
+		Log::err("uv_accept", err);
+		uv_close((uv_handle_t*)&client, ::onClose);
+	}
+}
+
+void UvTcpServer::onRead()
+{
+	Log::err("server::onRead", 0);
+	//uv_close((uv_handle_t*)&client, onClose);
+	//clientConnected = false;
+
+	static uv_buf_t uvbuf;
+
+	uvbuf.base = const_cast<char*>(RESPONSE);
+	uvbuf.len = sizeof(RESPONSE);
+
+	uv_write(&write, (uv_stream_t*)& client, &uvbuf, 1, onWrite);
 }
 
 //------------------------------------------------------------------------------
@@ -130,26 +214,30 @@ void UvEventLoop::add(UvTcpServer& server, const char* host, int port)
 {
 	int err;
 	sockaddr_in addr;
-	uv_tcp_t* uv_server = server.getUvHandle();
 
 	err = uv_tcp_init(loop, server.getUvHandle());
 	if (err) {
-		Log::err("uv_tcp_init", err);
+		Log::err("uv_tcp_init (server)", err);
 		return;
 	}
-	err = uv_ip4_addr("0.0.0.0", PORT, &addr);
+/*	err = uv_tcp_init(loop, server.getClientHandle());
+	if (err) {
+		Log::err("uv_tcp_init (client)", err);
+		return;
+	}*/
+	err = uv_ip4_addr(host, port, &addr);
 	if (err) {
 		Log::err("uv_ip4_addr", err);
 		return;
 	}
 
-	err = uv_tcp_bind(&uv_server, (const struct sockaddr*) & addr, 0);
+	err = uv_tcp_bind(server.getUvHandle(), (const struct sockaddr*) & addr, 0);
 	if (err) {
 		Log::err("uv_tcp_bind", err);
 		return;
 	}
 
-	err = uv_listen((uv_stream_t*)& uv_server, NUM_CONNECTIONS, onConnection);
+	err = uv_listen((uv_stream_t*)server.getUvHandle(), NUM_CONNECTIONS, onConnection);
 	if (err) {
 		Log::err("uv_tcp_bind", err);
 		return;

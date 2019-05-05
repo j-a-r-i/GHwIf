@@ -96,15 +96,31 @@ private:
 class UvTcpServer
 {
 public:
-	UvTcpServer() {
+	UvTcpServer() :
+		clientConnected{false}
+	{
+		socket.data = this;
 	}
 
 	uv_tcp_t* getUvHandle() {
 		return &socket;
 	}
+	uv_tcp_t* getClientHandle() {
+		return &client;
+	}
 
+	void onConnection();
+	void onRead();
 private:
 	uv_tcp_t socket;
+
+	/** Note: current implementation support only one client at a time!
+	 */
+	uv_tcp_t client;
+
+	uv_write_t write;
+
+	bool clientConnected;
 };
 
 //-----------------------------------------------------------------------------

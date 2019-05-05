@@ -255,6 +255,7 @@ int main(int argc, char *argv[])
 	UvEventLoop loop;
 	UvTimer timer1(5000);
 	UvStdin stdin1(&script);
+	UvTcpServer server;
 
 	init(&script);
 	rt.version();
@@ -264,6 +265,7 @@ int main(int argc, char *argv[])
 
 	loop.add(timer1);
 	loop.add(stdin1);
+	loop.add(server, "0.0.0.0", 5005);
 
 	loop.run();
 }
