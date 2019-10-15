@@ -6,24 +6,11 @@
 #include <curl/curl.h>
 #include "xmlparsesimple.h"
 
-class Web
-{
-public:
-    enum Site {
-	NASDAQ_HIST,
-	NASDAQ_LAST,
-	FMI,
-	STRAVA,
-	SUNRISE,
-	CUSTOM
-    };
-    
+class Web {
+public:   
     Web(bool verbose = false);
 
     virtual ~Web();
-
-    void setSite(Site s, int arg);
-    void setSite(const char* site, const char *tag);
     
     void setVerbose(bool val) {
 	verbose = val;
@@ -36,10 +23,39 @@ public:
     /** prints curl version used.
      */
     void version();
-    
+
+protected:
+	BaseParse* parser;
+	std::string url;
+
 private:    
     CURL *handle;
     bool verbose;
-    BaseParse *parser;
-    std::string url;
+};
+
+class WebFmi : public Web {
+public:
+	WebFmi();
+};
+
+class WebSunrise : public Web {
+public:
+	WebSunrise();
+};
+
+class WebStrava : public Web {
+public:
+	WebStrava();
+};
+
+class WebNasdaqHist : public Web {
+public:
+	static const int INST_NOKIA = 24311;
+
+	WebNasdaqHist(int instrument);
+};
+
+class WebNasdaqLast : public Web {
+public:
+	WebNasdaqLast(int instrument);
 };

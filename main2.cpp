@@ -198,20 +198,6 @@ public:
     {
     }
     
-    void webLoad(int i, int arg) {
-	web.setSite((Web::Site)i, arg);
-	web();
-    }
-
-    void webGet(const char* url) {
-	web.setSite(url, "a");
-	web();
-    }
-
-    void webVerbose(bool value) {
-	web.setVerbose(value);
-    }
-
     void dbQuery(const char* sql) {
 	Query query(&db, sql);
 

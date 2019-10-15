@@ -14,7 +14,7 @@
 #define SITE_FMI     "data.fmi.fi"
 #define SITE_STRAVA  "www.strava.com"
 #define SITE_SUNRISE "api.sunrise-sunset.org"
-#define SITE_DWEET   "dweet.io"
+//#define SITE_DWEET   "dweet.io"
 
 size_t curl_write(void *buffer, size_t size, size_t nmemb, void *user_data)
 {
@@ -40,95 +40,15 @@ Web::Web(bool v)
 Web::~Web()
 {
     if (parser != NULL)
-	delete parser;
+		delete parser;
     
     if (handle != NULL)
-	curl_easy_cleanup(handle);
+		curl_easy_cleanup(handle);
     
     curl_global_cleanup();
 }
 
 #define SEP "&"
-
-void Web::setSite(Site site, int siteArg)
-{
-    std::ostringstream os;
-
-    if (site == NASDAQ_HIST) {
-	os << "https://" << SITE_NASDAQ
-	   << "/webproxy/DataFeedProxy.aspx?"
-	   << "Subsystem="     << "History" << SEP
-	   << "Action=Get"     << "DataSeries" << SEP
-	   << "Instrument=HEX" << siteArg << SEP
-	   << "FromDate="      << "2018-09-24";
-
-	parser = new XmlParseTag("hi", "cp");
-    }
-//SiteArg 24311 = NOKIA
-    
-    else if (site == NASDAQ_LAST) {
-	os << "https://" << SITE_NASDAQ
-	   << "/webproxy/DataFeedProxy.aspx?"
-	   << "Subsystem="     << "Prices" << SEP
-	   << "Action=Get"     << "Instrument" << SEP
-	   << "Instrument=HEX" << siteArg;
-
-	parser = new XmlParseTag("inst", "lsp");
-    }
-
-    else if (site == FMI) {
-	os << "http://" << SITE_FMI
-	   << "/fmi-apikey/"   << Cfg::get(CfgItem::FMI_API) << "/wfs?"
-	   << "request="        << "getFeature" << SEP
-	   << "storedquery_id=" << "fmi::forecast::hirlam::surface::point::multipointcoverage" << SEP
-	   << "place="          << "oittaa" << SEP
-	   << "parameters="     << "temperature,dewpoint,windspeedms,precipitation1h";
-
-	parser = new XmlParseTag("hi", "cp");
-    }
-
-    else if (site == STRAVA) {
-	os << "https://" << SITE_STRAVA 
-	   << "/api/v3/athlete/activities?"
-	   << "page="   << 1 << SEP
-	   << "access_token=" << Cfg::get(CfgItem::STRAVA_API) << SEP;
-
-	parser = new DummyParse();
-    }
-
-    else if (site == SUNRISE) {
-	os << "https://" << SITE_SUNRISE
-	   << "/json?"
-	   << "lat=" << Cfg::get(CfgItem::LOCATION_LAT) << SEP
-	   << "lng=" << Cfg::get(CfgItem::LOCATION_LON);
-	    //<< "date=" << "today";
-
-	parser = new DummyParse();
-    }
-
-    else {
-	Log::err("web", "invalid site");
-	url = "http://none";
-	return;
-    }
-    
-#if 0
-    os << "https://" << SITE_DWEET
-       << "/dweet/for/ha.joj.home?"
-       << "foo=" << 1 << SEP
-       << "bar=" << 2 << SEP;
-#endif
-
-    url = os.str();
-}
-
-void Web::setSite(const char* site, const char *tag)
-{
-    url = site;
-#ifdef HW_LINUX
-    parser = new HtmlParse();
-#endif
-}
 
 
 void Web::operator()()
@@ -165,7 +85,7 @@ void Web::operator()()
 void Web::onData(const char* str)
 {
     if (parser != NULL)
-	parser->parse(str);
+		parser->parse(str);
 
     if (verbose)
 	Log::msg("Web::onData", str);
@@ -174,4 +94,98 @@ void Web::onData(const char* str)
 void Web::version()
 {
     Log::msg("version curl  ", LIBCURL_VERSION);
+}
+
+//-----------------------------------------------------------------
+WebFmi::WebFmi() :
+	Web(false)
+{
+	std::ostringstream os;
+
+	os << "http://" << SITE_FMI
+		<< "/fmi-apikey/" << Cfg::get(CfgItem::FMI_API) << "/wfs?"
+		<< "request=" << "getFeature" << SEP
+		<< "storedquery_id=" << "fmi::forecast::hirlam::surface::point::multipointcoverage" << SEP
+		<< "place=" << "oittaa" << SEP
+		<< "parameters=" << "temperature,dewpoint,windspeedms,precipitation1h";
+	url = os.str();
+
+	parser = new XmlParseTag("hi", "cp");
+}
+
+//-----------------------------------------------------------------
+WebSunrise::WebSunrise() :
+	Web(false)
+{
+	std::ostringstream os;
+
+	os << "https://" << SITE_SUNRISE
+		<< "/json?"
+		<< "lat=" << Cfg::get(CfgItem::LOCATION_LAT) << SEP
+		<< "lng=" << Cfg::get(CfgItem::LOCATION_LON);
+	//<< "date=" << "today";
+	url = os.str();
+
+	parser = new DummyParse();
+}
+
+//-----------------------------------------------------------------
+WebStrava::WebStrava() :
+	Web(false)
+{
+	std::ostringstream os;
+
+	os << "https://" << SITE_STRAVA
+		<< "/api/v3/athlete/activities?"
+		<< "page=" << 1 << SEP
+		<< "access_token=" << Cfg::get(CfgItem::STRAVA_API) << SEP;
+	url = os.str();
+
+	parser = new DummyParse();
+}
+
+//-----------------------------------------------------------------
+WebStrava::WebStrava() :
+	Web(false)
+{
+	std::ostringstream os;
+
+	os << "https://" << SITE_STRAVA
+		<< "/api/v3/athlete/activities?"
+		<< "page=" << 1 << SEP
+		<< "access_token=" << Cfg::get(CfgItem::STRAVA_API) << SEP;
+	url = os.str();
+
+	parser = new DummyParse();
+}
+
+//-----------------------------------------------------------------
+WebNasdaqHist::WebNasdaqHist(int instrument) :
+	Web(false)
+{
+	std::ostringstream os;
+	os << "https://" << SITE_NASDAQ
+		<< "/webproxy/DataFeedProxy.aspx?"
+		<< "Subsystem=" << "History" << SEP
+		<< "Action=Get" << "DataSeries" << SEP
+		<< "Instrument=HEX" << instrument << SEP
+		<< "FromDate=" << "2019-09-24";
+	url = os.str();
+
+	parser = new XmlParseTag("hi", "cp");
+}
+
+//-----------------------------------------------------------------
+WebNasdaqLast::WebNasdaqLast(int instrument) :
+	Web(false)
+{
+	std::ostringstream os;
+	os << "https://" << SITE_NASDAQ
+		<< "/webproxy/DataFeedProxy.aspx?"
+		<< "Subsystem=" << "Prices" << SEP
+		<< "Action=Get" << "Instrument" << SEP
+		<< "Instrument=HEX" << siteArg;
+	url = os.str();
+
+	parser = new XmlParseTag("inst", "lsp");
 }
