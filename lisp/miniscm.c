@@ -25,6 +25,7 @@
  *--
  */ 
 
+#define OWN_REPL
 /* #define VERBOSE */	/* define this if you want verbose GC */
 #define	AVOID_HACK_LOOP	/* define this if your compiler is poor
 			 * enougth to complain "do { } while (0)"
@@ -879,7 +880,10 @@ cell *opexe_read(uint8_t op)
 			}
 			else
 #endif
+			{
+			    printf("(level=%d)", par_level);
 			    return s_return(non_alloc_rev(NIL, args));
+			}
 		} else if (tok == TOK_DOT) {
 			s_save(OP_RDDOT, args, NIL);
 			tok = token();
@@ -906,15 +910,44 @@ cell *opexe_read(uint8_t op)
 	return T;
 }
 
+
+void scm_print(cell *arg)
+{
+    print_flag = 1;
+
+    printf("_%X_", arg->flag);
+    
+    if (arg->flag != T_PAIR) {
+	printatom(arg, print_flag);
+	return;
+    }
+    else if (car(args) == QUOTE && ok_abbrev(cdr(args))) {
+	gScheme.print("'");
+//	args = cadr(args);
+    }
+    else {
+	gScheme.print("(");
+	scm_print(car(arg));
+
+	scm_print(cdr(arg));
+	gScheme.print(")");
+//	s_save(OP_P1LIST, cdr(args), NIL);
+//	args = car(args);
+//	s_goto(OP_P0LIST);
+    }
+}
+
 cell *opexe_print(uint8_t op)
 {
     register cell *x;
+    static int parLevel = 0;
     
 	switch (op) {
 	case OP_VALUEPRINT:	/* print evalution result */
 		print_flag = 1;
+		parLevel = 0;
 		args = value;
-		s_save(OP_T0LVL, NIL, NIL);
+		//s_save(OP_GC, NIL, NIL);
 		s_goto(OP_P0LIST);
 
 	case OP_P0LIST:
@@ -926,7 +959,8 @@ cell *opexe_print(uint8_t op)
 			args = cadr(args);
 			s_goto(OP_P0LIST);
 		} else {
-			gScheme.print("(");
+ 			gScheme.print("(");
+			parLevel++;
 			s_save(OP_P1LIST, cdr(args), NIL);
 			args = car(args);
 			s_goto(OP_P0LIST);
@@ -944,6 +978,10 @@ cell *opexe_print(uint8_t op)
 				printatom(args, print_flag);
 			}
 			gScheme.print(")");
+			parLevel--;
+			if (parLevel == 0) {
+			    return NIL;
+			}
 			return s_return(T);
 		}
 	    
@@ -1889,10 +1927,11 @@ int main()
 	Eval_Cycle(OP_READ);
 	code = value;
 
-	Eval_Cycle(OP_EVAL);
+	//Eval_Cycle(OP_EVAL);
 
 	printf("\nPRINT------------\n");
-	Eval_Cycle(OP_VALUEPRINT);
+	//Eval_Cycle(OP_VALUEPRINT);
+	scm_print(value);
     }
 #else
     Eval_Cycle(OP_T0LVL);    

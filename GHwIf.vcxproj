@@ -64,7 +64,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)libuv-v1.24.1\include;$(SolutionDir)external\Python-2.7.15\Include;$(SolutionDir)external\Python-2.7.15\PC;$(SolutionDir)..\drivers;$(SolutionDir)win;$(SolutionDir)external;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)libuv-v1.24.1\include;$(SolutionDir)external\Python-2.7.15\Include;$(SolutionDir)external\expat-2.2.6;$(SolutionDir)external\Python-2.7.15\PC;$(SolutionDir)..\drivers;$(SolutionDir)win;$(SolutionDir)external;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Debug;$(SolutionDir)external\Python-2.7.15\PCbuild;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -154,6 +154,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="external\expat-2.2.6\expat.vcxproj">
+      <Project>{45a5074d-66e8-44a4-a03f-018027b528d6}</Project>
+    </ProjectReference>
     <ProjectReference Include="libuv-v1.24.1\uv\uv.vcxproj">
       <Project>{9e89bc08-3c05-4da9-ab2e-aaff02963d6e}</Project>
     </ProjectReference>

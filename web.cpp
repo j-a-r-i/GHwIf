@@ -10,6 +10,8 @@
 #include "logger.h"
 #include <sstream>
 
+//#define USE_CURL
+
 #define SITE_NASDAQ  "www.nasdaqomxnordic.com"
 #define SITE_FMI     "data.fmi.fi"
 #define SITE_STRAVA  "www.strava.com"
@@ -28,10 +30,13 @@ size_t curl_write(void *buffer, size_t size, size_t nmemb, void *user_data)
 
 Web::Web(bool v) 
 {
+#ifdef USE_CURL
     curl_global_init(CURL_GLOBAL_ALL);
 
     handle = curl_easy_init();
-
+#else
+	handle = NULL;
+#endif
     parser = NULL;
 
     verbose = v;
@@ -40,12 +45,14 @@ Web::Web(bool v)
 Web::~Web()
 {
     if (parser != NULL)
-	delete parser;
-    
+		delete parser;
+
+#ifdef USE_CURL    
     if (handle != NULL)
-	curl_easy_cleanup(handle);
+		curl_easy_cleanup(handle);
     
     curl_global_cleanup();
+#endif
 }
 
 #define SEP "&"
@@ -134,14 +141,15 @@ void Web::setSite(const char* site, const char *tag)
 void Web::operator()()
 {
     if (handle == NULL) {
-	Log::err("Web::read", "CURL not initialized");
-	return;
+		Log::err("Web::read", "CURL not initialized");
+		return;
     }
     if (parser == NULL) {
-	Log::err("Web::read", "parser is not initialized");
-	return;
+		Log::err("Web::read", "parser is not initialized");
+		return;
     }
 
+#ifdef USE_CURL
     CURLcode result;
 
     Log::msg("web", url.c_str());
@@ -154,12 +162,13 @@ void Web::operator()()
     parser->begin();
     result = curl_easy_perform(handle);
     if (result != CURLE_OK) {
-	Log::err("Web::read", curl_easy_strerror(result));
+		Log::err("Web::read", curl_easy_strerror(result));
     }
     parser->end();
     Log::value("result", parser->result());
     delete parser;
     parser = NULL;
+#endif
 }
 
 void Web::onData(const char* str)

@@ -148,6 +148,8 @@ void onClose(uv_handle_t* handle)
 {
 	Log::msg("socket", "close");
 
+	UvTcpServer* uvSrv = static_cast<UvTcpServer*>(handle->data);
+	uvSrv->onClose();
 	//free(client);
 }
 
@@ -197,7 +199,7 @@ void UvTcpServer::onConnection()
 
 void UvTcpServer::onRead()
 {
-	Log::err("server::onRead", 0);
+	Log::msg("server::onRead", 0);
 	//uv_close((uv_handle_t*)&client, onClose);
 	//clientConnected = false;
 
@@ -207,6 +209,13 @@ void UvTcpServer::onRead()
 	uvbuf.len = sizeof(RESPONSE);
 
 	uv_write(&write, (uv_stream_t*)& client, &uvbuf, 1, onWrite);
+}
+
+void UvTcpServer::onClose()
+{
+	Log::err("server::onClose", 0);
+
+	clientConnected = false;
 }
 
 //------------------------------------------------------------------------------

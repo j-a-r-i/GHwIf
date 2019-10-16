@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+//#ifdef __cplusplus
+//extern "C" {
+//#endif
 
 /*
  * Default values for #define'd symbols
@@ -121,9 +121,9 @@ void scheme_register_foreign_func(scheme * sc,
                                   const char *name,
                                   foreign_func func);
 
-#ifdef __cplusplus
-}
-#endif
+//#ifdef __cplusplus
+//}
+//#endif
 
 /*
 Local variables:

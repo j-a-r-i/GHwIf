@@ -97,9 +97,10 @@ class UvTcpServer
 {
 public:
 	UvTcpServer() :
-		clientConnected{false}
+		clientConnected{ false }
 	{
 		socket.data = this;
+		write.data = this;
 	}
 
 	uv_tcp_t* getUvHandle() {
@@ -111,6 +112,7 @@ public:
 
 	void onConnection();
 	void onRead();
+	void onClose();
 private:
 	uv_tcp_t socket;
 
@@ -120,6 +122,8 @@ private:
 
 	uv_write_t write;
 
+	/** Make sure there is only one client at a time.
+	 */
 	bool clientConnected;
 };
 
