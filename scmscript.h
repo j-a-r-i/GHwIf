@@ -30,6 +30,8 @@ public:
 
     void mainLoop();
 
+	void version();
+
 private:
     scheme scm;
 };

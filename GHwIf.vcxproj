@@ -123,12 +123,12 @@
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="main2.cpp" />
     <ClCompile Include="main_pc.cpp" />
-    <ClCompile Include="pyscript.cpp" />
+    <ClCompile Include="scmfunctions.cpp" />
+    <ClCompile Include="scmscript.cpp" />
     <ClCompile Include="site.cpp" />
     <ClCompile Include="sun.cpp" />
     <ClCompile Include="web.cpp" />
     <ClCompile Include="win_hal.cpp" />
-    <ClCompile Include="xmlparsesimple.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\drivers\hal.h" />
@@ -143,12 +143,11 @@
     <ClInclude Include="infoitem.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="main_pc.h" />
-    <ClInclude Include="pyscript.h" />
+    <ClInclude Include="scmscript.h" />
     <ClInclude Include="site.h" />
     <ClInclude Include="web.h" />
     <ClInclude Include="win\config.h" />
     <ClInclude Include="win_hal.h" />
-    <ClInclude Include="xmlparsesimple.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -160,16 +159,15 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="packages\expat.v141.2.2.6\build\native\expat.v141.targets" Condition="Exists('packages\expat.v141.2.2.6\build\native\expat.v141.targets')" />
-    <Import Project="packages\openssl-vc141-static-x86_64.1.0.2\build\native\openssl-vc141-static-x86_64.targets" Condition="Exists('packages\openssl-vc141-static-x86_64.1.0.2\build\native\openssl-vc141-static-x86_64.targets')" />
+    <Import Project="packages\expat.v141.2.2.9\build\native\expat.v141.targets" Condition="Exists('packages\expat.v141.2.2.9\build\native\expat.v141.targets')" />
     <Import Project="packages\curl-vc141-dynamic-x86_64.7.59.0\build\native\curl-vc141-dynamic-x86_64.targets" Condition="Exists('packages\curl-vc141-dynamic-x86_64.7.59.0\build\native\curl-vc141-dynamic-x86_64.targets')" />
+    <Import Project="packages\expat.v141.2.2.9\build\native\expat.v141.targets" Condition="Exists('packages\expat.v141.2.2.9\build\native\expat.v141.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('packages\expat.v141.2.2.6\build\native\expat.v141.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\expat.v141.2.2.6\build\native\expat.v141.targets'))" />
-    <Error Condition="!Exists('packages\openssl-vc141-static-x86_64.1.0.2\build\native\openssl-vc141-static-x86_64.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\openssl-vc141-static-x86_64.1.0.2\build\native\openssl-vc141-static-x86_64.targets'))" />
     <Error Condition="!Exists('packages\curl-vc141-dynamic-x86_64.7.59.0\build\native\curl-vc141-dynamic-x86_64.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\curl-vc141-dynamic-x86_64.7.59.0\build\native\curl-vc141-dynamic-x86_64.targets'))" />
+    <Error Condition="!Exists('packages\expat.v141.2.2.9\build\native\expat.v141.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\expat.v141.2.2.9\build\native\expat.v141.targets'))" />
   </Target>
 </Project>

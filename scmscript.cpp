@@ -131,3 +131,8 @@ void ScmScript::mainLoop()
     }
 #endif
 }
+
+void ScmScript::version()
+{
+
+}

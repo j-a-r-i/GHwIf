@@ -1,8 +1,9 @@
 #pragma once
 
 #include <string>
+#ifdef USE_EXPAT
 #include <expat.h>
-
+#endif
 //------------------------------------------------------------------------------
 class BaseParse
 {
@@ -49,7 +50,9 @@ protected:
     std::string lastValue;
 
 private:
-    XML_Parser parser;    
+#ifdef USE_EXPAT
+    XML_Parser parser;
+#endif
 };
 
 //------------------------------------------------------------------------------

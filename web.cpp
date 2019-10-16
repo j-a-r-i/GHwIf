@@ -145,21 +145,6 @@ WebStrava::WebStrava() :
 }
 
 //-----------------------------------------------------------------
-WebStrava::WebStrava() :
-	Web(false)
-{
-	std::ostringstream os;
-
-	os << "https://" << SITE_STRAVA
-		<< "/api/v3/athlete/activities?"
-		<< "page=" << 1 << SEP
-		<< "access_token=" << Cfg::get(CfgItem::STRAVA_API) << SEP;
-	url = os.str();
-
-	parser = new DummyParse();
-}
-
-//-----------------------------------------------------------------
 WebNasdaqHist::WebNasdaqHist(int instrument) :
 	Web(false)
 {
@@ -184,7 +169,7 @@ WebNasdaqLast::WebNasdaqLast(int instrument) :
 		<< "/webproxy/DataFeedProxy.aspx?"
 		<< "Subsystem=" << "Prices" << SEP
 		<< "Action=Get" << "Instrument" << SEP
-		<< "Instrument=HEX" << siteArg;
+		<< "Instrument=HEX" << instrument;
 	url = os.str();
 
 	parser = new XmlParseTag("inst", "lsp");

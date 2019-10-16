@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.136
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29215.179
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GHwIf", "GHwIf.vcxproj", "{E91656D0-0948-4096-9870-1B3EF055AB2B}"
 EndProject
@@ -10,6 +10,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lua", "lua\lua.vcxproj", "{3ACC3C4B-C493-432A-AD70-ECF02AB467B6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uv", "libuv-v1.24.1\uv\uv.vcxproj", "{9E89BC08-3C05-4DA9-AB2E-AAFF02963D6E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1479E2FC-A33E-4D40-8170-4B09A54F369C}"
+	ProjectSection(SolutionItems) = preProject
+		external\scheme.cpp = external\scheme.cpp
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
