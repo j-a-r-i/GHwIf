@@ -189,6 +189,25 @@ private:
 	std::vector<std::unique_ptr<ISchedulerEvent>> items;
 };
 
+
+class TestCommand : public ICommand
+{
+public:
+    TestCommand() :
+	name { "tst" }
+    {
+    }
+    const std::string& getName() {
+	return name;
+    }
+
+    void execute() {
+	std::cout << "test command" << std::endl;
+    }
+private:
+    std::string name;
+};
+    
 //------------------------------------------------------------------------------
 class Runtime : public IRuntime
 {
@@ -196,22 +215,17 @@ public:
     Runtime() :
 	db(Cfg::get(CfgItem::SQLITE_DB))
     {
+	commands.push_back(std::unique_ptr<ICommand>(new TestCommand));
+    }
+
+    void command(const char *name) {
+	for (auto& cmd : commands) {
+	    if (cmd->getName() == name) {
+		cmd->execute();
+	    }
+	}
     }
     
-    void webLoad(int i, int arg) {
-	web.setSite((Web::Site)i, arg);
-	web();
-    }
-
-    void webGet(const char* url) {
-	web.setSite(url, "a");
-	web();
-    }
-
-    void webVerbose(bool value) {
-	web.setVerbose(value);
-    }
-
     void dbQuery(const char* sql) {
 	Query query(&db, sql);
 
@@ -225,6 +239,7 @@ public:
 private:
     Web web;
     Database db;
+    std::vector<std::unique_ptr<ICommand>> commands;
 };
 
 

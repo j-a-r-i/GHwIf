@@ -9,7 +9,7 @@ IRuntime *get_runtime(scheme* scm)
 	return rt;
 }
 
-cell *scm_web_load(scheme *scm, cell *args)
+/*cell *scm_web_load(scheme *scm, cell *args)
 {
     try {
 		IRuntime *rt = get_runtime(scm);
@@ -50,7 +50,22 @@ cell *scm_web_verbose(scheme *scm, cell *args)
 		Log::err(__FUNCTION__, e.what());
     }
     return scm->NIL;
+}*/
+
+cell *scm_command(scheme *scm, cell *args)
+{
+    try {
+		IRuntime *rt = get_runtime(scm);
+		char *s1 = arg_string(scm, args);
+
+		rt->command(s1);
+    }
+    catch (TheException& e) {
+		Log::err(__FUNCTION__, e.what());
+    }
+    return scm->NIL;
 }
+
 
 cell *scm_read_all(scheme *scm, cell *args)
 {
@@ -85,7 +100,7 @@ cell *scm_db_query(scheme *scm, cell *args)
 cell *scm_tst(scheme *scm, cell *args)
 {
     try {
-		printf("%d\n", ((pair_car(args)->flag) & 0x1F));
+		printf("%d\n", ((pair_car(args)->_flag) & 0x1F));
     }
     catch (TheException& e) {
 		Log::err(__FUNCTION__, e.what());
@@ -97,9 +112,10 @@ cell *scm_tst(scheme *scm, cell *args)
 //------------------------------------------------------------------------------
 void scm_func_init(IPluginScript *script)
 {
-    script->add("web-load",    scm_web_load);
-    script->add("web-get",     scm_web_get);
-    script->add("web-verbose", scm_web_verbose);
+//    script->add("web-load",    scm_web_load);
+//    script->add("web-get",     scm_web_get);
+//    script->add("web-verbose", scm_web_verbose);
+    script->add("cmd",         scm_command);
     script->add("read-all",    scm_read_all);
     script->add("db-query",    scm_db_query);
     script->add("tst",         scm_tst);
