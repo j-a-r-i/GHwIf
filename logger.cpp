@@ -15,6 +15,11 @@ void Log::err(const char* module, int code)
     std::cout << "ERROR " << module << ": " << code << std::endl;
 }
 
+void Log::msg(const char* msg)
+{
+    std::cout << msg << std::endl;
+}
+
 void Log::msg(const char* module, const char* msg)
 {
     std::cout << "      " << module << ": " << msg << std::endl;

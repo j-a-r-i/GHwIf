@@ -40,6 +40,8 @@ enum class CfgItem {
     LOCATION_LAT,
     LOCATION_LON,
     SQLITE_DB,
+    SCHEME_INIT,
+    SCHEME_SYSTEM,
     MAX
 };
 

@@ -5,14 +5,17 @@
 
 #include <config.h>
 #include <exception>
+#include <string>
 
 #ifdef SCR_GUILE
   #include "libguile.h"
   typedef SCM (*foreign_func)(SCM a);
 #endif
 #ifdef SCR_SCHEME
-  #include "external/scheme-private.h"
-  #include "external/scheme.h"
+  extern "C" {
+        #include "tinyscheme/scheme-private.h"
+        #include "tinyscheme/scheme.h"
+  }
   typedef cell *(*foreign_func)(scheme *sc, cell *args);
 #endif
 #ifdef SCR_LUA
@@ -46,10 +49,16 @@ public:
 class IRuntime
 {
 public:
-	virtual void webLoad(int i, int arg) = 0;
-	virtual void webGet(const char* url) = 0;
-	virtual void webVerbose(bool value) = 0;
-	virtual void dbQuery(const char* sql) = 0;
+    virtual void command(const char *name) = 0;
+    virtual void dbQuery(const char* sql) = 0;
+};
+
+//------------------------------------------------------------------------------
+class ICommand
+{
+public:
+    virtual const std::string& getName() = 0;
+    virtual void execute() = 0;
 };
 
 //------------------------------------------------------------------------------

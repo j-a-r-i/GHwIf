@@ -5,8 +5,10 @@
 
 #ifdef SCR_SCHEME
 
-#include "scheme-private.h"
-#include "scheme.h"
+extern "C" {
+#include "tinyscheme/scheme-private.h"
+#include "tinyscheme/scheme.h"
+}
 
 #define INIT_SCRIPT "test.scm"
 
@@ -29,6 +31,8 @@ public:
     void load(const char* filename);
 
     void mainLoop();
+
+    void version();
 
 private:
     scheme scm;

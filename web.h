@@ -9,22 +9,10 @@
 class Web
 {
 public:
-    enum Site {
-	NASDAQ_HIST,
-	NASDAQ_LAST,
-	FMI,
-	STRAVA,
-	SUNRISE,
-	CUSTOM
-    };
-    
     Web(bool verbose = false);
 
     virtual ~Web();
 
-    void setSite(Site s, int arg);
-    void setSite(const char* site, const char *tag);
-    
     void setVerbose(bool val) {
 	verbose = val;
     }
@@ -36,10 +24,42 @@ public:
     /** prints curl version used.
      */
     void version();
-    
+
+protected:
+    BaseParse *parser;
+    std::string url;
+
 private:    
     CURL *handle;
     bool verbose;
-    BaseParse *parser;
-    std::string url;
+};
+
+class WebNasdaqHist : public Web
+{
+    WebNasdaqHist(int instrument);
+};
+
+class WebNasdaqLast : public Web
+{
+    WebNasdaqLast(int instrument);
+};
+
+class WebFmi : public Web
+{
+    WebFmi();
+};
+
+class WebStrava : public Web
+{
+    WebStrava();
+};
+
+class WebSunrise : public Web
+{
+    WebSunrise();
+};
+
+class WebCustom : public Web
+{
+    WebCustom(const char* site, const char* tag);
 };

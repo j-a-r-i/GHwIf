@@ -3,6 +3,7 @@
  ******************************************************************************/
 #include "logger.h"
 #include "common.h"
+#include <string.h>
 #ifdef USE_READLINE
   #include <readline/readline.h>
 #endif
@@ -89,7 +90,14 @@ pointer ScmScript::add(const char* name, double value)
 
 void ScmScript::eval(std::string& line)
 {
+    #define SIZE 4096
+    char output[SIZE];
+
+    memset(output, 0, SIZE);
+    scm.tracing = 1;
+    scheme_set_output_port_string(&scm, output, output+SIZE);
     scheme_load_string(&scm, line.c_str());
+    Log::msg(output);
 }
 
 void ScmScript::exec(const char* func)
@@ -130,4 +138,9 @@ void ScmScript::mainLoop()
 	delete(line);
     }
 #endif
+}
+
+void ScmScript::version()
+{
+    Log::msg("Tinyscheme", "1.4");
 }

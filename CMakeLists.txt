@@ -75,7 +75,7 @@ else (HW_RPI)
 endif (HW_RPI)
 
 if (SCR_SCHEME)
-  list(APPEND EXTRA_SRCS tinyscheme/scheme.c)
+  list(APPEND EXTRA_SRCS external/tinyscheme/scheme.c)
   list(APPEND EXTRA_SRCS scmfunctions.cpp scmscript.cpp)
 endif (SCR_SCHEME)
 
